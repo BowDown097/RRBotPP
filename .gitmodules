@@ -1,0 +1,3 @@
+[submodule "dpp-command-handler"]
+	path = dpp-command-handler
+	url = https://github.com/BowDown097/dpp-command-handler

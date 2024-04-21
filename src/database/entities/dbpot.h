@@ -1,0 +1,21 @@
+#ifndef DBPOT_H
+#define DBPOT_H
+#include "dbobject.h"
+#include <unordered_map>
+
+struct DbPot : DbObject
+{
+    int64_t endTime = -1;
+    int64_t guildId{};
+    std::unordered_map<int64_t, long double> members; // user ID, bet
+    long double value{};
+
+    DbPot() = default;
+    explicit DbPot(const bsoncxx::document::value& doc);
+    bsoncxx::document::value toDocument() const override;
+
+    uint64_t drawMember();
+    long double getMemberOdds(uint64_t userId);
+};
+
+#endif // DBPOT_H
