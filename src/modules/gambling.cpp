@@ -22,8 +22,9 @@ Gambling::Gambling() : dpp::module_base("Gambling", "Do you want to test your lu
     register_command(&Gambling::pot, "pot", "View the pot or add money into it.", "$pot <bet>");
 }
 
-dpp::task<dpp::command_result> Gambling::dice(long double bet, int number)
+dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
 {
+    long double bet = betIn.top_result();
     if (bet < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::BetTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
     if (number < 1 || number > 6)
@@ -38,7 +39,7 @@ dpp::task<dpp::command_result> Gambling::dice(long double bet, int number)
         co_return dpp::command_result::from_error(Responses::NotEnoughCash);
 
     int rolls[3] = { RR::utility::random(1, 7), RR::utility::random(1, 7), RR::utility::random(1, 7) };
-    int matches = std::ranges::count_if(rolls, [&number](int roll) { return roll == number; });
+    int matches = std::ranges::count(rolls, number);
     std::string description = std::format("{} {} {}\n\n", rolls[0], rolls[1], rolls[2]);
 
     long double payout = -bet;
@@ -109,9 +110,9 @@ dpp::task<dpp::command_result> Gambling::doubleGamble()
     co_return dpp::command_result::from_success(Responses::Doubled);
 }
 
-dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& bet)
+dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn)
 {
-    if (!bet)
+    if (!betIn)
     {
         DbPot pot = MongoManager::fetchPot(context->msg.guild_id);
         if (pot.endTime < RR::utility::unixTimeSecs())
@@ -140,6 +141,7 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& b
         co_return dpp::command_result::from_success();
     }
 
+    long double bet = betIn->top_result();
     if (bet < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::BetTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
@@ -160,23 +162,23 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& b
     }
 
     if (auto it = pot.members.find(context->msg.author.id); it != pot.members.end())
-        pot.members[context->msg.author.id] = it->second + bet.value();
+        pot.members[context->msg.author.id] = it->second + bet;
     else
-        pot.members[context->msg.author.id] = bet.value();
+        pot.members[context->msg.author.id] = bet;
 
-    pot.value += bet.value();
-    co_await user.setCashWithoutAdjustment(guildMember.value(), user.cash - bet.value(), cluster, context);
+    pot.value += bet;
+    co_await user.setCashWithoutAdjustment(guildMember.value(), user.cash - bet, cluster, context);
 
     MongoManager::updatePot(pot);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::currencyToStr(bet.value())));
+    co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::currencyToStr(bet)));
 }
 
-dpp::task<dpp::command_result> Gambling::roll55(long double bet) { co_return co_await genericGamble(bet, 55, 1); }
-dpp::task<dpp::command_result> Gambling::roll6969(long double bet) { co_return co_await genericGamble(bet, 69.69L, 6968, true); }
-dpp::task<dpp::command_result> Gambling::roll75(long double bet) { co_return co_await genericGamble(bet, 75, 2.6L); }
-dpp::task<dpp::command_result> Gambling::roll99(long double bet) { co_return co_await genericGamble(bet, 99, 89); }
+dpp::task<dpp::command_result> Gambling::roll55(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 55, 1); }
+dpp::task<dpp::command_result> Gambling::roll6969(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 69.69L, 6968, true); }
+dpp::task<dpp::command_result> Gambling::roll75(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 75, 2.6L); }
+dpp::task<dpp::command_result> Gambling::roll99(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 99, 89); }
 
 dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long double odds, long double mult, bool exactRoll)
 {

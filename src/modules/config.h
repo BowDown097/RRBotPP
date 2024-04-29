@@ -3,6 +3,7 @@
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/channeltypereader.h"
 #include "dpp-command-handler/readers/roletypereader.h"
+#include "readers/cashtypereader.h"
 
 class Config : public dpp::module_base
 {
@@ -10,7 +11,7 @@ public:
     Config();
     MODULE_SETUP(Config)
 private:
-    dpp::command_result addRank(int level, long double cost, const dpp::role_in& roleIn);
+    dpp::command_result addRank(int level, const cash_in& costIn, const dpp::role_in& roleIn);
     dpp::command_result clearConfig();
     dpp::command_result currentConfig();
     dpp::command_result disableCommand(const std::string& cmd);

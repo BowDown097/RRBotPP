@@ -102,8 +102,9 @@ dpp::command_result Administration::resetCooldowns(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, user->get_mention()));
 }
 
-dpp::task<dpp::command_result> Administration::setCash(const dpp::user_in& userIn, long double amount)
+dpp::task<dpp::command_result> Administration::setCash(const dpp::user_in& userIn, const cash_in& amountIn)
 {
+    long double amount = amountIn.top_result();
     if (amount < 0)
         co_return dpp::command_result::from_error(Responses::NegativeCash);
 

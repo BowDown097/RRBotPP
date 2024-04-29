@@ -37,8 +37,9 @@ Config::Config() : dpp::module_base("Config", "This is where all the BORING admi
     register_command(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
 }
 
-dpp::command_result Config::addRank(int level, long double cost, const dpp::role_in& roleIn)
+dpp::command_result Config::addRank(int level, const cash_in& costIn, const dpp::role_in& roleIn)
 {
+    long double cost = costIn.top_result();
     dpp::role* role = roleIn.top_result();
 
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);

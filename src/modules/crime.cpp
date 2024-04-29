@@ -125,8 +125,9 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::user_in& userIn)
     co_return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, long double amount)
+dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, const cash_in& amountIn)
 {
+    long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
         co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::currencyToStr(Constants::RobMinCash)));
 

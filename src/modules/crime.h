@@ -2,6 +2,7 @@
 #define CRIME_H
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
+#include "readers/cashtypereader.h"
 
 class Crime : public dpp::module_base
 {
@@ -13,7 +14,7 @@ private:
     dpp::task<dpp::command_result> deal();
     dpp::task<dpp::command_result> loot();
     dpp::task<dpp::command_result> rape(const dpp::user_in& userIn);
-    dpp::task<dpp::command_result> rob(const dpp::user_in& userIn, long double amount);
+    dpp::task<dpp::command_result> rob(const dpp::user_in& userIn, const cash_in& amountIn);
     dpp::task<dpp::command_result> slavery();
     dpp::task<dpp::command_result> whore();
 

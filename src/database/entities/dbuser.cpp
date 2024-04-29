@@ -247,7 +247,10 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
             else if (long double toAdd = dpp::utility::lexical_cast<long double>(value);
                      long double oldValue = dpp::utility::lexical_cast<long double>(it->second))
             {
-                stats[name] = std::format("{:.4f}", oldValue + toAdd);
+                long double finalValue = oldValue + toAdd;
+                stats[name] = std::floor(finalValue) == finalValue
+                    ? dpp::utility::lexical_cast<std::string>(finalValue)
+                    : std::format("{:.4f}", finalValue);
             }
         }
         else

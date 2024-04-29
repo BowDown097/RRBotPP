@@ -173,8 +173,9 @@ dpp::command_result Economy::ranks()
     return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Economy::sauce(const dpp::user_in& userIn, long double amount)
+dpp::task<dpp::command_result> Economy::sauce(const dpp::user_in& userIn, const cash_in& amountIn)
 {
+    long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::SauceTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
