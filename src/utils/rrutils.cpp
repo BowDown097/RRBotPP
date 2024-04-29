@@ -5,8 +5,7 @@ namespace RR
 {
     namespace utility
     {
-        dpp::embed_author asEmbedAuthor(const dpp::guild_member& guildMember, const dpp::user* user,
-                                        bool useNickname)
+        dpp::embed_author asEmbedAuthor(const dpp::guild_member& guildMember, const dpp::user* user, bool useNickname)
         {
             dpp::embed_author out;
             out.icon_url = getDisplayAvatar(guildMember, user);

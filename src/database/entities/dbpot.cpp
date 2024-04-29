@@ -32,12 +32,11 @@ bsoncxx::document::value DbPot::toDocument() const
 uint64_t DbPot::drawMember()
 {
     double ranges[2] = {0};
-    int roll = RR::utility::random(1, 101);
+    int roll = RR::utility::random(100);
     for (const auto& [userId, _] : members)
     {
         long double odds = getMemberOdds(userId);
-        ranges[0] = ranges[1];
-        ranges[1] = ranges[0];
+        std::swap(ranges[0], ranges[1]);
         ranges[1] = ranges[0] + odds;
         if (roll > ranges[0] && roll <= ranges[1])
             return userId;

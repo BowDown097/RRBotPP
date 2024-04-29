@@ -14,51 +14,51 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Config::Config() : ModuleBase("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
+Config::Config() : dpp::module_base("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
 {
-    registerCommand(&Config::addRank, "addrank", "Register a rank, its level, and the money required to get it.", "$addrank [level] [cost] [role]");
-    registerCommand(&Config::clearConfig, "clearconfig", "Clear all configuration for this server.");
-    registerCommand(&Config::currentConfig, "currentconfig", "List the current configuration for this server.");
-    registerCommand(&Config::disableCommand, "disablecmd", "Disable a command for this server.", "$disablecmd [command]");
-    registerCommand(&Config::disableFiltersInChannel, "disablefiltersinchannel", "Disable filters for a specific channel.", "$disablefiltersinchannel [channel]");
-    registerCommand(&Config::disableModule, "disablemodule", "Disable a module for this server.", "$disablemodule [module]");
-    registerCommand(&Config::enableCommand, "enablecmd", "Enable a previously disabled command.", "$enablecmd [command]");
-    registerCommand(&Config::enableModule, "enablemodule", "Enable a previously disabled module.", "$enablemodule [module]");
-    registerCommand(&Config::setAdminRole, "setadminrole", "Register a role that can use commands in the Administration and Config modules.", "$setadminrole [role]");
-    registerCommand(&Config::setDjRole, "setdjrole", "Register a role as the DJ role, which is required for some of the music commands.", "$setdjrole [role]");
-    registerCommand(&Config::setLogsChannel, "setlogschannel", "Register a channel for logs to be posted in.", "$setlogschannel [channel]");
-    registerCommand(&Config::setModRole, "setmodrole", "Register a role that can use commands in the Moderation module.", "$setmodrole [role]");
-    registerCommand(&Config::setPotChannel, "setpotchannel", "Register a channel for pot winnings to be announced in.", "$setpotchannel [channel]");
-    registerCommand(&Config::toggleDrops, "toggledrops", "Toggles random drops, such as Bank Cheques.");
-    registerCommand(&Config::toggleInviteFilter, "toggleinvitefilter", "Toggle the invite filter.");
-    registerCommand(&Config::toggleNsfw, "togglensfw", "Enable age-restricted content to be played with the music feature.");
-    registerCommand(&Config::toggleScamFilter, "togglescamfilter", "Toggle the scam filter.");
-    registerCommand(&Config::unwhitelistChannel, "unwhitelistchannel", "Remove a channel from the bot command whitelist.", "$unwhitelistchannel [channel]");
-    registerCommand(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
+    register_command(&Config::addRank, "addrank", "Register a rank, its level, and the money required to get it.", "$addrank [level] [cost] [role]");
+    register_command(&Config::clearConfig, "clearconfig", "Clear all configuration for this server.");
+    register_command(&Config::currentConfig, "currentconfig", "List the current configuration for this server.");
+    register_command(&Config::disableCommand, "disablecmd", "Disable a command for this server.", "$disablecmd [command]");
+    register_command(&Config::disableFiltersInChannel, "disablefiltersinchannel", "Disable filters for a specific channel.", "$disablefiltersinchannel [channel]");
+    register_command(&Config::disableModule, "disablemodule", "Disable a module for this server.", "$disablemodule [module]");
+    register_command(&Config::enableCommand, "enablecmd", "Enable a previously disabled command.", "$enablecmd [command]");
+    register_command(&Config::enableModule, "enablemodule", "Enable a previously disabled module.", "$enablemodule [module]");
+    register_command(&Config::setAdminRole, "setadminrole", "Register a role that can use commands in the Administration and Config modules.", "$setadminrole [role]");
+    register_command(&Config::setDjRole, "setdjrole", "Register a role as the DJ role, which is required for some of the music commands.", "$setdjrole [role]");
+    register_command(&Config::setLogsChannel, "setlogschannel", "Register a channel for logs to be posted in.", "$setlogschannel [channel]");
+    register_command(&Config::setModRole, "setmodrole", "Register a role that can use commands in the Moderation module.", "$setmodrole [role]");
+    register_command(&Config::setPotChannel, "setpotchannel", "Register a channel for pot winnings to be announced in.", "$setpotchannel [channel]");
+    register_command(&Config::toggleDrops, "toggledrops", "Toggles random drops, such as Bank Cheques.");
+    register_command(&Config::toggleInviteFilter, "toggleinvitefilter", "Toggle the invite filter.");
+    register_command(&Config::toggleNsfw, "togglensfw", "Enable age-restricted content to be played with the music feature.");
+    register_command(&Config::toggleScamFilter, "togglescamfilter", "Toggle the scam filter.");
+    register_command(&Config::unwhitelistChannel, "unwhitelistchannel", "Remove a channel from the bot command whitelist.", "$unwhitelistchannel [channel]");
+    register_command(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
 }
 
-CommandResult Config::addRank(int level, long double cost, const RoleTypeReader& roleRead)
+dpp::command_result Config::addRank(int level, long double cost, const dpp::role_in& roleIn)
 {
-    dpp::role* role = roleRead.topResult();
+    dpp::role* role = roleIn.top_result();
 
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);
     ranks.costs.emplace(level, cost);
     ranks.ids.emplace(level, role->id);
 
     MongoManager::updateRankConfig(ranks);
-    return CommandResult::fromSuccess(std::format(Responses::AddedRank, role->get_mention(), level, RR::utility::currencyToStr(cost)));
+    return dpp::command_result::from_success(std::format(Responses::AddedRank, role->get_mention(), level, RR::utility::currencyToStr(cost)));
 }
 
-CommandResult Config::clearConfig()
+dpp::command_result Config::clearConfig()
 {
     MongoManager::deleteChannelConfig(context->msg.guild_id);
     MongoManager::deleteMiscConfig(context->msg.guild_id);
     MongoManager::deleteRankConfig(context->msg.guild_id);
     MongoManager::deleteRoleConfig(context->msg.guild_id);
-    return CommandResult::fromSuccess(Responses::ClearedConfig);
+    return dpp::command_result::from_success(Responses::ClearedConfig);
 }
 
-CommandResult Config::currentConfig()
+dpp::command_result Config::currentConfig()
 {
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     auto noFilterChannels = channels.noFilterChannels | std::views::transform([](int64_t id) {
@@ -111,168 +111,168 @@ CommandResult Config::currentConfig()
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult Config::disableCommand(const std::string& cmd)
+dpp::command_result Config::disableCommand(const std::string& cmd)
 {
     if (dpp::utility::iequals(cmd, "disablecmd") || dpp::utility::iequals(cmd, "enablecmd"))
-        return CommandResult::fromError(Responses::BadIdea);
+        return dpp::command_result::from_error(Responses::BadIdea);
 
-    std::vector<std::reference_wrapper<const CommandInfo>> commands = service->searchCommand(cmd);
+    std::vector<std::reference_wrapper<const dpp::command_info>> commands = service->search_command(cmd);
     if (commands.empty())
-        return CommandResult::fromError(Responses::NonexistentCommand);
+        return dpp::command_result::from_error(Responses::NonexistentCommand);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.disabledCommands.push_back(commands[0].get().name());
 
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(Responses::SetCommandDisabled);
+    return dpp::command_result::from_success(Responses::SetCommandDisabled);
 }
 
-CommandResult Config::disableFiltersInChannel(const ChannelTypeReader& channelRead)
+dpp::command_result Config::disableFiltersInChannel(const dpp::channel_in& channelIn)
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     if (!misc.inviteFilterEnabled && !misc.scamFilterEnabled)
-        return CommandResult::fromError(Responses::NoFiltersToDisable);
+        return dpp::command_result::from_error(Responses::NoFiltersToDisable);
 
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
-    channels.noFilterChannels.push_back(channelRead.topResult()->id);
+    channels.noFilterChannels.push_back(channel->id);
 
     MongoManager::updateChannelConfig(channels);
-    return CommandResult::fromSuccess(std::format(Responses::DisabledFilters, channel->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::DisabledFilters, channel->get_mention()));
 }
 
-CommandResult Config::disableModule(const std::string& module)
+dpp::command_result Config::disableModule(const std::string& module)
 {
     if (dpp::utility::iequals(module, "Config"))
-        return CommandResult::fromError(Responses::BadIdea);
+        return dpp::command_result::from_error(Responses::BadIdea);
 
-    std::vector<std::reference_wrapper<const ModuleBase>> modules = service->searchModule(module);
+    std::vector<std::reference_wrapper<const dpp::module_base>> modules = service->search_module(module);
     if (modules.empty())
-        return CommandResult::fromError(Responses::NonexistentModule);
+        return dpp::command_result::from_error(Responses::NonexistentModule);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.disabledModules.push_back(modules[0].get().name());
 
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(Responses::SetModuleDisabled);
+    return dpp::command_result::from_success(Responses::SetModuleDisabled);
 }
 
-CommandResult Config::enableCommand(const std::string& cmd)
+dpp::command_result Config::enableCommand(const std::string& cmd)
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     if (!std::erase_if(misc.disabledCommands, [&cmd](const std::string& c) { return dpp::utility::iequals(c, cmd); }))
-        return CommandResult::fromError(Responses::NotDisabledCommand);
+        return dpp::command_result::from_error(Responses::NotDisabledCommand);
 
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(Responses::SetCommandEnabled);
+    return dpp::command_result::from_success(Responses::SetCommandEnabled);
 }
 
-CommandResult Config::enableModule(const std::string& module)
+dpp::command_result Config::enableModule(const std::string& module)
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     if (!std::erase_if(misc.disabledModules, [&module](const std::string& m) { return dpp::utility::iequals(m, module); }))
-        return CommandResult::fromError(Responses::NotDisabledModule);
+        return dpp::command_result::from_error(Responses::NotDisabledModule);
 
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(Responses::SetModuleEnabled);
+    return dpp::command_result::from_success(Responses::SetModuleEnabled);
 }
 
-CommandResult Config::setAdminRole(const RoleTypeReader& roleRead)
+dpp::command_result Config::setAdminRole(const dpp::role_in& roleIn)
 {
-    dpp::role* role = roleRead.topResult();
+    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.staffLvl2Role = role->id;
     MongoManager::updateRoleConfig(roles);
-    return CommandResult::fromSuccess(std::format(Responses::SetAdminRole, role->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetAdminRole, role->get_mention()));
 }
 
-CommandResult Config::setDjRole(const RoleTypeReader& roleRead)
+dpp::command_result Config::setDjRole(const dpp::role_in& roleIn)
 {
-    dpp::role* role = roleRead.topResult();
+    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.djRole = role->id;
     MongoManager::updateRoleConfig(roles);
-    return CommandResult::fromSuccess(std::format(Responses::SetDjRole, role->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetDjRole, role->get_mention()));
 }
 
-CommandResult Config::setLogsChannel(const ChannelTypeReader& channelRead)
+dpp::command_result Config::setLogsChannel(const dpp::channel_in& channelIn)
 {
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.logsChannel = channel->id;
     MongoManager::updateChannelConfig(channels);
-    return CommandResult::fromSuccess(std::format(Responses::SetLogsChannel, channel->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetLogsChannel, channel->get_mention()));
 }
 
-CommandResult Config::setModRole(const RoleTypeReader& roleRead)
+dpp::command_result Config::setModRole(const dpp::role_in& roleIn)
 {
-    dpp::role* role = roleRead.topResult();
+    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.staffLvl1Role = role->id;
     MongoManager::updateRoleConfig(roles);
-    return CommandResult::fromSuccess(std::format(Responses::SetModRole, role->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetModRole, role->get_mention()));
 }
 
-CommandResult Config::setPotChannel(const ChannelTypeReader& channelRead)
+dpp::command_result Config::setPotChannel(const dpp::channel_in& channelIn)
 {
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.potChannel = channel->id;
     MongoManager::updateChannelConfig(channels);
-    return CommandResult::fromSuccess(std::format(Responses::SetPotChannel, channel->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetPotChannel, channel->get_mention()));
 }
 
-CommandResult Config::toggleDrops()
+dpp::command_result Config::toggleDrops()
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.dropsDisabled = !misc.dropsDisabled;
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(std::format(Responses::ToggledRandomDrops, misc.dropsDisabled ? "OFF" : "ON"));
+    return dpp::command_result::from_success(std::format(Responses::ToggledRandomDrops, misc.dropsDisabled ? "OFF" : "ON"));
 }
 
-CommandResult Config::toggleInviteFilter()
+dpp::command_result Config::toggleInviteFilter()
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.inviteFilterEnabled = !misc.inviteFilterEnabled;
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(std::format(Responses::ToggledInviteFilter, misc.inviteFilterEnabled ? "ON" : "OFF"));
+    return dpp::command_result::from_success(std::format(Responses::ToggledInviteFilter, misc.inviteFilterEnabled ? "ON" : "OFF"));
 }
 
-CommandResult Config::toggleNsfw()
+dpp::command_result Config::toggleNsfw()
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.nsfwEnabled = !misc.nsfwEnabled;
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(std::format(Responses::ToggledNsfw, misc.nsfwEnabled ? "ON" : "OFF"));
+    return dpp::command_result::from_success(std::format(Responses::ToggledNsfw, misc.nsfwEnabled ? "ON" : "OFF"));
 }
 
-CommandResult Config::toggleScamFilter()
+dpp::command_result Config::toggleScamFilter()
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     misc.scamFilterEnabled = !misc.scamFilterEnabled;
     MongoManager::updateMiscConfig(misc);
-    return CommandResult::fromSuccess(std::format(Responses::ToggledScamFilter, misc.scamFilterEnabled ? "ON" : "OFF"));
+    return dpp::command_result::from_success(std::format(Responses::ToggledScamFilter, misc.scamFilterEnabled ? "ON" : "OFF"));
 }
 
-CommandResult Config::unwhitelistChannel(const ChannelTypeReader& channelRead)
+dpp::command_result Config::unwhitelistChannel(const dpp::channel_in& channelIn)
 {
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     if (!std::erase(channels.whitelistedChannels, channel->id))
-        return CommandResult::fromError(Responses::ChannelNotWhitelisted);
+        return dpp::command_result::from_error(Responses::ChannelNotWhitelisted);
 
     MongoManager::updateChannelConfig(channels);
-    return CommandResult::fromSuccess(std::format(Responses::ChannelUnwhitelisted, channel->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::ChannelUnwhitelisted, channel->get_mention()));
 }
 
-CommandResult Config::whitelistChannel(const ChannelTypeReader& channelRead)
+dpp::command_result Config::whitelistChannel(const dpp::channel_in& channelIn)
 {
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.whitelistedChannels.push_back(channel->id);
     MongoManager::updateChannelConfig(channels);
-    return CommandResult::fromSuccess(std::format(Responses::ChannelWhitelisted, channel->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::ChannelWhitelisted, channel->get_mention()));
 }

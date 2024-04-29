@@ -33,6 +33,7 @@ add_executable(RRBot
     src/modules/crime.h src/modules/crime.cpp
     src/modules/economy.h src/modules/economy.cpp
     src/modules/fun.h src/modules/fun.cpp
+    src/modules/gambling.h src/modules/gambling.cpp
     src/modules/general.h src/modules/general.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h

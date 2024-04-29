@@ -9,30 +9,30 @@
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-General::General() : ModuleBase("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
+General::General() : dpp::module_base("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
 {
-    registerCommand(&General::achievements, std::initializer_list<std::string> { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
-    registerCommand(&General::help, "help", "View info about a command.", "$help <command>");
-    registerCommand(&General::info, "info", "View info about the bot.");
-    registerCommand(&General::module, "module", "View info about a module.", "$module [module]");
-    registerCommand(&General::modules, "modules", "View info about the bot's modules.");
-    registerCommand(&General::serverInfo, "serverinfo", "View info about this server.");
-    registerCommand(&General::stats, "stats", "View various statistics about yourself or another user.", "$stats <user>");
-    registerCommand(&General::userInfo, std::initializer_list<std::string> { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
+    register_command(&General::achievements, std::initializer_list<std::string> { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
+    register_command(&General::help, "help", "View info about a command.", "$help <command>");
+    register_command(&General::info, "info", "View info about the bot.");
+    register_command(&General::module, "module", "View info about a module.", "$module [module]");
+    register_command(&General::modules, "modules", "View info about the bot's modules.");
+    register_command(&General::serverInfo, "serverinfo", "View info about this server.");
+    register_command(&General::stats, "stats", "View various statistics about yourself or another user.", "$stats <user>");
+    register_command(&General::userInfo, std::initializer_list<std::string> { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
 }
 
-CommandResult General::achievements(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result General::achievements(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (dbUser.achievements.empty())
     {
-        return CommandResult::fromError(user->id == context->msg.author.id
+        return dpp::command_result::from_error(user->id == context->msg.author.id
             ? Responses::YouHaveNoAchs : std::format(Responses::UserHasNoAchs, user->get_mention()));
     }
 
@@ -46,19 +46,19 @@ CommandResult General::achievements(const std::optional<UserTypeReader>& userOpt
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult General::help(const std::optional<std::string>& commandName)
+dpp::command_result General::help(const std::optional<std::string>& commandName)
 {
     if (!commandName)
-        return CommandResult::fromSuccess(Responses::HelpGenericResponse);
+        return dpp::command_result::from_success(Responses::HelpGenericResponse);
 
-    std::vector<std::reference_wrapper<const CommandInfo>> commands = service->searchCommand(commandName.value());
+    std::vector<std::reference_wrapper<const dpp::command_info>> commands = service->search_command(commandName.value());
     if (commands.empty())
-        return CommandResult::fromError(Responses::NonexistentCommand);
+        return dpp::command_result::from_error(Responses::NonexistentCommand);
 
-    const CommandInfo& command = commands.front();
+    const dpp::command_info& command = commands.front();
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
        .set_description("**" + boost::locale::to_title(command.name()) + "**")
@@ -68,12 +68,12 @@ CommandResult General::help(const std::optional<std::string>& commandName)
        .add_field("Aliases", dpp::utility::join(command.aliases(), ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult General::info()
+dpp::command_result General::info()
 {
-    std::span<const std::unique_ptr<ModuleBase>> modules = service->modules();
+    std::span<const std::unique_ptr<dpp::module_base>> modules = service->modules();
     uint32_t commandCount = std::accumulate(modules.begin(), modules.end(), 0,
                                             [](uint32_t a, auto& b) { return a + b->commands().size(); });
 
@@ -89,17 +89,17 @@ CommandResult General::info()
         .set_footer(Responses::InfoFooter, "");
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult General::module(const std::string& moduleName)
+dpp::command_result General::module(const std::string& moduleName)
 {
-    std::vector<std::reference_wrapper<const ModuleBase>> modules = service->searchModule(moduleName);
+    std::vector<std::reference_wrapper<const dpp::module_base>> modules = service->search_module(moduleName);
     if (modules.empty())
-        return CommandResult::fromError(Responses::NonexistentModule);
+        return dpp::command_result::from_error(Responses::NonexistentModule);
 
-    const ModuleBase& module = modules.front();
-    std::vector<std::reference_wrapper<const CommandInfo>> commands = module.commands();
+    const dpp::module_base& module = modules.front();
+    std::vector<std::reference_wrapper<const dpp::command_info>> commands = module.commands();
     std::ranges::sort(commands, [](auto a, auto b) { return a.get().name() < b.get().name(); });
     std::string commandsList = std::accumulate(std::next(commands.cbegin()), commands.cend(), commands.front().get().name(),
                                                [](std::string a, auto b) { return a + ", " + b.get().name(); });
@@ -111,12 +111,12 @@ CommandResult General::module(const std::string& moduleName)
        .add_field("Description", module.summary());
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult General::modules()
+dpp::command_result General::modules()
 {
-    std::span<const std::unique_ptr<ModuleBase>, std::dynamic_extent> modules = service->modules();
+    std::span<const std::unique_ptr<dpp::module_base>> modules = service->modules();
     std::string modulesList = std::accumulate(std::next(modules.begin()), modules.end(), modules.front()->name(),
                                               [](std::string a, auto& b) { return a + ", " + b->name(); });
 
@@ -126,14 +126,14 @@ CommandResult General::modules()
        .set_description(modulesList);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-dpp::task<CommandResult> General::serverInfo()
+dpp::task<dpp::command_result> General::serverInfo()
 {
     dpp::guild* guild = dpp::find_guild(context->msg.guild_id);
     if (!guild)
-        co_return CommandResult::fromError(Responses::GetGuildFailed);
+        co_return dpp::command_result::from_error(Responses::GetGuildFailed);
 
     auto stickers = co_await RR::utility::co_get<dpp::sticker_map>(std::move(cluster->co_guild_stickers_get(guild->id)));
 
@@ -181,21 +181,21 @@ dpp::task<CommandResult> General::serverInfo()
         .add_field("Vanity URL", !guild->vanity_url_code.empty() ? guild->vanity_url_code : "N/A", true);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    co_return CommandResult::fromSuccess();
+    co_return dpp::command_result::from_success();
 }
 
-CommandResult General::stats(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (dbUser.stats.empty())
     {
-        return CommandResult::fromError(user->id == context->msg.author.id
+        return dpp::command_result::from_error(user->id == context->msg.author.id
             ? Responses::YouHaveNoStats : std::format(Responses::UserHasNoStats, user->get_mention()));
     }
 
@@ -211,26 +211,26 @@ CommandResult General::stats(const std::optional<UserTypeReader>& userOpt)
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult General::userInfo(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result General::userInfo(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
 
     dpp::guild* guild = dpp::find_guild(context->msg.guild_id);
     if (!guild)
-        return CommandResult::fromError(Responses::GetGuildFailed);
+        return dpp::command_result::from_error(Responses::GetGuildFailed);
 
     std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(guild->id, user->id);
     if (!guildMember)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
 
     dpp::channel* channel = dpp::find_channel(context->msg.channel_id);
     if (!channel)
-        return CommandResult::fromError(Responses::GetChannelFailed);
+        return dpp::command_result::from_error(Responses::GetChannelFailed);
 
     dpp::permission overwrites = guild->permission_overwrites(guildMember.value(), *channel);
     std::vector<std::pair<dpp::permissions, std::string>> perms = RR::utility::permissionsToList(overwrites);
@@ -255,5 +255,5 @@ CommandResult General::userInfo(const std::optional<UserTypeReader>& userOpt)
         .add_field("Roles", dpp::utility::join(roleMentions, ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }

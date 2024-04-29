@@ -10,86 +10,86 @@
 #include <dpp/cluster.h>
 #include <mongocxx/collection.hpp>
 
-Administration::Administration() : ModuleBase("Administration", "Commands for admin stuff. Whether you wanna screw with the economy or fuck someone over, I'm sure you'll have fun. However, you'll need to have a very high role to have all this fun. Sorry!")
+Administration::Administration() : dpp::module_base("Administration", "Commands for admin stuff. Whether you wanna screw with the economy or fuck someone over, I'm sure you'll have fun. However, you'll need to have a very high role to have all this fun. Sorry!")
 {
-    registerCommand(&Administration::clearTextChannel, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
-    registerCommand(&Administration::drawPot, "drawpot", "Draw the pot before it ends.");
-    registerCommand(&Administration::removeAchievement, std::initializer_list<std::string> { "removeachievement", "rmach" }, "Remove a user's achievement.", "$removeachievement [user] [name]");
-    registerCommand(&Administration::removeCrates, std::initializer_list<std::string> { "removecrates", "rmcrates" }, "Remove a user's crates.", "$removecrates [user]");
-    registerCommand(&Administration::removeStat, std::initializer_list<std::string> { "removestat", "rmstat" }, "Remove a user's stat.", "$removestat [user] [stat]");
-    registerCommand(&Administration::resetCooldowns, "resetcd", "Reset a user's cooldowns.", "$resetcd [user]");
-    registerCommand(&Administration::setCash, "setcash", "Set a user's cash.", "$setcash [user] [amount]");
-    registerCommand(&Administration::setCrypto, "setcrypto", "Set a user's cryptocurrency amount. See $invest's help info for currently accepted currencies.", "$setcrypto [user] [crypto] [amount]");
-    registerCommand(&Administration::setPrestige, "setprestige", "Set a user's prestige level.", "$setprestige [user] [level]");
-    registerCommand(&Administration::setStat, "setstat", "Set a stat for a user.", "$setstat [user] [stat] [value]");
-    registerCommand(&Administration::unlockAchievement, "unlockachievement", "Unlock an achievement for a user.", "$unlockachievement [user] [achievement]");
+    register_command(&Administration::clearTextChannel, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
+    register_command(&Administration::drawPot, "drawpot", "Draw the pot before it ends.");
+    register_command(&Administration::removeAchievement, std::initializer_list<std::string> { "removeachievement", "rmach" }, "Remove a user's achievement.", "$removeachievement [user] [name]");
+    register_command(&Administration::removeCrates, std::initializer_list<std::string> { "removecrates", "rmcrates" }, "Remove a user's crates.", "$removecrates [user]");
+    register_command(&Administration::removeStat, std::initializer_list<std::string> { "removestat", "rmstat" }, "Remove a user's stat.", "$removestat [user] [stat]");
+    register_command(&Administration::resetCooldowns, "resetcd", "Reset a user's cooldowns.", "$resetcd [user]");
+    register_command(&Administration::setCash, "setcash", "Set a user's cash.", "$setcash [user] [amount]");
+    register_command(&Administration::setCrypto, "setcrypto", "Set a user's cryptocurrency amount. See $invest's help info for currently accepted currencies.", "$setcrypto [user] [crypto] [amount]");
+    register_command(&Administration::setPrestige, "setprestige", "Set a user's prestige level.", "$setprestige [user] [level]");
+    register_command(&Administration::setStat, "setstat", "Set a stat for a user.", "$setstat [user] [stat] [value]");
+    register_command(&Administration::unlockAchievement, "unlockachievement", "Unlock an achievement for a user.", "$unlockachievement [user] [achievement]");
 }
 
-dpp::task<CommandResult> Administration::clearTextChannel(const ChannelTypeReader& channelRead)
+dpp::task<dpp::command_result> Administration::clearTextChannel(const dpp::channel_in& channelIn)
 {
-    dpp::channel* channel = channelRead.topResult();
+    dpp::channel* channel = channelIn.top_result();
     co_await cluster->co_channel_delete(channel->id);
     co_await cluster->co_channel_create(*channel);
-    co_return CommandResult::fromSuccess();
+    co_return dpp::command_result::from_success();
 }
 
-CommandResult Administration::drawPot()
+dpp::command_result Administration::drawPot()
 {
     DbPot pot = MongoManager::fetchPot(context->msg.guild_id);
     if (pot.endTime < RR::utility::unixTimeSecs())
-        return CommandResult::fromError(Responses::PotEmpty);
+        return dpp::command_result::from_error(Responses::PotEmpty);
 
     pot.endTime = 69;
     MongoManager::updatePot(pot);
-    return CommandResult::fromSuccess(Responses::PotDrawing);
+    return dpp::command_result::from_success(Responses::PotDrawing);
 }
 
-CommandResult Administration::removeAchievement(const UserTypeReader& userRead, const std::string& name)
+dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn, const std::string& name)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (!std::erase_if(dbUser.achievements, [&name](auto& p) { return dpp::utility::iequals(p.first, name); }))
-        return CommandResult::fromError(std::format(Responses::MissingAchievement, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::MissingAchievement, user->get_mention()));
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::RemovedAchievement, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedAchievement, user->get_mention()));
 }
 
-CommandResult Administration::removeCrates(const UserTypeReader& userRead)
+dpp::command_result Administration::removeCrates(const dpp::user_in& userIn)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dbUser.crates.clear();
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::RemovedCrates, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedCrates, user->get_mention()));
 }
 
-CommandResult Administration::removeStat(const UserTypeReader& userRead, const std::string& stat)
+dpp::command_result Administration::removeStat(const dpp::user_in& userIn, const std::string& stat)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (!std::erase_if(dbUser.stats, [&stat](auto& p) { return dpp::utility::iequals(p.first, stat); }))
-        return CommandResult::fromError(std::format(Responses::MissingStat, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::MissingStat, user->get_mention()));
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::RemovedStat, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedStat, user->get_mention()));
 }
 
-CommandResult Administration::resetCooldowns(const UserTypeReader& userRead)
+dpp::command_result Administration::resetCooldowns(const dpp::user_in& userIn)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dbUser.bullyCooldown = dbUser.chopCooldown = dbUser.cocaineRecoveryTime = dbUser.dailyCooldown =
@@ -99,34 +99,35 @@ CommandResult Administration::resetCooldowns(const UserTypeReader& userRead)
     dbUser.scavengeCooldown = dbUser.shootCooldown = dbUser.slaveryCooldown = dbUser.whoreCooldown = 0;
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::ResetCooldowns, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, user->get_mention()));
 }
 
-dpp::task<CommandResult> Administration::setCash(const UserTypeReader& userRead, long double amount)
+dpp::task<dpp::command_result> Administration::setCash(const dpp::user_in& userIn, long double amount)
 {
     if (amount < 0)
-        co_return CommandResult::fromError(Responses::NegativeCash);
+        co_return dpp::command_result::from_error(Responses::NegativeCash);
 
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        co_return CommandResult::fromError(Responses::UserIsBot);
+        co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, user->id);
     if (!guildMember)
-        co_return CommandResult::fromError(Responses::GetUserFailed);
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     co_await dbUser.setCashWithoutAdjustment(guildMember.value(), amount, cluster, context);
 
     MongoManager::updateUser(dbUser);
-    co_return CommandResult::fromSuccess(std::format(Responses::SetCash, user->get_mention(), RR::utility::currencyToStr(amount)));
+    co_return dpp::command_result::from_success(std::format(Responses::SetCash,
+        user->get_mention(), RR::utility::currencyToStr(amount)));
 }
 
-CommandResult Administration::setCrypto(const UserTypeReader& userRead, const std::string& crypto, long double amount)
+dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const std::string& crypto, long double amount)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     std::string cryptoLower;
     std::ranges::transform(crypto, std::back_inserter(cryptoLower), tolower);
@@ -141,53 +142,53 @@ CommandResult Administration::setCrypto(const UserTypeReader& userRead, const st
     else if (cryptoLower == "xrp")
         dbUser.xrp = amount;
     else
-        return CommandResult::fromError(Responses::InvalidCrypto);
+        return dpp::command_result::from_error(Responses::InvalidCrypto);
 
     std::string cryptoUpper;
     std::ranges::transform(crypto, std::back_inserter(cryptoUpper), toupper);
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::SetCrypto, user->get_mention(), cryptoUpper, amount));
+    return dpp::command_result::from_success(std::format(Responses::SetCrypto, user->get_mention(), cryptoUpper, amount));
 }
 
-CommandResult Administration::setPrestige(const UserTypeReader& userRead, int level)
+dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int level)
 {
     if (level < 0 || level > Constants::MaxPrestige)
-        return CommandResult::fromError(Responses::InvalidPrestigeLevel);
+        return dpp::command_result::from_error(Responses::InvalidPrestigeLevel);
 
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dbUser.prestige = level;
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::SetPrestige, user->get_mention(), level));
+    return dpp::command_result::from_success(std::format(Responses::SetPrestige, user->get_mention(), level));
 }
 
-CommandResult Administration::setStat(const UserTypeReader& userRead, const std::string& stat, const std::string& value)
+dpp::command_result Administration::setStat(const dpp::user_in& userIn, const std::string& stat, const std::string& value)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dbUser.stats[stat] = value;
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess(std::format(Responses::SetStat, user->get_mention(), stat, value));
+    return dpp::command_result::from_success(std::format(Responses::SetStat, user->get_mention(), stat, value));
 }
 
-CommandResult Administration::unlockAchievement(const UserTypeReader& userRead, const std::string& name)
+dpp::command_result Administration::unlockAchievement(const dpp::user_in& userIn, const std::string& name)
 {
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dbUser.unlockAchievement(name, context);
 
     MongoManager::updateUser(dbUser);
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }

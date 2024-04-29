@@ -3,20 +3,20 @@
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
-class General : public ModuleBase
+class General : public dpp::module_base
 {
 public:
     General();
     MODULE_SETUP(General)
 private:
-    CommandResult achievements(const std::optional<UserTypeReader>& userOpt);
-    CommandResult help(const std::optional<std::string>& commandName);
-    CommandResult info();
-    CommandResult module(const std::string& moduleName);
-    CommandResult modules();
-    dpp::task<CommandResult> serverInfo();
-    CommandResult stats(const std::optional<UserTypeReader>& userOpt);
-    CommandResult userInfo(const std::optional<UserTypeReader>& userOpt);
+    dpp::command_result achievements(const std::optional<dpp::user_in>& userOpt);
+    dpp::command_result help(const std::optional<std::string>& commandName);
+    dpp::command_result info();
+    dpp::command_result module(const std::string& moduleName);
+    dpp::command_result modules();
+    dpp::task<dpp::command_result> serverInfo();
+    dpp::command_result stats(const std::optional<dpp::user_in>& userOpt);
+    dpp::command_result userInfo(const std::optional<dpp::user_in>& userOpt);
 };
 
 #endif // GENERAL_H

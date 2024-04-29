@@ -74,6 +74,10 @@ namespace Constants
     constexpr long double ScavengeMaxCash = 100;
     constexpr double ScavengeTimeout = 15;
     // ********************
+    //       GAMBLING
+    // ********************
+    constexpr int DoubleOdds = 45;
+    // ********************
     //     INVESTMENTS
     // ********************
     constexpr long double InvestmentFeePercent = 1.5L;

@@ -10,42 +10,42 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Economy::Economy() : ModuleBase("Economy", "This is the hub for checking and managing your economy stuff. Wanna know how much cash you have? Or what items you have? Or do you want to check out le shoppe? It's all here.")
+Economy::Economy() : dpp::module_base("Economy", "This is the hub for checking and managing your economy stuff. Wanna know how much cash you have? Or what items you have? Or do you want to check out le shoppe? It's all here.")
 {
-    registerCommand(&Economy::balance, std::initializer_list<std::string> { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
-    registerCommand(&Economy::cooldowns, std::initializer_list<std::string> { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");
-    registerCommand(&Economy::profile, "profile", "View a bunch of economy-related info on yourself or another user.", "$profile <user>");
-    registerCommand(&Economy::ranks, "ranks", "View all the ranks and their costs.");
-    registerCommand(&Economy::sauce, std::initializer_list<std::string> { "sauce", "give", "transfer" }, "Sauce someone some cash.");
+    register_command(&Economy::balance, std::initializer_list<std::string> { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
+    register_command(&Economy::cooldowns, std::initializer_list<std::string> { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");
+    register_command(&Economy::profile, "profile", "View a bunch of economy-related info on yourself or another user.", "$profile <user>");
+    register_command(&Economy::ranks, "ranks", "View all the ranks and their costs.");
+    register_command(&Economy::sauce, std::initializer_list<std::string> { "sauce", "give", "transfer" }, "Sauce someone some cash.");
 }
 
-CommandResult Economy::balance(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result Economy::balance(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (dbUser.cash < 0.01L)
     {
-        return CommandResult::fromError(user->id == context->msg.author.id
+        return dpp::command_result::from_error(user->id == context->msg.author.id
             ? Responses::YouAreBroke : std::format(Responses::UserIsBroke, user->get_mention()));
     }
 
-    return CommandResult::fromSuccess(user->id == context->msg.author.id
+    return dpp::command_result::from_success(user->id == context->msg.author.id
         ? std::format(Responses::YourBalance, RR::utility::currencyToStr(dbUser.cash))
         : std::format(Responses::UserBalance, user->get_mention(), RR::utility::currencyToStr(dbUser.cash)));
 }
 
-CommandResult Economy::cooldowns(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     std::string description;
@@ -61,20 +61,20 @@ CommandResult Economy::cooldowns(const std::optional<UserTypeReader>& userOpt)
         .set_description(!description.empty() ? description : "None");
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult Economy::profile(const std::optional<UserTypeReader>& userOpt)
+dpp::command_result Economy::profile(const std::optional<dpp::user_in>& userOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->topResult() : &context->msg.author;
+    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
     if (!user)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return CommandResult::fromError(Responses::UserIsBot);
+        return dpp::command_result::from_error(Responses::UserIsBot);
 
     std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, user->id);
     if (!guildMember)
-        return CommandResult::fromError(Responses::GetUserFailed);
+        return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dpp::embed embed = dpp::embed()
@@ -151,10 +151,10 @@ CommandResult Economy::profile(const std::optional<UserTypeReader>& userOpt)
     }
 
     context->reply(dpp::message(context->msg.guild_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-CommandResult Economy::ranks()
+dpp::command_result Economy::ranks()
 {
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -170,40 +170,40 @@ CommandResult Economy::ranks()
         .set_description(!description.empty() ? description : "None");
 
     context->reply(dpp::message(context->msg.guild_id, embed));
-    return CommandResult::fromSuccess();
+    return dpp::command_result::from_success();
 }
 
-dpp::task<CommandResult> Economy::sauce(const UserTypeReader& userRead, long double amount)
+dpp::task<dpp::command_result> Economy::sauce(const dpp::user_in& userIn, long double amount)
 {
     if (amount < Constants::TransactionMin)
-        co_return CommandResult::fromError(std::format(Responses::SauceTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::SauceTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
-    dpp::user* user = userRead.topResult();
+    dpp::user* user = userIn.top_result();
     if (user->id == context->msg.author.id)
-        co_return CommandResult::fromError(Responses::BadIdea);
+        co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
-        co_return CommandResult::fromError(Responses::UserIsBot);
+        co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.cash < amount)
-        co_return CommandResult::fromError(Responses::NotEnoughCash);
+        co_return dpp::command_result::from_error(Responses::NotEnoughCash);
 
     DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (target.usingSlots)
-        co_return CommandResult::fromError(Responses::UserIsGambling);
+        co_return dpp::command_result::from_error(Responses::UserIsGambling);
 
     std::optional<dpp::guild_member> authorGM = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
     if (!authorGM)
-        co_return CommandResult::fromError(Responses::GetUserFailed);
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     std::optional<dpp::guild_member> targetGM = RR::utility::findGuildMember(context->msg.guild_id, user->id);
     if (!targetGM)
-        co_return CommandResult::fromError(Responses::GetUserFailed);
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
-    co_await author.setCash(authorGM.value(), author.cash - amount, cluster, context);
-    co_await target.setCash(targetGM.value(), target.cash + amount, cluster, context);
+    co_await author.setCashWithoutAdjustment(authorGM.value(), author.cash - amount, cluster, context);
+    co_await target.setCashWithoutAdjustment(targetGM.value(), target.cash + amount, cluster, context);
 
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
-    co_return CommandResult::fromSuccess(std::format(Responses::SaucedUser, user->get_mention(), RR::utility::currencyToStr(amount)));
+    co_return dpp::command_result::from_success(std::format(Responses::SaucedUser, user->get_mention(), RR::utility::currencyToStr(amount)));
 }

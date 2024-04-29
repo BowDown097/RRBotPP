@@ -4,31 +4,31 @@
 #include "dpp-command-handler/readers/channeltypereader.h"
 #include "dpp-command-handler/readers/roletypereader.h"
 
-class Config : public ModuleBase
+class Config : public dpp::module_base
 {
 public:
     Config();
     MODULE_SETUP(Config)
 private:
-    CommandResult addRank(int level, long double cost, const RoleTypeReader& roleRead);
-    CommandResult clearConfig();
-    CommandResult currentConfig();
-    CommandResult disableCommand(const std::string& cmd);
-    CommandResult disableFiltersInChannel(const ChannelTypeReader& channelRead);
-    CommandResult disableModule(const std::string& module);
-    CommandResult enableCommand(const std::string& cmd);
-    CommandResult enableModule(const std::string& module);
-    CommandResult setAdminRole(const RoleTypeReader& roleRead);
-    CommandResult setDjRole(const RoleTypeReader& roleRead);
-    CommandResult setLogsChannel(const ChannelTypeReader& channelRead);
-    CommandResult setModRole(const RoleTypeReader& roleRead);
-    CommandResult setPotChannel(const ChannelTypeReader& channelRead);
-    CommandResult toggleDrops();
-    CommandResult toggleInviteFilter();
-    CommandResult toggleNsfw();
-    CommandResult toggleScamFilter();
-    CommandResult unwhitelistChannel(const ChannelTypeReader& channelRead);
-    CommandResult whitelistChannel(const ChannelTypeReader& channelRead);
+    dpp::command_result addRank(int level, long double cost, const dpp::role_in& roleIn);
+    dpp::command_result clearConfig();
+    dpp::command_result currentConfig();
+    dpp::command_result disableCommand(const std::string& cmd);
+    dpp::command_result disableFiltersInChannel(const dpp::channel_in& channelIn);
+    dpp::command_result disableModule(const std::string& module);
+    dpp::command_result enableCommand(const std::string& cmd);
+    dpp::command_result enableModule(const std::string& module);
+    dpp::command_result setAdminRole(const dpp::role_in& roleIn);
+    dpp::command_result setDjRole(const dpp::role_in& roleIn);
+    dpp::command_result setLogsChannel(const dpp::channel_in& channelIn);
+    dpp::command_result setModRole(const dpp::role_in& roleIn);
+    dpp::command_result setPotChannel(const dpp::channel_in& channelIn);
+    dpp::command_result toggleDrops();
+    dpp::command_result toggleInviteFilter();
+    dpp::command_result toggleNsfw();
+    dpp::command_result toggleScamFilter();
+    dpp::command_result unwhitelistChannel(const dpp::channel_in& channelIn);
+    dpp::command_result whitelistChannel(const dpp::channel_in& channelIn);
 };
 
 #endif // CONFIG_H

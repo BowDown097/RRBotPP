@@ -218,6 +218,20 @@ constexpr std::array Waifus = {
     std::pair { "Zimbabwe", "https://cdn.discordapp.com/attachments/802654650040844380/817273008821108736/unknown.png" }
 };
 // ********************
+//       GAMBLING
+// ********************
+constexpr const char* AddedIntoPot = "Added **{}** into the pot.";
+constexpr const char* BetTooLow = "You need to bet at least {}.";
+constexpr const char* Dice1Match = "Good stuff! 1 match. You got paid out your bet.";
+constexpr const char* Dice2Matches = "DOUBLES! Now we're cooking with gas. You got paid out DOUBLE your bet (**{}**).";
+constexpr const char* Dice3Matches = "WOOOAAHHH! Good shit, man! That's a fine set of TRIPLES you just rolled. You got paid out TEN TIMES your bet (**{}**).";
+constexpr const char* DiceNoMatches = "Well damn! There were no matches with your number. Sucks to be you, because you lost **{}**.";
+constexpr const char* DiceTitle = "Let's see your roll...";
+constexpr const char* Doubled = "I have doubled your cash.";
+constexpr const char* GenericGambleFail = "Well damn, you rolled a {}, which wasn't enough. You lost **{}**.\nBalance: {}";
+constexpr const char* GenericGambleSuccess = "Good shit my guy! You rolled a {:.2f} and got yourself **{}**!\nBalance: {}";
+constexpr const char* InvalidDice = "Your number needs to be between 1 and 6.";
+// ********************
 //       GENERAL
 // ********************
 constexpr const char* HelpGenericResponse = "Use $modules to see all of this bot's modules and use $module to view the commands in a module.";

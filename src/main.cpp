@@ -7,26 +7,27 @@
 #include "modules/crime.h"
 #include "modules/economy.h"
 #include "modules/fun.h"
+#include "modules/gambling.h"
 #include "modules/general.h"
 #include <boost/locale/generator.hpp>
 #include <dpp/cluster.h>
 #include <sodium.h>
 
-std::unique_ptr<ModuleService> moduleService;
+std::unique_ptr<dpp::module_service> modules;
 
 dpp::task<void> handleMessage(const dpp::message_create_t& event)
 {
-    CommandResult result = co_await moduleService->handleMessage(&event);
+    dpp::command_result result = co_await modules->handle_message(&event);
     if (result.message().empty())
         co_return;
 
-    std::optional<CommandError> error = result.error();
-    if (result.success() || error == CommandError::Unsuccessful || error == CommandError::UnmetPrecondition)
+    std::optional<dpp::command_error> error = result.error();
+    if (result.success() || error == dpp::command_error::unsuccessful || error == dpp::command_error::unmet_precondition)
     {
         event.reply(result.message());
     }
-    else if (error == CommandError::Exception || error == CommandError::ObjectNotFound ||
-             error == CommandError::ParseFailed || error == CommandError::BadArgCount)
+    else if (error == dpp::command_error::exception || error == dpp::command_error::object_not_found ||
+             error == dpp::command_error::parse_failed || error == dpp::command_error::bad_arg_count)
     {
         std::cout << dpp::utility::lexical_cast<std::string>(error.value()) << ": " << result.message() << std::endl;
     }
@@ -49,8 +50,8 @@ int main()
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    moduleService = std::make_unique<ModuleService>(client.get(), ModuleServiceConfig { .commandPrefix = '|' });
-    moduleService->registerModules<Administration, BotOwner, Config, Crime, Economy, Fun, General>();
+    modules = std::make_unique<dpp::module_service>(client.get(), dpp::module_service_config { .command_prefix = '|' });
+    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, General>();
 
     client->on_log(dpp::utility::cout_logger());
     client->on_message_create(&handleMessage);
