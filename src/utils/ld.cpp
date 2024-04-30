@@ -21,18 +21,22 @@ namespace RR
 
         std::string currencyToStr(long double value)
         {
-            return std::format("${:.2f}", value);
+            std::ostringstream ss;
+            ss.imbue(std::locale(""));
+            ss << '$' << std::setprecision(2) << std::fixed << value;
+            return ss.str();
         }
 
         std::optional<long double> strToCurrency(const std::string& value)
         {
             if (size_t ind = value.find('$'); ind != std::string::npos)
             {
-                try
-                {
-                    return dpp::utility::lexical_cast<long double>(value.substr(ind + 1));
-                }
-                catch (const dpp::utility::bad_lexical_cast&) {}
+                std::istringstream ss(value.substr(ind + 1));
+                ss.imbue(std::locale(""));
+
+                long double result;
+                if (!(ss >> std::fixed >> result).fail())
+                    return result;
             }
 
             return std::nullopt;
