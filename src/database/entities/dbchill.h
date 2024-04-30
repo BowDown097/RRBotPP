@@ -1,5 +1,4 @@
-#ifndef DBCHILL_H
-#define DBCHILL_H
+#pragma once
 #include "dbobject.h"
 
 struct DbChill : DbObject
@@ -12,5 +11,3 @@ struct DbChill : DbObject
     explicit DbChill(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBCHILL_H

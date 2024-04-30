@@ -1,5 +1,4 @@
-#ifndef GENERAL_H
-#define GENERAL_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "dpp-command-handler/readers/usertypereader.h"
@@ -19,5 +18,3 @@ private:
     dpp::command_result stats(const std::optional<dpp::user_in>& userOpt);
     dpp::command_result userInfo(const std::optional<dpp::guild_member_in>& memberOpt);
 };
-
-#endif // GENERAL_H

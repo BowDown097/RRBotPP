@@ -1,5 +1,5 @@
-#include "rrutils.h"
-#include <format>
+#include "dpp.h"
+#include <dpp/message.h>
 
 namespace RR
 {
@@ -22,31 +22,6 @@ namespace RR
             }
 
             return out;
-        }
-
-        std::string formatPair(const std::pair<std::string, std::string>& pair)
-        {
-            return "**" + pair.first + "**: " + pair.second;
-        }
-
-        // there is most likely an easier way to do this. that being said, if there is, i couldn't find it.
-        std::string formatTimestamp(long timestamp)
-        {
-            auto duration = std::chrono::system_clock::now() - std::chrono::system_clock::from_time_t(timestamp);
-            if (auto hours = std::chrono::duration_cast<std::chrono::hours>(duration); hours.count() > 0)
-            {
-                auto mins = std::chrono::duration_cast<std::chrono::minutes>(duration - hours);
-                auto secs = std::chrono::duration_cast<std::chrono::seconds>(duration - hours - mins);
-                return std::format("{}:{:02}:{:02}", hours.count(), mins.count(), secs.count());
-            }
-            else if (auto mins = std::chrono::duration_cast<std::chrono::minutes>(duration); mins.count() > 0)
-            {
-                auto secs = std::chrono::duration_cast<std::chrono::seconds>(duration - mins);
-                return std::format("{}:{:02}", mins.count(), secs.count());
-            }
-
-            auto secs = std::chrono::duration_cast<std::chrono::seconds>(duration);
-            return std::format("{}s", secs.count());
         }
 
         std::string getDisplayAvatar(const dpp::guild_member& guildMember, const dpp::user* user)
@@ -112,37 +87,6 @@ namespace RR
                     out.emplace_back(permission, name);
 
             return out;
-        }
-
-        std::string sanitizeString(const std::string& str)
-        {
-            if (str.empty())
-                return str;
-
-            constexpr std::array escapedChars = { "\\*", "\\_", "\\`", "\\~", "\\>" };
-            constexpr std::array sensitiveChars = { "*", "_", "`", "~", ">" };
-
-            std::string sanitized(str);
-            for (int i = 0; i < sensitiveChars.size(); ++i)
-                strReplace(sanitized, sensitiveChars[i], escapedChars[i]);
-
-            return sanitized;
-        }
-
-        void strReplace(std::string& str, std::string_view from, std::string_view to)
-        {
-            size_t pos = 0;
-            while ((pos = str.find(from, pos)) != std::string::npos)
-            {
-                str.replace(pos, from.size(), to);
-                pos += to.size();
-            }
-        }
-
-        long unixTimeSecs(long offset)
-        {
-            return std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now())
-                       .time_since_epoch().count() + offset;
         }
     }
 }

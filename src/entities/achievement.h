@@ -1,5 +1,4 @@
-#ifndef ACHIEVEMENT_H
-#define ACHIEVEMENT_H
+#pragma once
 #include <string_view>
 
 class Achievement
@@ -16,5 +15,3 @@ private:
     std::string_view m_name;
     long double m_reward;
 };
-
-#endif // ACHIEVEMENT_H

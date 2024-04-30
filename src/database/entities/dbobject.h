@@ -1,10 +1,7 @@
-#ifndef DBOBJECT_H
-#define DBOBJECT_H
+#pragma once
 #include <bsoncxx/document/value.hpp>
 
 struct DbObject
 {
     virtual bsoncxx::document::value toDocument() const = 0;
 };
-
-#endif  // DBOBJECT_H

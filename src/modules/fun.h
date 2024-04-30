@@ -1,5 +1,4 @@
-#ifndef FUN_H
-#define FUN_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
@@ -20,5 +19,3 @@ private:
     dpp::task<dpp::command_result> terryQuote();
     dpp::command_result waifu();
 };
-
-#endif // FUN_H

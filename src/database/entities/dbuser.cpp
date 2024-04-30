@@ -6,7 +6,7 @@
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
 #include "utils/ranges.h"
-#include "utils/rrutils.h"
+#include "utils/timestamp.h"
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 #include <dpp/cluster.h>
@@ -262,7 +262,7 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
 
 void DbUser::modCooldown(int64_t& duration, const dpp::guild_member& member)
 {
-    duration = RR::utility::unixTimeSecs(duration);
+    duration = RR::utility::unixTimestamp(duration);
     // speed demon cooldown reducer
     if (this->perks.contains("Speed Demon"))
         duration *= 0.85;

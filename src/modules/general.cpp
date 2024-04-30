@@ -2,10 +2,11 @@
 #include "data/responses.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
+#include "dpp-command-handler/extensions/cache.h"
 #include "dpp-command-handler/moduleservice.h"
-#include "dpp-command-handler/utils/cache.h"
 #include "dpp-command-handler/utils/join.h"
-#include "utils/rrutils.h"
+#include "utils/dpp.h"
+#include "utils/strings.h"
 #include <boost/locale/conversion.hpp>
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
@@ -136,12 +137,15 @@ dpp::task<dpp::command_result> General::serverInfo()
     if (!guild)
         co_return dpp::command_result::from_error(Responses::GetGuildFailed);
 
-    auto stickers = co_await RR::utility::co_get<dpp::sticker_map>(std::move(cluster->co_guild_stickers_get(guild->id)));
+    dpp::confirmation_callback_t stickersResult = co_await cluster->co_guild_stickers_get(guild->id);
+    if (stickersResult.is_error())
+        co_return dpp::command_result::from_error(stickersResult.get_error().human_readable);
 
     std::string banner = guild->get_banner_url();
     std::string discovery = guild->get_discovery_splash_url();
     std::string icon = guild->get_icon_url();
     std::string invSplash = guild->get_splash_url();
+    dpp::sticker_map stickers = stickersResult.get<dpp::sticker_map>();
 
     uint32_t categories{}, textChannels{}, threads = guild->threads.size(), voiceChannels{};
     for (const dpp::snowflake& snowflake : guild->channels)
@@ -218,7 +222,7 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
 dpp::command_result General::userInfo(const std::optional<dpp::guild_member_in>& memberOpt)
 {
     std::optional<dpp::guild_member> member = memberOpt
-        ? memberOpt->top_result() : dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+        ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 

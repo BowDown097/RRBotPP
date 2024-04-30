@@ -1,5 +1,4 @@
-#ifndef CRIME_H
-#define CRIME_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "readers/cashtypereader.h"
@@ -23,5 +22,3 @@ private:
                                                 class DbUser& user, int64_t& cooldown, bool hasMehOutcome = false);
     void statUpdate(class DbUser& user, bool success, long double gain);
 };
-
-#endif // CRIME_H

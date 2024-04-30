@@ -1,5 +1,4 @@
-#ifndef DBCONFIGROLES_H
-#define DBCONFIGROLES_H
+#pragma once
 #include "database/entities/dbobject.h"
 
 struct DbConfigRoles : DbObject
@@ -13,5 +12,3 @@ struct DbConfigRoles : DbObject
     explicit DbConfigRoles(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBCONFIGROLES_H

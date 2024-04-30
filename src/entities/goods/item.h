@@ -1,5 +1,4 @@
-#ifndef ITEM_H
-#define ITEM_H
+#pragma once
 #include <string_view>
 
 class Item
@@ -13,5 +12,3 @@ protected:
 
     constexpr Item(std::string_view name, long double price) : m_name(name), m_price(price) {}
 };
-
-#endif // ITEM_H

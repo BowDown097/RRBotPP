@@ -1,5 +1,4 @@
-#ifndef DBBAN_H
-#define DBBAN_H
+#pragma once
 #include "dbobject.h"
 
 struct DbBan : DbObject
@@ -12,5 +11,3 @@ struct DbBan : DbObject
     explicit DbBan(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBBAN_H

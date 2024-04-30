@@ -1,5 +1,4 @@
-#ifndef RESPONSES_H
-#define RESPONSES_H
+#pragma once
 #include <array>
 #include <string_view>
 
@@ -244,5 +243,3 @@ constexpr const char* UserHasNoStats = "{} has no available stats!";
 constexpr const char* YouHaveNoAchs = "You have no achievements!";
 constexpr const char* YouHaveNoStats = "You have no available stats!";
 }
-
-#endif // RESPONSES_H

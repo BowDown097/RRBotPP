@@ -1,5 +1,4 @@
-#ifndef MONGOMANAGER_H
-#define MONGOMANAGER_H
+#pragma once
 #include <cstdint>
 #include <mongocxx/collection-fwd.hpp>
 #include <string_view>
@@ -62,5 +61,3 @@ namespace MongoManager
     void deleteRankConfig(int64_t guildId);
     void deleteRoleConfig(int64_t guildId);
 }
-
-#endif // MONGOMANAGER_H

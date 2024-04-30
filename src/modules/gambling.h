@@ -1,5 +1,4 @@
-#ifndef GAMBLING_H
-#define GAMBLING_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "readers/cashtypereader.h"
 
@@ -21,5 +20,3 @@ private:
                                                  bool exactRoll = false);
     void statUpdate(class DbUser& user, bool success, long double gain);
 };
-
-#endif // GAMBLING_H

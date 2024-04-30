@@ -1,5 +1,4 @@
-#ifndef ADMINISTRATION_H
-#define ADMINISTRATION_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/channeltypereader.h"
 #include "dpp-command-handler/readers/guildmembertypereader.h"
@@ -25,5 +24,3 @@ private:
                                 const dpp::remainder<std::string>& value);
     dpp::command_result unlockAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name);
 };
-
-#endif // ADMINISTRATION_H

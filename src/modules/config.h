@@ -1,5 +1,4 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/channeltypereader.h"
 #include "dpp-command-handler/readers/roletypereader.h"
@@ -31,5 +30,3 @@ private:
     dpp::command_result unwhitelistChannel(const dpp::channel_in& channelIn);
     dpp::command_result whitelistChannel(const dpp::channel_in& channelIn);
 };
-
-#endif // CONFIG_H

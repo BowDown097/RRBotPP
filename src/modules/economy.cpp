@@ -4,9 +4,11 @@
 #include "database/entities/config/dbconfigranks.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/utils/cache.h"
+#include "dpp-command-handler/extensions/cache.h"
+#include "utils/dpp.h"
 #include "utils/ld.h"
-#include "utils/rrutils.h"
+#include "utils/timestamp.h"
+#include <dpp/cache.h>
 #include <dpp/colors.h>
 #include <dpp/dispatcher.h>
 #include <format>
@@ -51,7 +53,7 @@ dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOp
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     std::string description;
     for (const auto& [name, value] : dbUser.constructCooldownMap())
-        if (int64_t cooldownSecs = value - RR::utility::unixTimeSecs(); cooldownSecs > 0)
+        if (int64_t cooldownSecs = value - RR::utility::unixTimestamp(); cooldownSecs > 0)
             description += "**" + name + "**: " + RR::utility::formatTimestamp(cooldownSecs) + '\n';
     if (!description.empty())
         description.pop_back();
@@ -68,7 +70,7 @@ dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOp
 dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& memberOpt)
 {
     std::optional<dpp::guild_member> member = memberOpt
-        ? memberOpt->top_result() : dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+        ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 
@@ -135,7 +137,7 @@ dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& 
 
     std::string counts = std::format("**Achievements**: {}", dbUser.achievements.size());
     long cooldowns = std::ranges::count_if(dbUser.constructCooldownMap(), [](const std::pair<std::string, int64_t>& p) {
-        return p.second - RR::utility::unixTimeSecs() > 0;
+        return p.second - RR::utility::unixTimestamp() > 0;
     });
     counts += std::format("\n**Commands On Cooldown**: {}", cooldowns);
     embed.add_field("Counts", counts);
@@ -198,7 +200,7 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
     if (target.usingSlots)
         co_return dpp::command_result::from_error(Responses::UserIsGambling);
 
-    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 

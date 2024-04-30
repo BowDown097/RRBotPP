@@ -1,5 +1,4 @@
-#ifndef DBGANG_H
-#define DBGANG_H
+#pragma once
 #include "dbobject.h"
 #include <unordered_map>
 
@@ -17,5 +16,3 @@ struct DbGang : DbObject
     explicit DbGang(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBGANG_H

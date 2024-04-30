@@ -1,5 +1,4 @@
-#ifndef DBUSER_H
-#define DBUSER_H
+#pragma once
 #include "dbobject.h"
 #include <dpp/coro/task.h>
 #include <unordered_map>
@@ -90,5 +89,3 @@ struct DbUser : DbObject
                                              const std::string& message = "");
     void unlockAchievement(const std::string& name, const dpp::message_create_t* context);
 };
-
-#endif // DBUSER_H

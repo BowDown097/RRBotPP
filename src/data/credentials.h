@@ -1,5 +1,4 @@
-#ifndef CREDENTIALS_H
-#define CREDENTIALS_H
+#pragma once
 #include <string>
 
 class Credentials
@@ -14,5 +13,3 @@ private:
     std::string m_mongoConnectionString;
     std::string m_token;
 };
-
-#endif // CREDENTIALS_H

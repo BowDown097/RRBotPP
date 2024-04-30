@@ -35,11 +35,13 @@ add_executable(RRBot
     src/modules/fun.h src/modules/fun.cpp
     src/modules/gambling.h src/modules/gambling.cpp
     src/modules/general.h src/modules/general.cpp
-    src/readers/cashtypereader.cpp src/readers/cashtypereader.h
+    src/readers/cashtypereader.h src/readers/cashtypereader.cpp
+    src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h
     src/utils/ranges.h
-    src/utils/rrutils.h src/utils/rrutils.cpp)
+    src/utils/strings.h src/utils/strings.cpp
+    src/utils/timestamp.h src/utils/timestamp.cpp)
 
 find_package(Boost COMPONENTS locale)
 

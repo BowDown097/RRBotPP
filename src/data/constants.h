@@ -1,5 +1,4 @@
-#ifndef CONSTANTS_H
-#define CONSTANTS_H
+#pragma once
 #include <array>
 #include "entities/achievement.h"
 #include "entities/goods/tool.h"
@@ -137,5 +136,3 @@ namespace Constants
     // ********************
     constexpr int MaxPrestige = 10;
 }
-
-#endif // CONSTANTS_H

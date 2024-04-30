@@ -1,5 +1,4 @@
-#ifndef DBCONFIGMISC_H
-#define DBCONFIGMISC_H
+#pragma once
 #include "database/entities/dbobject.h"
 #include <vector>
 
@@ -17,5 +16,3 @@ struct DbConfigMisc : DbObject
     explicit DbConfigMisc(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBCONFIGMISC_H

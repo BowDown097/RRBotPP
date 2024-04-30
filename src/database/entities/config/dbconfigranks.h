@@ -1,5 +1,4 @@
-#ifndef DBCONFIGRANKS_H
-#define DBCONFIGRANKS_H
+#pragma once
 #include "database/entities/dbobject.h"
 #include <unordered_map>
 
@@ -13,5 +12,3 @@ struct DbConfigRanks : DbObject
     explicit DbConfigRanks(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBCONFIGRANKS_H

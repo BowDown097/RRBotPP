@@ -1,5 +1,4 @@
-#ifndef RANGES_H
-#define RANGES_H
+#pragma once
 #include <ranges>
 
 namespace RR
@@ -18,5 +17,3 @@ namespace RR
         }
     }
 }
-
-#endif // RANGES_H

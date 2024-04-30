@@ -1,5 +1,4 @@
-#ifndef BOTOWNER_H
-#define BOTOWNER_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
@@ -15,5 +14,3 @@ private:
     dpp::command_result resetUser(const dpp::user_in& userIn);
     dpp::command_result unblacklist(const dpp::user_in& userIn);
 };
-
-#endif // BOTOWNER_H

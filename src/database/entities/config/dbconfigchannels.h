@@ -1,5 +1,4 @@
-#ifndef DBCONFIGCHANNELS_H
-#define DBCONFIGCHANNELS_H
+#pragma once
 #include "database/entities/dbobject.h"
 #include <vector>
 
@@ -15,5 +14,3 @@ struct DbConfigChannels : DbObject
     explicit DbConfigChannels(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBCONFIGCHANNELS_H

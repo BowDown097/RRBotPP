@@ -1,5 +1,4 @@
-#ifndef LD_H
-#define LD_H
+#pragma once
 #include <bsoncxx/decimal128-fwd.hpp>
 #include <bsoncxx/document/element-fwd.hpp>
 #include <optional>
@@ -16,5 +15,3 @@ namespace RR
         std::optional<long double> strToCurrency(const std::string& value);
     }
 }
-
-#endif // LD_H

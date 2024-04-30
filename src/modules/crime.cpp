@@ -4,11 +4,11 @@
 #include "database/entities/config/dbconfigroles.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/utils/cache.h"
+#include "dpp-command-handler/extensions/cache.h"
 #include "utils/ld.h"
 #include "utils/random.h"
 #include "utils/ranges.h"
-#include "utils/rrutils.h"
+#include "utils/strings.h"
 #include <dpp/cluster.h>
 
 Crime::Crime() : dpp::module_base("Crime", "Hell yeah! Crime! Reject the ways of being a law-abiding citizen for some cold hard cash and maybe even a tool. Or, maybe not. Depends how good you are at being a criminal.")
@@ -92,7 +92,7 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
     if (target.cash < 0.01L)
         co_return dpp::command_result::from_error(std::format(Responses::UserIsBroke, user->get_mention()));
 
-    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
@@ -158,7 +158,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     if (author.cash < amount)
         co_return dpp::command_result::from_error(Responses::NotEnoughCash);
 
-    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
@@ -212,7 +212,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
                                                    const std::span<const std::string_view>& failOutcomes,
                                                    DbUser& user, int64_t& cooldown, bool hasMehOutcome)
 {
-    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 

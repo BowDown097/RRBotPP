@@ -1,5 +1,4 @@
-#ifndef DBPOT_H
-#define DBPOT_H
+#pragma once
 #include "dbobject.h"
 #include <unordered_map>
 
@@ -17,5 +16,3 @@ struct DbPot : DbObject
     uint64_t drawMember();
     long double getMemberOdds(uint64_t userId);
 };
-
-#endif // DBPOT_H

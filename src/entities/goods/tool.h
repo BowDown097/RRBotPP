@@ -1,5 +1,4 @@
-#ifndef TOOL_H
-#define TOOL_H
+#pragma once
 #include "item.h"
 
 class Tool : public Item
@@ -17,5 +16,3 @@ private:
     long double m_genericMax;
     long double m_mult;
 };
-
-#endif // TOOL_H

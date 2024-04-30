@@ -1,5 +1,4 @@
-#ifndef DBGLOBALCONFIG_H
-#define DBGLOBALCONFIG_H
+#pragma once
 #include "database/entities/dbobject.h"
 #include <vector>
 
@@ -12,5 +11,3 @@ struct DbConfigGlobal : DbObject
     explicit DbConfigGlobal(const bsoncxx::document::value& doc);
     bsoncxx::document::value toDocument() const override;
 };
-
-#endif // DBGLOBALCONFIG_H

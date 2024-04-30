@@ -1,5 +1,4 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#pragma once
 #include <concepts>
 #include <limits>
 #include <ranges>
@@ -34,5 +33,3 @@ namespace RR
         }
     }
 }
-
-#endif // RANDOM_H

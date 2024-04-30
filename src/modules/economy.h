@@ -1,5 +1,4 @@
-#ifndef ECONOMY_H
-#define ECONOMY_H
+#pragma once
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "dpp-command-handler/readers/usertypereader.h"
@@ -17,5 +16,3 @@ private:
     dpp::command_result ranks();
     dpp::task<dpp::command_result> sauce(const dpp::guild_member_in& memberIn, const cash_in& amountIn);
 };
-
-#endif // ECONOMY_H

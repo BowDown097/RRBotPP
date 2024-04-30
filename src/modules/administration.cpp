@@ -6,7 +6,7 @@
 #include "database/mongomanager.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
-#include "utils/rrutils.h"
+#include "utils/timestamp.h"
 #include <dpp/cluster.h>
 #include <mongocxx/collection.hpp>
 
@@ -36,7 +36,7 @@ dpp::task<dpp::command_result> Administration::clearTextChannel(const dpp::chann
 dpp::command_result Administration::drawPot()
 {
     DbPot pot = MongoManager::fetchPot(context->msg.guild_id);
-    if (pot.endTime < RR::utility::unixTimeSecs())
+    if (pot.endTime < RR::utility::unixTimestamp())
         return dpp::command_result::from_error(Responses::PotEmpty);
 
     pot.endTime = 69;
