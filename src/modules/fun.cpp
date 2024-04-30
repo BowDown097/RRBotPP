@@ -113,7 +113,7 @@ dpp::task<dpp::command_result> Fun::godword(const std::optional<int>& amountOpt)
     co_return dpp::command_result::from_success(words);
 }
 
-dpp::command_result Fun::magicConch(const std::string&)
+dpp::command_result Fun::magicConch(const dpp::remainder<std::string>&)
 {
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)

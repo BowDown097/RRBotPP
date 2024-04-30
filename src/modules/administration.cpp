@@ -44,14 +44,14 @@ dpp::command_result Administration::drawPot()
     return dpp::command_result::from_success(Responses::PotDrawing);
 }
 
-dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn, const std::string& name)
+dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name)
 {
     dpp::user* user = userIn.top_result();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    if (!std::erase_if(dbUser.achievements, [&name](auto& p) { return dpp::utility::iequals(p.first, name); }))
+    if (!std::erase_if(dbUser.achievements, [&name](auto& p) { return dpp::utility::iequals(p.first, *name); }))
         return dpp::command_result::from_error(std::format(Responses::MissingAchievement, user->get_mention()));
 
     MongoManager::updateUser(dbUser);
@@ -71,14 +71,14 @@ dpp::command_result Administration::removeCrates(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::RemovedCrates, user->get_mention()));
 }
 
-dpp::command_result Administration::removeStat(const dpp::user_in& userIn, const std::string& stat)
+dpp::command_result Administration::removeStat(const dpp::user_in& userIn, const dpp::remainder<std::string>& stat)
 {
     dpp::user* user = userIn.top_result();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    if (!std::erase_if(dbUser.stats, [&stat](auto& p) { return dpp::utility::iequals(p.first, stat); }))
+    if (!std::erase_if(dbUser.stats, [&stat](auto& p) { return dpp::utility::iequals(p.first, *stat); }))
         return dpp::command_result::from_error(std::format(Responses::MissingStat, user->get_mention()));
 
     MongoManager::updateUser(dbUser);
@@ -168,27 +168,28 @@ dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int 
     return dpp::command_result::from_success(std::format(Responses::SetPrestige, user->get_mention(), level));
 }
 
-dpp::command_result Administration::setStat(const dpp::user_in& userIn, const std::string& stat, const std::string& value)
+dpp::command_result Administration::setStat(const dpp::user_in& userIn, const std::string& stat,
+                                            const dpp::remainder<std::string>& value)
 {
     dpp::user* user = userIn.top_result();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    dbUser.stats[stat] = value;
+    dbUser.stats[stat] = *value;
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::SetStat, user->get_mention(), stat, value));
+    return dpp::command_result::from_success(std::format(Responses::SetStat, user->get_mention(), stat, *value));
 }
 
-dpp::command_result Administration::unlockAchievement(const dpp::user_in& userIn, const std::string& name)
+dpp::command_result Administration::unlockAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name)
 {
     dpp::user* user = userIn.top_result();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    dbUser.unlockAchievement(name, context);
+    dbUser.unlockAchievement(*name, context);
 
     MongoManager::updateUser(dbUser);
     return dpp::command_result::from_success();

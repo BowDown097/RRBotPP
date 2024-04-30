@@ -10,7 +10,7 @@ public:
     Crime();
     MODULE_SETUP(Crime)
 private:
-    dpp::task<dpp::command_result> bully(const dpp::user_in& userIn, const std::string& nickname);
+    dpp::task<dpp::command_result> bully(const dpp::user_in& userIn, const dpp::remainder<std::string>& nickname);
     dpp::task<dpp::command_result> deal();
     dpp::task<dpp::command_result> loot();
     dpp::task<dpp::command_result> rape(const dpp::user_in& userIn);

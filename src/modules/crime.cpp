@@ -21,9 +21,9 @@ Crime::Crime() : dpp::module_base("Crime", "Hell yeah! Crime! Reject the ways of
     register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
 }
 
-dpp::task<dpp::command_result> Crime::bully(const dpp::user_in& userIn, const std::string& nickname)
+dpp::task<dpp::command_result> Crime::bully(const dpp::user_in& userIn, const dpp::remainder<std::string>& nickname)
 {
-    if (nickname.size() < 32)
+    if (nickname->size() > 32)
         co_return dpp::command_result::from_error(Responses::NicknameTooLong);
 
     dpp::user* user = userIn.top_result();
@@ -47,14 +47,14 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::user_in& userIn, const st
         co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
     }
 
-    guildMember->set_nickname(nickname);
+    guildMember->set_nickname(*nickname);
     co_await cluster->co_guild_edit_member(guildMember.value());
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     author.modCooldown(author.bullyCooldown = Constants::BullyCooldown, guildMember.value());
     MongoManager::updateUser(author);
 
-    co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitizeString(nickname)));
+    co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitizeString(*nickname)));
 }
 
 dpp::task<dpp::command_result> Crime::deal()
