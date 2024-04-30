@@ -4,6 +4,7 @@
 #include "database/entities/config/dbconfigranks.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
+#include "dpp-command-handler/utils/cache.h"
 #include "utils/ld.h"
 #include "utils/rrutils.h"
 #include <dpp/colors.h>
@@ -64,22 +65,23 @@ dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOp
     return dpp::command_result::from_success();
 }
 
-dpp::command_result Economy::profile(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    std::optional<dpp::guild_member> member = memberOpt
+        ? memberOpt->top_result() : dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        return dpp::command_result::from_error(Responses::GetUserFailed);
+
+    dpp::user* user = member->get_user();
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-    if (!guildMember)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
-
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
-        .set_author(RR::utility::asEmbedAuthor(guildMember.value(), user))
+        .set_author(RR::utility::asEmbedAuthor(member.value(), user))
         .set_title("User Profile");
 
     std::string essentials = "**Cash**: " + RR::utility::currencyToStr(dbUser.cash);
@@ -173,13 +175,16 @@ dpp::command_result Economy::ranks()
     return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Economy::sauce(const dpp::user_in& userIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& memberIn, const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::SauceTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
-    dpp::user* user = userIn.top_result();
+    dpp::guild_member member = memberIn.top_result();
+    dpp::user* user = member.get_user();
+    if (!user)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -193,16 +198,12 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::user_in& userIn, const 
     if (target.usingSlots)
         co_return dpp::command_result::from_error(Responses::UserIsGambling);
 
-    std::optional<dpp::guild_member> authorGM = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!authorGM)
+    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
-    std::optional<dpp::guild_member> targetGM = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-    if (!targetGM)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
-    co_await author.setCashWithoutAdjustment(authorGM.value(), author.cash - amount, cluster, context);
-    co_await target.setCashWithoutAdjustment(targetGM.value(), target.cash + amount, cluster, context);
+    co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster, context);
+    co_await target.setCashWithoutAdjustment(member, target.cash + amount, cluster, context);
 
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);

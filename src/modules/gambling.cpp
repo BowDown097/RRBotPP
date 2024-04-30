@@ -4,6 +4,7 @@
 #include "database/entities/dbpot.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
+#include "dpp-command-handler/utils/cache.h"
 #include "utils/ld.h"
 #include "utils/random.h"
 #include "utils/rrutils.h"
@@ -30,8 +31,8 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
     if (number < 1 || number > 6)
         co_return dpp::command_result::from_error(Responses::InvalidDice);
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!guildMember)
+    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -76,7 +77,7 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
     }
 
     statUpdate(user, matches > 0, payout);
-    co_await user.setCashWithoutAdjustment(guildMember.value(), totalCash, cluster, context);
+    co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster, context);
     MongoManager::updateUser(user);
 
     dpp::embed embed = dpp::embed()
@@ -90,20 +91,20 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
 
 dpp::task<dpp::command_result> Gambling::doubleGamble()
 {
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!guildMember)
+    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (RR::utility::random(100) < Constants::DoubleOdds)
     {
         statUpdate(user, true, user.cash);
-        co_await user.setCashWithoutAdjustment(guildMember.value(), user.cash * 2, cluster, context);
+        co_await user.setCashWithoutAdjustment(member.value(), user.cash * 2, cluster, context);
     }
     else
     {
         statUpdate(user, false, user.cash);
-        co_await user.setCashWithoutAdjustment(guildMember.value(), 0, cluster, context);
+        co_await user.setCashWithoutAdjustment(member.value(), 0, cluster, context);
     }
 
     MongoManager::updateUser(user);
@@ -145,8 +146,8 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
     if (bet < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::BetTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!guildMember)
+    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -167,7 +168,7 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
         pot.members[context->msg.author.id] = bet;
 
     pot.value += bet;
-    co_await user.setCashWithoutAdjustment(guildMember.value(), user.cash - bet, cluster, context);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash - bet, cluster, context);
 
     MongoManager::updatePot(pot);
     MongoManager::updateUser(user);
@@ -185,8 +186,8 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
     if (bet < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::BetTooLow, RR::utility::currencyToStr(Constants::TransactionMin)));
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!guildMember)
+    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -218,7 +219,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
             totalCash += multiplierCash;
         }
 
-        co_await user.setCashWithoutAdjustment(guildMember.value(), totalCash, cluster, context, message);
+        co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster, context, message);
     }
     else
     {
@@ -229,7 +230,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
 
         std::string message = std::format(Responses::GenericGambleFail, roll,
                                           RR::utility::currencyToStr(bet), RR::utility::currencyToStr(totalCash));
-        co_await user.setCashWithoutAdjustment(guildMember.value(), totalCash, cluster, context, message);
+        co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster, context, message);
     }
 
     MongoManager::updateUser(user);

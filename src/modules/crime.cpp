@@ -4,6 +4,7 @@
 #include "database/entities/config/dbconfigroles.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
+#include "dpp-command-handler/utils/cache.h"
 #include "utils/ld.h"
 #include "utils/random.h"
 #include "utils/ranges.h"
@@ -21,12 +22,16 @@ Crime::Crime() : dpp::module_base("Crime", "Hell yeah! Crime! Reject the ways of
     register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
 }
 
-dpp::task<dpp::command_result> Crime::bully(const dpp::user_in& userIn, const dpp::remainder<std::string>& nickname)
+dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn,
+                                            const dpp::remainder<std::string>& nickname)
 {
     if (nickname->size() > 32)
         co_return dpp::command_result::from_error(Responses::NicknameTooLong);
 
-    dpp::user* user = userIn.top_result();
+    dpp::guild_member member = memberIn.top_result();
+    dpp::user* user = member.get_user();
+    if (!user)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -36,22 +41,19 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::user_in& userIn, const dp
     if (target.perks.contains("Pacifist"))
         co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "bully", user->get_mention()));
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-    if (!guildMember)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
-    if (RR::utility::rangeContains(guildMember->get_roles(), dpp::snowflake(roles.staffLvl1Role)) ||
-        RR::utility::rangeContains(guildMember->get_roles(), dpp::snowflake(roles.staffLvl2Role)))
+    const std::vector<dpp::snowflake>& memberRoles = member.get_roles();
+    if (RR::utility::rangeContains(memberRoles, dpp::snowflake(roles.staffLvl1Role)) ||
+        RR::utility::rangeContains(memberRoles, dpp::snowflake(roles.staffLvl2Role)))
     {
         co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
     }
 
-    guildMember->set_nickname(*nickname);
-    co_await cluster->co_guild_edit_member(guildMember.value());
+    member.set_nickname(*nickname);
+    co_await cluster->co_guild_edit_member(member);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
-    author.modCooldown(author.bullyCooldown = Constants::BullyCooldown, guildMember.value());
+    author.modCooldown(author.bullyCooldown = Constants::BullyCooldown, member);
     MongoManager::updateUser(author);
 
     co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitizeString(*nickname)));
@@ -71,9 +73,12 @@ dpp::task<dpp::command_result> Crime::loot()
                                     user.lootCooldown = Constants::LootCooldown, true);
 }
 
-dpp::task<dpp::command_result> Crime::rape(const dpp::user_in& userIn)
+dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::guild_member member = memberIn.top_result();
+    dpp::user* user = member.get_user();
+    if (!user)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -87,8 +92,8 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::user_in& userIn)
     if (target.cash < 0.01L)
         co_return dpp::command_result::from_error(std::format(Responses::UserIsBroke, user->get_mention()));
 
-    std::optional<dpp::guild_member> authorGM = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!authorGM)
+    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -101,37 +106,36 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::user_in& userIn)
     long double rapePercent = RR::utility::random(Constants::RapeMinPercent, Constants::RapeMaxPercent);
     if (RR::utility::random(1, 101) < odds)
     {
-        std::optional<dpp::guild_member> targetGM = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-        if (!targetGM)
-            co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
         long double repairs = target.cash / 100.0L * rapePercent;
         statUpdate(target, false, repairs);
         context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::currencyToStr(repairs)));
-        co_await target.setCashWithoutAdjustment(targetGM.value(), target.cash - repairs, cluster, context);
+        co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster, context);
     }
     else
     {
         long double repairs = author.cash / 100.0L * rapePercent;
         statUpdate(author, false, repairs);
         context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::currencyToStr(repairs)));
-        co_await author.setCashWithoutAdjustment(authorGM.value(), author.cash - repairs, cluster, context);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster, context);
     }
 
-    author.modCooldown(author.rapeCooldown = Constants::RapeCooldown, authorGM.value());
+    author.modCooldown(author.rapeCooldown = Constants::RapeCooldown, authorMember.value());
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
 
     co_return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
         co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::currencyToStr(Constants::RobMinCash)));
 
-    dpp::user* user = userIn.top_result();
+    dpp::guild_member member = memberIn.top_result();
+    dpp::user* user = member.get_user();
+    if (!user)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -154,8 +158,8 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, const cash
     if (author.cash < amount)
         co_return dpp::command_result::from_error(Responses::NotEnoughCash);
 
-    std::optional<dpp::guild_member> authorGM = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!authorGM)
+    std::optional<dpp::guild_member> authorMember = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     double odds = Constants::RobOdds;
@@ -166,12 +170,8 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, const cash
 
     if (RR::utility::random(1, 101) < odds)
     {
-        std::optional<dpp::guild_member> targetGM = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-        if (!targetGM)
-            co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
-        co_await target.setCashWithoutAdjustment(targetGM.value(), target.cash - amount, cluster, context);
-        co_await author.setCashWithoutAdjustment(authorGM.value(), author.cash + amount, cluster, context);
+        co_await target.setCashWithoutAdjustment(member, target.cash - amount, cluster, context);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash + amount, cluster, context);
         statUpdate(author, true, amount);
         statUpdate(target, false, amount);
 
@@ -180,14 +180,14 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::user_in& userIn, const cash
     }
     else
     {
-        co_await author.setCashWithoutAdjustment(authorGM.value(), author.cash - amount, cluster, context);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster, context);
         statUpdate(author, false, amount);
 
         context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobSuccesses),
                                    RR::utility::currencyToStr(author.cash)));
     }
 
-    author.modCooldown(author.robCooldown = Constants::RobCooldown, authorGM.value());
+    author.modCooldown(author.robCooldown = Constants::RobCooldown, authorMember.value());
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
 
@@ -212,8 +212,8 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
                                                    const std::span<const std::string_view>& failOutcomes,
                                                    DbUser& user, int64_t& cooldown, bool hasMehOutcome)
 {
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, context->msg.author.id);
-    if (!guildMember)
+    std::optional<dpp::guild_member> member = dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     double winOdds = user.perks.contains("Speed Demon")
@@ -245,7 +245,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         statUpdate(user, false, lostCash);
     }
 
-    co_await user.setCash(guildMember.value(), totalCash, cluster, context,
+    co_await user.setCash(member.value(), totalCash, cluster, context,
                           std::format("{}\nBalance: {}", outcome, RR::utility::currencyToStr(totalCash)));
 
     if (RR::utility::random(1, 101) < Constants::GenericCrimeToolOdds)
@@ -262,7 +262,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         }
     }
 
-    user.modCooldown(cooldown, guildMember.value());
+    user.modCooldown(cooldown, member.value());
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success();
 }

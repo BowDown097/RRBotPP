@@ -102,22 +102,21 @@ dpp::command_result Administration::resetCooldowns(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, user->get_mention()));
 }
 
-dpp::task<dpp::command_result> Administration::setCash(const dpp::user_in& userIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_in& memberIn, const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < 0)
         co_return dpp::command_result::from_error(Responses::NegativeCash);
 
-    dpp::user* user = userIn.top_result();
+    dpp::guild_member member = memberIn.top_result();
+    dpp::user* user = member.get_user();
+    if (!user)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(context->msg.guild_id, user->id);
-    if (!guildMember)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    co_await dbUser.setCashWithoutAdjustment(guildMember.value(), amount, cluster, context);
+    co_await dbUser.setCashWithoutAdjustment(member, amount, cluster, context);
 
     MongoManager::updateUser(dbUser);
     co_return dpp::command_result::from_success(std::format(Responses::SetCash,

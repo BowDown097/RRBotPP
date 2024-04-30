@@ -20,7 +20,6 @@ namespace RR
 
         dpp::embed_author asEmbedAuthor(const dpp::guild_member& guildMember, const dpp::user* user,
                                         bool useNickname = true);
-        std::optional<dpp::guild_member> findGuildMember(const dpp::snowflake guildId, const dpp::snowflake userId);
         std::string formatPair(const std::pair<std::string, std::string>& pair);
         std::string formatTimestamp(long timestamp);
         std::string getDisplayAvatar(const dpp::guild_member& guildMember, const dpp::user* user);

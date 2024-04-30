@@ -3,6 +3,7 @@
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/moduleservice.h"
+#include "dpp-command-handler/utils/cache.h"
 #include "dpp-command-handler/utils/join.h"
 #include "utils/rrutils.h"
 #include <boost/locale/conversion.hpp>
@@ -214,9 +215,14 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
     return dpp::command_result::from_success();
 }
 
-dpp::command_result General::userInfo(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result General::userInfo(const std::optional<dpp::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    std::optional<dpp::guild_member> member = memberOpt
+        ? memberOpt->top_result() : dpp::utility::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        return dpp::command_result::from_error(Responses::GetUserFailed);
+
+    dpp::user* user = member->get_user();
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 
@@ -224,32 +230,28 @@ dpp::command_result General::userInfo(const std::optional<dpp::user_in>& userOpt
     if (!guild)
         return dpp::command_result::from_error(Responses::GetGuildFailed);
 
-    std::optional<dpp::guild_member> guildMember = RR::utility::findGuildMember(guild->id, user->id);
-    if (!guildMember)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
-
     dpp::channel* channel = dpp::find_channel(context->msg.channel_id);
     if (!channel)
         return dpp::command_result::from_error(Responses::GetChannelFailed);
 
-    dpp::permission overwrites = guild->permission_overwrites(guildMember.value(), *channel);
+    dpp::permission overwrites = guild->permission_overwrites(member.value(), *channel);
     std::vector<std::pair<dpp::permissions, std::string>> perms = RR::utility::permissionsToList(overwrites);
     auto permNames = perms | std::views::transform([](const auto& p) { return p.second; });
 
     std::vector<std::string> roleMentions;
-    for (dpp::snowflake roleId : guildMember->get_roles())
+    for (dpp::snowflake roleId : member->get_roles())
         if (dpp::role* role = dpp::find_role(roleId))
             roleMentions.push_back(role->get_mention());
 
-    std::string avatarUrl = RR::utility::getDisplayAvatar(guildMember.value(), user);
+    std::string avatarUrl = RR::utility::getDisplayAvatar(member.value(), user);
     dpp::embed embed = dpp::embed()
         .set_author(user->global_name, "", avatarUrl)
         .set_color(dpp::colors::red)
         .set_description("**User Info**")
         .set_thumbnail(avatarUrl)
         .add_field("ID", std::to_string(user->id), true)
-        .add_field("Nickname", guildMember->get_nickname(), true)
-        .add_field("Joined At", dpp::utility::timestamp(guildMember->joined_at), true)
+        .add_field("Nickname", member->get_nickname(), true)
+        .add_field("Joined At", dpp::utility::timestamp(member->joined_at), true)
         .add_field("Created At", dpp::utility::timestamp(user->get_creation_time()), true)
         .add_field("Permissions", dpp::utility::join(permNames, ", "))
         .add_field("Roles", dpp::utility::join(roleMentions, ", "));

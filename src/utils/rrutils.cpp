@@ -24,18 +24,6 @@ namespace RR
             return out;
         }
 
-        std::optional<dpp::guild_member> findGuildMember(const dpp::snowflake guildId, const dpp::snowflake userId)
-        {
-            try
-            {
-                return dpp::find_guild_member(guildId, userId);
-            }
-            catch (const dpp::cache_exception& e)
-            {
-                return std::nullopt;
-            }
-        }
-
         std::string formatPair(const std::pair<std::string, std::string>& pair)
         {
             return "**" + pair.first + "**: " + pair.second;
