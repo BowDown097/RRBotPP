@@ -34,6 +34,7 @@ add_executable(RRBot
     src/modules/economy.h src/modules/economy.cpp
     src/modules/fun.h src/modules/fun.cpp
     src/modules/gambling.h src/modules/gambling.cpp
+    src/modules/gangs.h src/modules/gangs.cpp
     src/modules/general.h src/modules/general.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
     src/utils/dpp.h src/utils/dpp.cpp

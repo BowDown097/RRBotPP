@@ -30,9 +30,17 @@ namespace MongoManager
     mongocxx::collection rankConfigs();
     mongocxx::collection roleConfigs();
 
+    void deleteGang(std::string_view name, int64_t guildId, bool caseInsensitive);
+    void deleteUser(int64_t userId, int64_t guildId);
+
+    void deleteChannelConfig(int64_t guildId);
+    void deleteMiscConfig(int64_t guildId);
+    void deleteRankConfig(int64_t guildId);
+    void deleteRoleConfig(int64_t guildId);
+
     DbBan fetchBan(int64_t userId, int64_t guildId);
     DbChill fetchChill(int64_t channelId, int64_t guildId);
-    DbGang fetchGang(std::string_view name, int64_t guildId);
+    DbGang fetchGang(std::string_view name, int64_t guildId, bool caseInsensitive);
     DbPot fetchPot(int64_t guildId);
     DbUser fetchUser(int64_t userId, int64_t guildId);
 
@@ -44,7 +52,7 @@ namespace MongoManager
 
     void updateBan(const DbBan& ban);
     void updateChill(const DbChill& chill);
-    void updateGang(const DbGang& gang);
+    void updateGang(const DbGang& gang, std::string_view nameOverride = std::string_view());
     void updatePot(const DbPot& pot);
     void updateUser(const DbUser& user);
 
@@ -53,11 +61,4 @@ namespace MongoManager
     void updateMiscConfig(const DbConfigMisc& config);
     void updateRankConfig(const DbConfigRanks& config);
     void updateRoleConfig(const DbConfigRoles& config);
-
-    void deleteUser(int64_t userId, int64_t guildId);
-
-    void deleteChannelConfig(int64_t guildId);
-    void deleteMiscConfig(int64_t guildId);
-    void deleteRankConfig(int64_t guildId);
-    void deleteRoleConfig(int64_t guildId);
 }

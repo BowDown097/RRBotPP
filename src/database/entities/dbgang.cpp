@@ -14,7 +14,7 @@ DbGang::DbGang(const bsoncxx::document::value& doc)
 
     bsoncxx::document::view membersDoc = doc["members"].get_document();
     for (auto it = membersDoc.cbegin(); it != membersDoc.cend(); ++it)
-        members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), it->get_string());
+        members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), it->get_int32());
 }
 
 bsoncxx::document::value DbGang::toDocument() const

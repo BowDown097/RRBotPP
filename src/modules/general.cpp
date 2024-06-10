@@ -38,14 +38,10 @@ dpp::command_result General::achievements(const std::optional<dpp::user_in>& use
             ? Responses::YouHaveNoAchs : std::format(Responses::UserHasNoAchs, user->get_mention()));
     }
 
-    std::string description = std::accumulate(std::next(dbUser.achievements.cbegin()), dbUser.achievements.cend(),
-                                              RR::utility::formatPair(*dbUser.achievements.cbegin()),
-                                              [](std::string a, auto& b) { return a + '\n' + RR::utility::formatPair(b); });
-
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Achievements")
-        .set_description(description);
+        .set_description(dpp::utility::join(dbUser.achievements, '\n', RR::utility::formatPair));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();
@@ -102,14 +98,12 @@ dpp::command_result General::module(const std::string& moduleName)
 
     const dpp::module_base& module = modules.front();
     std::vector<std::reference_wrapper<const dpp::command_info>> commands = module.commands();
-    std::ranges::sort(commands, [](auto a, auto b) { return a.get().name() < b.get().name(); });
-    std::string commandsList = std::accumulate(std::next(commands.cbegin()), commands.cend(), commands.front().get().name(),
-                                               [](std::string a, auto b) { return a + ", " + b.get().name(); });
+    std::ranges::sort(commands, [](const auto& a, const auto& b) { return a.get().name() < b.get().name(); });
 
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
        .set_description("**" + module.name() + "**")
-       .add_field("Available commands", commandsList)
+       .add_field("Available commands", dpp::utility::join(commands, ", ", [](const auto& c) { return c.get().name(); }))
        .add_field("Description", module.summary());
 
     context->reply(dpp::message(context->msg.channel_id, embed));
@@ -119,13 +113,10 @@ dpp::command_result General::module(const std::string& moduleName)
 dpp::command_result General::modules()
 {
     std::span<const std::unique_ptr<dpp::module_base>> modules = service->modules();
-    std::string modulesList = std::accumulate(std::next(modules.begin()), modules.end(), modules.front()->name(),
-                                              [](std::string a, auto& b) { return a + ", " + b->name(); });
-
     dpp::embed embed = dpp::embed()
-       .set_color(dpp::colors::red)
-       .set_title("Modules")
-       .set_description(modulesList);
+        .set_color(dpp::colors::red)
+        .set_title("Modules")
+        .set_description(dpp::utility::join(modules, ", ", [](auto& m) { return m->name(); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();
@@ -206,14 +197,11 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
 
     std::map<std::string, std::string> stats(std::make_move_iterator(dbUser.stats.begin()),
                                              std::make_move_iterator(dbUser.stats.end()));
-    std::string description = std::accumulate(std::next(stats.cbegin()), stats.cend(),
-                                              RR::utility::formatPair(*stats.cbegin()),
-                                              [](std::string a, auto& b) { return a + '\n' + RR::utility::formatPair(b); });
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Stats")
-        .set_description(description);
+        .set_description(dpp::utility::join(stats, '\n', RR::utility::formatPair));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();

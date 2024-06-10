@@ -77,6 +77,16 @@ namespace Constants
     // ********************
     constexpr int DoubleOdds = 45;
     // ********************
+    //        GANGS
+    // ********************
+    constexpr long double GangCreationCost = 5000;
+    constexpr int GangMaxMembers = 10;
+    constexpr long double GangRenameCost = 2000;
+    constexpr long double GangVaultCost = 5000;
+    constexpr std::array<std::string_view, 3> GangPositions = { "Leader", "Elder", "Member" };
+    constexpr int MaxGangsPerGuild = 50;
+    constexpr long double VaultTaxPercent = 1.5L;
+    // ********************
     //     INVESTMENTS
     // ********************
     constexpr long double InvestmentFeePercent = 1.5L;

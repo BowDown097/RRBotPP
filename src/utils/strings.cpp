@@ -10,15 +10,15 @@ namespace RR
             return "**" + pair.first + "**: " + pair.second;
         }
 
-        std::string sanitizeString(const std::string& str)
+        std::string sanitizeString(std::string_view str)
         {
+            std::string sanitized(str);
             if (str.empty())
-                return str;
+                return sanitized;
 
             constexpr std::array escapedChars = { "\\*", "\\_", "\\`", "\\~", "\\>" };
             constexpr std::array sensitiveChars = { "*", "_", "`", "~", ">" };
 
-            std::string sanitized(str);
             for (int i = 0; i < sensitiveChars.size(); ++i)
                 strReplace(sanitized, sensitiveChars[i], escapedChars[i]);
 

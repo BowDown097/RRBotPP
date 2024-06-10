@@ -231,6 +231,48 @@ constexpr const char* GenericGambleFail = "Well damn, you rolled a {}, which was
 constexpr const char* GenericGambleSuccess = "Good shit my guy! You rolled a {:.2f} and got yourself **{}**!\nBalance: {}";
 constexpr const char* InvalidDice = "Your number needs to be between 1 and 6.";
 // ********************
+//        GANGS
+// ********************
+constexpr const char* AlreadyInGang = "You are already in a gang!";
+constexpr const char* ChangedUserPosition = "Changed {} to a(n) **{}**.";
+constexpr const char* DepositTooLow = "You need to deposit at least {}.";
+constexpr const char* DepositedIntoVault = "Deposited **{}** into your gang's vault (after {}% tax).";
+constexpr const char* DisbandedGang = "Your gang has been disbanded!";
+constexpr const char* GangAlreadyExists = "There is already a gang with that name.";
+constexpr const char* GangAtMaxMembers = "That gang has already reached the maximum of {} members.";
+constexpr const char* GangCreated = "Created a gang with the name **{}** for {}.";
+constexpr const char* GangHasNoVault = "Your gang does not have a vault!";
+constexpr const char* GangHasVault = "Your gang already has a vault!";
+constexpr const char* GangIsBroke = "Your gang is broke!";
+constexpr const char* GangIsPrivate = "That gang is private! You will need to be invited by a(n) {} or above.";
+constexpr const char* GangNotFound = "There is no gang with that name.";
+constexpr const char* GangPublicityToggled = "Your gang is {} public.";
+constexpr const char* GangVaultBalance = "Your gang's vault has {}.";
+constexpr const char* InvalidGangName = "Gang names must be alphanumeric (including spaces) and between 3-32 characters.";
+constexpr const char* InvalidGangPosition = "That is not a valid gang position!";
+constexpr const char* InviteGangIsPublic = "No need to invite people! Your gang is public!";
+constexpr const char* InvitedUserToGang = "Invited {} to your gang.";
+constexpr const char* JoinedGang = "You are now a member of **{}**!";
+constexpr const char* KickedUserFromGang = "Kicked {} from your gang.";
+constexpr const char* LeftGang = "You left your gang.";
+constexpr const char* NeedHigherGangPosition = "You need to be a(n) {} or higher in your gang.";
+constexpr const char* NeedTransferGangLeadership = "You'll need to transfer leadership first.";
+constexpr const char* NotGangLeader = "You are not the leader of your gang!";
+constexpr const char* NotInGang = "You are not in a gang!";
+constexpr const char* ReachedMaxGangs = "This server has already reached the maximum of {} gangs.";
+constexpr const char* RenamedGang = "Renamed your gang to **{}**!";
+constexpr const char* SetPositionLeaderCorrection = "Use $transferleadership.";
+constexpr const char* TransferredLeadership = "Transferred leadership to {}.";
+constexpr const char* UserAlreadyHasPosition = "{} is already a(n) {}!";
+constexpr const char* UserAlreadyInGang = "{} is already in a gang!";
+constexpr const char* UserHasHigherGangPosition = "{} is in a higher gang position than you!";
+constexpr const char* UserNotInYourGang = "{} is not in your gang!";
+constexpr const char* VaultNotEnoughCash = "Your gang's vault doesn't have that much money!";
+constexpr const char* VaultUnlocked = "Unlocked a vault for your gang for **{}**!";
+constexpr const char* WithdrawTooLow = "You need to withdraw at least {}.";
+constexpr const char* WithdrewFromVault = "Withdrew **{}** from your gang's vault.";
+constexpr const char* YourGangAtMaxMembers = "Your gang has already reached the maximum of {} members.";
+// ********************
 //       GENERAL
 // ********************
 constexpr const char* HelpGenericResponse = "Use $modules to see all of this bot's modules and use $module to view the commands in a module.";
