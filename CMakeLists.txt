@@ -37,6 +37,7 @@ add_executable(RRBot
     src/modules/gangs.h src/modules/gangs.cpp
     src/modules/general.h src/modules/general.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
+    src/systems/filtersystem.cpp src/systems/filtersystem.h
     src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h
@@ -44,7 +45,16 @@ add_executable(RRBot
     src/utils/strings.h src/utils/strings.cpp
     src/utils/timestamp.h src/utils/timestamp.cpp)
 
-find_package(Boost COMPONENTS locale)
+find_package(Boost REQUIRED COMPONENTS locale url)
+
+find_package(ICU COMPONENTS i18n uc QUIET)
+if(ICU_FOUND)
+    target_compile_definitions(RRBot PRIVATE RRBOT_HAS_ICU)
+    target_include_directories(RRBot PRIVATE ${ICU_INCLUDE_DIRS})
+    target_link_libraries(RRBot PRIVATE ${ICU_LIBRARIES})
+else()
+    message(STATUS "ICU not found. Filtering will be less secure - you should probably just use Discord's built-in system.")
+endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MONGOCXX REQUIRED libmongocxx)

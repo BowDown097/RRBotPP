@@ -10,14 +10,23 @@
 #include "modules/gambling.h"
 #include "modules/gangs.h"
 #include "modules/general.h"
+#include "systems/filtersystem.h"
 #include <boost/locale/generator.hpp>
 #include <dpp/cluster.h>
 #include <sodium.h>
 
+std::unique_ptr<dpp::cluster> cluster;
 std::unique_ptr<dpp::module_service> modules;
 
 dpp::task<void> handleMessage(const dpp::message_create_t& event)
 {
+    if (event.msg.content.empty() || event.msg.author.is_bot())
+        co_return;
+
+    co_await FilterSystem::doFilteredWordCheck(event.msg, cluster.get());
+    co_await FilterSystem::doInviteCheck(event.msg, cluster.get());
+    co_await FilterSystem::doScamCheck(event.msg, cluster.get());
+
     dpp::command_result result = co_await modules->handle_message(&event);
     if (result.message().empty())
         co_return;
@@ -46,16 +55,16 @@ int main()
         return EXIT_FAILURE;
     }
 
-    auto client = std::make_unique<dpp::cluster>(
+    cluster = std::make_unique<dpp::cluster>(
         Credentials::instance().token(),
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    modules = std::make_unique<dpp::module_service>(client.get(), dpp::module_service_config { .command_prefix = '|' });
+    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::module_service_config { .command_prefix = '|' });
     modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
 
-    client->on_log(dpp::utility::cout_logger());
-    client->on_message_create(&handleMessage);
+    cluster->on_log(dpp::utility::cout_logger());
+    cluster->on_message_create(&handleMessage);
 
-    client->start(dpp::st_wait);
+    cluster->start(dpp::st_wait);
 }

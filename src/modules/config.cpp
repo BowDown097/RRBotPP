@@ -9,10 +9,13 @@
 #include "dpp-command-handler/utils/join.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
+#include "utils/ranges.h"
+#include "utils/strings.h"
 #include <dpp/cache.h>
 #include <dpp/colors.h>
 #include <dpp/dispatcher.h>
 #include <format>
+#include <regex>
 
 Config::Config() : dpp::module_base("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
 {
@@ -24,6 +27,7 @@ Config::Config() : dpp::module_base("Config", "This is where all the BORING admi
     register_command(&Config::disableModule, "disablemodule", "Disable a module for this server.", "$disablemodule [module]");
     register_command(&Config::enableCommand, "enablecmd", "Enable a previously disabled command.", "$enablecmd [command]");
     register_command(&Config::enableModule, "enablemodule", "Enable a previously disabled module.", "$enablemodule [module]");
+    register_command(&Config::filterTerm, "filterterm", "Add a term to the filter system. Must be alphanumeric, including hyphens and spaces.", "$filterterm [term]");
     register_command(&Config::setAdminRole, "setadminrole", "Register a role that can use commands in the Administration and Config modules.", "$setadminrole [role]");
     register_command(&Config::setDjRole, "setdjrole", "Register a role as the DJ role, which is required for some of the music commands.", "$setdjrole [role]");
     register_command(&Config::setLogsChannel, "setlogschannel", "Register a channel for logs to be posted in.", "$setlogschannel [channel]");
@@ -33,6 +37,7 @@ Config::Config() : dpp::module_base("Config", "This is where all the BORING admi
     register_command(&Config::toggleInviteFilter, "toggleinvitefilter", "Toggle the invite filter.");
     register_command(&Config::toggleNsfw, "togglensfw", "Enable age-restricted content to be played with the music feature.");
     register_command(&Config::toggleScamFilter, "togglescamfilter", "Toggle the scam filter.");
+    register_command(&Config::unfilterTerm, "unfilterterm", "Remove a term from the filter system.", "$unfilterterm [term]");
     register_command(&Config::unwhitelistChannel, "unwhitelistchannel", "Remove a channel from the bot command whitelist.", "$unwhitelistchannel [channel]");
     register_command(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
 }
@@ -79,6 +84,7 @@ dpp::command_result Config::currentConfig()
     description += "***Miscellaneous***\n";
     description += std::format("Disabled Commands: {}\n", dpp::utility::join(misc.disabledCommands, ", "));
     description += std::format("Disabled Modules: {}\n", dpp::utility::join(misc.disabledModules, ", "));
+    description += std::format("Filtered Terms: {}\n", dpp::utility::join(misc.filteredTerms, ", "));
     description += std::format("Invite Filter Enabled: {}\n", misc.inviteFilterEnabled);
     description += std::format("NSFW Enabled: {}\n", misc.nsfwEnabled);
     description += std::format("Scam Filter Enabled: {}\n", misc.scamFilterEnabled);
@@ -134,7 +140,7 @@ dpp::command_result Config::disableCommand(const std::string& cmd)
 dpp::command_result Config::disableFiltersInChannel(const dpp::channel_in& channelIn)
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    if (!misc.inviteFilterEnabled && !misc.scamFilterEnabled)
+    if (!misc.inviteFilterEnabled && !misc.scamFilterEnabled && misc.filteredTerms.empty())
         return dpp::command_result::from_error(Responses::NoFiltersToDisable);
 
     dpp::channel* channel = channelIn.top_result();
@@ -179,6 +185,22 @@ dpp::command_result Config::enableModule(const std::string& module)
 
     MongoManager::updateMiscConfig(misc);
     return dpp::command_result::from_success(Responses::SetModuleEnabled);
+}
+
+dpp::command_result Config::filterTerm(const dpp::remainder<std::string>& term)
+{
+    std::string termLower = RR::utility::toLower(*term);
+    if (!std::regex_match(termLower, std::regex("^[a-z0-9\x20\x2d]*$")))
+        return dpp::command_result::from_error(Responses::InvalidFilteredTerm);
+
+    DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
+    if (RR::utility::rangeContains(misc.filteredTerms, termLower))
+        return dpp::command_result::from_error(Responses::TermAlreadyFiltered);
+
+    misc.filteredTerms.push_back(termLower);
+    MongoManager::updateMiscConfig(misc);
+
+    return dpp::command_result::from_success(std::format(Responses::FilteredTerm, termLower));
 }
 
 dpp::command_result Config::setAdminRole(const dpp::role_in& roleIn)
@@ -256,6 +278,17 @@ dpp::command_result Config::toggleScamFilter()
     misc.scamFilterEnabled = !misc.scamFilterEnabled;
     MongoManager::updateMiscConfig(misc);
     return dpp::command_result::from_success(std::format(Responses::ToggledScamFilter, misc.scamFilterEnabled ? "ON" : "OFF"));
+}
+
+dpp::command_result Config::unfilterTerm(const dpp::remainder<std::string>& term)
+{
+    std::string termLower = RR::utility::toLower(*term);
+    DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
+    if (!std::erase(misc.filteredTerms, termLower))
+        return dpp::command_result::from_error(Responses::TermNotFiltered);
+
+    MongoManager::updateMiscConfig(misc);
+    return dpp::command_result::from_success(std::format(Responses::UnfilteredTerm, termLower));
 }
 
 dpp::command_result Config::unwhitelistChannel(const dpp::channel_in& channelIn)

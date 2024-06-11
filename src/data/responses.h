@@ -55,6 +55,8 @@ constexpr const char* ChannelUnwhitelisted = "Removed {} from the whitelist.";
 constexpr const char* ChannelWhitelisted = "Whitelisted {}.";
 constexpr const char* ClearedConfig = "All configuration cleared!";
 constexpr const char* DisabledFilters = "Disabled filters in {}.";
+constexpr const char* FilteredTerm = "Added \"{}\" as a filtered term.";
+constexpr const char* InvalidFilteredTerm = "Filtered terms must be alphanumeric (including spaces and hyphens).";
 constexpr const char* NoFiltersToDisable = "There are no filters to disable!";
 constexpr const char* NotDisabledModule = "That is not a disabled module!";
 constexpr const char* SetAdminRole = "Set admin role to {}.";
@@ -64,10 +66,13 @@ constexpr const char* SetModRole = "Set moderator role to {}.";
 constexpr const char* SetModuleDisabled = "Disabled the module.";
 constexpr const char* SetModuleEnabled = "Enabled the module.";
 constexpr const char* SetPotChannel = "Set pot channel to {}.";
+constexpr const char* TermAlreadyFiltered = "That term is already filtered!";
+constexpr const char* TermNotFiltered = "That term is not filtered!";
 constexpr const char* ToggledInviteFilter = "Toggled invite filter {}.";
 constexpr const char* ToggledNsfw = "Toggled age-restricted content {}.";
 constexpr const char* ToggledRandomDrops = "Toggled random drops {}.";
 constexpr const char* ToggledScamFilter = "Toggled scam filter {}.";
+constexpr const char* UnfilteredTerm = "Removed \"{}\" from the filter system.";
 // ********************
 //        CRIME
 // ********************

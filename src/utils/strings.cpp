@@ -1,4 +1,5 @@
 #include "strings.h"
+#include <algorithm>
 #include <array>
 
 namespace RR
@@ -33,6 +34,22 @@ namespace RR
                 str.replace(pos, from.size(), to);
                 pos += to.size();
             }
+        }
+
+        std::string toLower(std::string_view str)
+        {
+            std::string out;
+            out.reserve(str.size());
+            std::ranges::transform(str, std::back_inserter(out), [](unsigned char c) { return std::tolower(c); });
+            return out;
+        }
+
+        std::string toUpper(std::string_view str)
+        {
+            std::string out;
+            out.reserve(str.size());
+            std::ranges::transform(str, std::back_inserter(out), [](unsigned char c) { return std::toupper(c); });
+            return out;
         }
     }
 }

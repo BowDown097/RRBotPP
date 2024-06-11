@@ -6,6 +6,7 @@
 #include "database/mongomanager.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
+#include "utils/strings.h"
 #include "utils/timestamp.h"
 #include <dpp/cluster.h>
 #include <mongocxx/collection.hpp>
@@ -129,9 +130,7 @@ dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const 
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    std::string cryptoLower;
-    std::ranges::transform(crypto, std::back_inserter(cryptoLower), tolower);
-
+    std::string cryptoLower = RR::utility::toLower(crypto);
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (cryptoLower == "btc")
         dbUser.btc = amount;
@@ -144,11 +143,8 @@ dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const 
     else
         return dpp::command_result::from_error(Responses::InvalidCrypto);
 
-    std::string cryptoUpper;
-    std::ranges::transform(crypto, std::back_inserter(cryptoUpper), toupper);
-
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::SetCrypto, user->get_mention(), cryptoUpper, amount));
+    return dpp::command_result::from_success(std::format(Responses::SetCrypto, user->get_mention(), RR::utility::toUpper(crypto), amount));
 }
 
 dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int level)
