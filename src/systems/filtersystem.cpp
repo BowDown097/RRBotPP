@@ -2,7 +2,6 @@
 #include "database/entities/config/dbconfigchannels.h"
 #include "database/entities/config/dbconfigmisc.h"
 #include "database/mongomanager.h"
-#include "utils/ranges.h"
 #include "utils/strings.h"
 #include <boost/url.hpp>
 #include <dpp/cluster.h>
@@ -24,8 +23,9 @@ namespace FilterSystem
     {
         DbConfigMisc misc = MongoManager::fetchMiscConfig(guildId);
         std::string inputLower = RR::utility::toLower(input);
-        auto cleanedIt = inputLower | std::views::filter([](unsigned char c) { return !std::isspace(c); });
-        std::string cleaned(cleanedIt.begin(), cleanedIt.end());
+        std::string cleaned = inputLower
+            | std::views::filter([](unsigned char c) { return !std::isspace(c); })
+            | std::ranges::to<std::string>();
 
     #ifdef RRBOT_HAS_ICU
         UErrorCode status = U_ZERO_ERROR;
@@ -67,9 +67,9 @@ namespace FilterSystem
     #else
         return std::ranges::any_of(misc.filteredTerms, [&cleaned, &inputLower](const std::string& term) {
             if (std::ranges::any_of(term, [](unsigned char c) { return std::isspace(c); }))
-                return inputLower.find(term) != std::string::npos;
+                return inputLower.contains(term);
             else
-                return cleaned.find(term) != std::string::npos;
+                return cleaned.contains(term);
         });
     #endif
     }
@@ -77,7 +77,7 @@ namespace FilterSystem
     dpp::task<void> doFilteredWordCheck(const dpp::message& message, dpp::cluster* cluster)
     {
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (RR::utility::rangeContains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
             co_return;
         if (containsFilteredWord(message.guild_id, message.content))
             co_await cluster->co_message_delete(message.id, message.channel_id);
@@ -90,7 +90,7 @@ namespace FilterSystem
             co_return;
 
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (RR::utility::rangeContains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
             co_return;
 
         static std::regex inviteRegex(R"(discord(?:\.com\/invite|app\.com\/invite|\.gg|\.me|\.io)\/([a-zA-Z0-9\-]+))");
@@ -116,13 +116,13 @@ namespace FilterSystem
             co_return;
 
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (RR::utility::rangeContains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
             co_return;
 
         std::string content = RR::utility::toLower(message.content);
-        if ((content.find("skins") != std::string::npos && content.find("imgur") != std::string::npos) ||
-            (content.find("nitro") != std::string::npos && content.find("free") != std::string::npos && content.find("http") != std::string::npos) ||
-            (content.find("nitro") != std::string::npos && content.find("steam") != std::string::npos))
+        if ((content.contains("skins") && content.contains("imgur")) ||
+            (content.contains("nitro") && content.contains("free") && content.contains("http")) ||
+            (content.contains("nitro") && content.contains("steam")))
         {
             co_await cluster->co_message_delete(message.id, message.channel_id);
             co_return;
@@ -130,7 +130,7 @@ namespace FilterSystem
 
         for (const dpp::embed& embed : message.embeds)
         {
-            if (embed.title.empty())
+            if (embed.title.empty() || embed.url.empty())
                 continue;
 
             if (boost::system::result<boost::url_view> res = boost::urls::parse_uri(embed.url); !res.has_error())
@@ -139,14 +139,14 @@ namespace FilterSystem
                 if (host.empty())
                     continue;
 
-                RR::utility::strReplace(host, "www.", "");
                 std::ranges::transform(host, host.begin(), [](unsigned char c) { return std::tolower(c); });
+                RR::utility::strReplace(host, "www.", "");
 
                 std::string title = RR::utility::toLower(embed.title);
-                if ((title.find("trade offer") != std::string::npos && host != "steamcommunity.com") ||
-                    (title.find("steam community") != std::string::npos && host != "steamcommunity.com") ||
-                    (title.find("you've been gifted") != std::string::npos && host != "discord.gift") ||
-                    (title.find("nitro") != std::string::npos && title.find("steam") != std::string::npos))
+                if ((title.contains("trade offer") && host != "steamcommunity.com") ||
+                    (title.contains("steam community") && host != "steamcommunity.com") ||
+                    (title.contains("you've been gifted") && host != "discord.gift") ||
+                    (title.contains("nitro") && title.contains("steam")))
                 {
                     co_await cluster->co_message_delete(message.id, message.channel_id);
                     break;

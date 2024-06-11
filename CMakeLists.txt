@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(RRBot LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_COROUTINES "" ON)
@@ -41,7 +41,6 @@ add_executable(RRBot
     src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h
-    src/utils/ranges.h
     src/utils/strings.h src/utils/strings.cpp
     src/utils/timestamp.h src/utils/timestamp.cpp)
 

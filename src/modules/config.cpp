@@ -9,7 +9,6 @@
 #include "dpp-command-handler/utils/join.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
-#include "utils/ranges.h"
 #include "utils/strings.h"
 #include <dpp/cache.h>
 #include <dpp/colors.h>
@@ -93,9 +92,7 @@ dpp::command_result Config::currentConfig()
     description += "***Ranks***\n";
     if (!ranks.costs.empty())
     {
-        std::map<int, long double> costs(std::make_move_iterator(ranks.costs.begin()),
-                                         std::make_move_iterator(ranks.costs.end()));
-        for (const auto& [level, cost] : costs)
+        for (const auto& [level, cost] : ranks.costs | std::ranges::to<std::map>())
         {
             description += std::format("Level {}: {} - {}\n",
                 level, dpp::role::get_mention(ranks.ids[level]), RR::utility::currencyToStr(cost));
@@ -194,7 +191,7 @@ dpp::command_result Config::filterTerm(const dpp::remainder<std::string>& term)
         return dpp::command_result::from_error(Responses::InvalidFilteredTerm);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    if (RR::utility::rangeContains(misc.filteredTerms, termLower))
+    if (std::ranges::contains(misc.filteredTerms, termLower))
         return dpp::command_result::from_error(Responses::TermAlreadyFiltered);
 
     misc.filteredTerms.push_back(termLower);

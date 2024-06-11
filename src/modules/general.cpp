@@ -195,13 +195,10 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
             ? Responses::YouHaveNoStats : std::format(Responses::UserHasNoStats, user->get_mention()));
     }
 
-    std::map<std::string, std::string> stats(std::make_move_iterator(dbUser.stats.begin()),
-                                             std::make_move_iterator(dbUser.stats.end()));
-
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Stats")
-        .set_description(dpp::utility::join(stats, '\n', RR::utility::formatPair));
+        .set_description(dpp::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', RR::utility::formatPair));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();

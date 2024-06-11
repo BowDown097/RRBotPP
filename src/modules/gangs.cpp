@@ -7,7 +7,6 @@
 #include "dpp-command-handler/extensions/cache.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
-#include "utils/ranges.h"
 #include <bsoncxx/builder/stream/document.hpp>
 #include <dpp/colors.h>
 #include <dpp/dispatcher.h>
@@ -228,7 +227,7 @@ dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (!user.gang.empty())
         return dpp::command_result::from_error(Responses::AlreadyInGang);
-    if (!gang.isPublic && !RR::utility::rangeContains(user.pendingGangInvites, gang.name))
+    if (!gang.isPublic && !std::ranges::contains(user.pendingGangInvites, gang.name))
         return dpp::command_result::from_error(std::format(Responses::GangIsPrivate, Constants::GangPositions[1]));
 
     gang.members[context->msg.author.id] = Constants::GangPositions.size() - 1;

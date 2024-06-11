@@ -7,6 +7,7 @@ struct DbConfigMisc : DbObject
     std::vector<std::string> disabledCommands;
     std::vector<std::string> disabledModules;
     bool dropsDisabled{};
+    std::vector<std::string> filteredTerms;
     int64_t guildId{};
     bool inviteFilterEnabled{};
     bool nsfwEnabled{};

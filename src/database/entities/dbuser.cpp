@@ -5,7 +5,6 @@
 #include "dpp-command-handler/utils/lexical_cast.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
-#include "utils/ranges.h"
 #include "utils/timestamp.h"
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
@@ -267,7 +266,7 @@ void DbUser::modCooldown(int64_t& duration, const dpp::guild_member& member)
     // 4th rank cooldown reducer
     DbConfigRanks ranks = MongoManager::fetchRankConfig(member.guild_id);
     if (auto it = ranks.ids.find(4); it != ranks.ids.end())
-        if (RR::utility::rangeContains(member.get_roles(), dpp::snowflake(it->second)))
+        if (std::ranges::contains(member.get_roles(), dpp::snowflake(it->second)))
             duration *= 0.8;
     // cocaine cooldown reducer
     if (auto it = this->usedConsumables.find("Cocaine"); it != this->usedConsumables.end())
@@ -311,10 +310,10 @@ dpp::task<void> DbUser::setCashWithoutAdjustment(const dpp::guild_member& member
     for (const auto& [level, cost] : ranks.costs)
     {
         dpp::snowflake roleId = ranks.ids[level];
-        if (!RR::utility::rangeContains(guild->roles, roleId))
+        if (!std::ranges::contains(guild->roles, roleId))
             co_return;
 
-        bool hasRole = RR::utility::rangeContains(member.get_roles(), roleId);
+        bool hasRole = std::ranges::contains(member.get_roles(), roleId);
         long double neededCash = cost * (1 + 0.5 * this->prestige);
 
         if (this->cash >= neededCash && !hasRole)

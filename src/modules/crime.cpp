@@ -7,7 +7,6 @@
 #include "dpp-command-handler/extensions/cache.h"
 #include "utils/ld.h"
 #include "utils/random.h"
-#include "utils/ranges.h"
 #include "utils/strings.h"
 #include <dpp/cluster.h>
 
@@ -43,8 +42,8 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn
 
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     const std::vector<dpp::snowflake>& memberRoles = member.get_roles();
-    if (RR::utility::rangeContains(memberRoles, dpp::snowflake(roles.staffLvl1Role)) ||
-        RR::utility::rangeContains(memberRoles, dpp::snowflake(roles.staffLvl2Role)))
+    if (std::ranges::contains(memberRoles, dpp::snowflake(roles.staffLvl1Role)) ||
+        std::ranges::contains(memberRoles, dpp::snowflake(roles.staffLvl2Role)))
     {
         co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
     }
@@ -251,10 +250,10 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
     if (RR::utility::random(1, 101) < Constants::GenericCrimeToolOdds)
     {
         auto availableTools = Constants::Tools
-                              | std::views::filter([&user](const Tool& t) { return !RR::utility::rangeContains(user.tools, t.name()); })
-                              | std::views::transform([](const Tool& t) { return t.name(); });
-        size_t cnt = std::distance(std::ranges::begin(availableTools), std::ranges::end(availableTools));
-        if (cnt > 0)
+            | std::views::filter([&user](const Tool& t) { return !std::ranges::contains(user.tools, t.name()); })
+            | std::views::transform([](const Tool& t) { return t.name(); });
+
+        if (size_t cnt = std::ranges::distance(availableTools))
         {
             std::string tool(*std::ranges::next(std::ranges::begin(availableTools), RR::utility::random(cnt)));
             user.tools.push_back(tool);
