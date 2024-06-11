@@ -11,7 +11,9 @@ namespace RR
         // because long double is usually 80 bits sadly, not 128
         long double get_long_double(const bsoncxx::document::element& element)
         {
-            return dpp::utility::lexical_cast<long double>(element.get_decimal128().value.to_string());
+            return element
+                ? dpp::utility::lexical_cast<long double>(element.get_decimal128().value.to_string())
+                : (long double){};
         }
 
         bsoncxx::decimal128 put_long_double(long double value)

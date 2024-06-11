@@ -6,11 +6,11 @@
 
 DbPot::DbPot(const bsoncxx::document::value& doc)
 {
-    endTime = doc["endTime"].get_int64();
-    guildId = doc["guildId"].get_int64();
+    endTime = bsoncxx_get_or_default(doc["endTime"], int64);
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     value = RR::utility::get_long_double(doc["value"]);
 
-    bsoncxx::document::view membersDoc = doc["members"].get_document();
+    bsoncxx::document::view membersDoc = bsoncxx_get_or_default(doc["members"], document);
     for (auto it = membersDoc.cbegin(); it != membersDoc.cend(); ++it)
         members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), RR::utility::get_long_double(*it));
 }

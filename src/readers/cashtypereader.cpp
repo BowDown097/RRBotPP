@@ -7,7 +7,7 @@
 
 dpp::type_reader_result cash_in::read(dpp::cluster* cluster, const dpp::message_create_t* context, std::string_view input)
 {
-    if (input.size() > 1 && tolower(input.back()) == 'k')
+    if (input.size() > 1 && static_cast<char>(std::tolower(static_cast<unsigned char>(input.back()))) == 'k')
     {
         if (long double value = dpp::utility::lexical_cast<long double>(input.substr(0, input.size() - 1)))
             add_result(value * 1000.0L);

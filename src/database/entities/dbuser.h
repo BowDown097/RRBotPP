@@ -52,7 +52,6 @@ struct DbUser : DbObject
     // misc
     std::string gang;
     bool hasReachedAMilli{};
-    std::string preferredBibleTranslation;
     bool usingSlots{};
 
     // complex

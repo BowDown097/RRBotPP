@@ -4,17 +4,17 @@
 
 DbConfigMisc::DbConfigMisc(const bsoncxx::document::value& doc)
 {
-    dropsDisabled = doc["dropsDisabled"].get_bool();
-    guildId = doc["guildId"].get_int64();
-    inviteFilterEnabled = doc["inviteFilterEnabled"].get_bool();
-    nsfwEnabled = doc["nsfwEnabled"].get_bool();
-    scamFilterEnabled = doc["scamFilterEnabled"].get_bool();
+    dropsDisabled = bsoncxx_get_or_default(doc["dropsDisabled"], bool);
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
+    inviteFilterEnabled = bsoncxx_get_or_default(doc["inviteFilterEnabled"], bool);
+    nsfwEnabled = bsoncxx_get_or_default(doc["nsfwEnabled"], bool);
+    scamFilterEnabled = bsoncxx_get_or_default(doc["scamFilterEnabled"], bool);
 
-    bsoncxx::array::view disabledCommandsArr = doc["disabledCommands"].get_array();
+    bsoncxx::array::view disabledCommandsArr = bsoncxx_get_or_default(doc["disabledCommands"], array);
     for (auto it = disabledCommandsArr.cbegin(); it != disabledCommandsArr.cend(); ++it)
         disabledCommands.push_back(std::string(it->get_string()));
 
-    bsoncxx::array::view disabledModulesArr = doc["disabledModules"].get_array();
+    bsoncxx::array::view disabledModulesArr = bsoncxx_get_or_default(doc["disabledModules"], array);
     for (auto it = disabledModulesArr.cbegin(); it != disabledModulesArr.cend(); ++it)
         disabledModules.push_back(std::string(it->get_string()));
 }

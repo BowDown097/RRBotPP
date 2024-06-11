@@ -14,90 +14,89 @@
 
 DbUser::DbUser(const bsoncxx::document::value& doc)
 {
-    guildId = doc["guildId"].get_int64();
-    userId = doc["userId"].get_int64();
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
+    userId = bsoncxx_get_or_default(doc["userId"], int64);
 
-    blackHatEndTime = doc["blackHatEndTime"].get_int64();
-    bullyCooldown = doc["bullyCooldown"].get_int64();
-    chopCooldown = doc["chopCooldown"].get_int64();
-    cocaineEndTime = doc["cocaineEndTime"].get_int64();
-    cocaineRecoveryTime = doc["cocaineRecoveryTime"].get_int64();
-    dailyCooldown = doc["dailyCooldown"].get_int64();
-    dealCooldown = doc["dealCooldown"].get_int64();
-    digCooldown = doc["digCooldown"].get_int64();
-    farmCooldown = doc["farmCooldown"].get_int64();
-    fishCooldown = doc["fishCooldown"].get_int64();
-    hackCooldown = doc["hackCooldown"].get_int64();
-    huntCooldown = doc["huntCooldown"].get_int64();
-    lootCooldown = doc["lootCooldown"].get_int64();
-    messageCashCooldown = doc["messageCashCooldown"].get_int64();
-    mineCooldown = doc["mineCooldown"].get_int64();
-    pacifistCooldown = doc["pacifistCooldown"].get_int64();
-    prestigeCooldown = doc["prestigeCooldown"].get_int64();
-    rapeCooldown = doc["rapeCooldown"].get_int64();
-    romanianFlagEndTime = doc["romanianFlagEndTime"].get_int64();
-    robCooldown = doc["robCooldown"].get_int64();
-    scavengeCooldown = doc["scavengeCooldown"].get_int64();
-    shootCooldown = doc["shootCooldown"].get_int64();
-    slaveryCooldown = doc["slaveryCooldown"].get_int64();
-    viagraEndTime = doc["viagraEndTime"].get_int64();
-    whoreCooldown = doc["whoreCooldown"].get_int64();
+    blackHatEndTime = bsoncxx_get_or_default(doc["blackHatEndTime"], int64);
+    bullyCooldown = bsoncxx_get_or_default(doc["bullyCooldown"], int64);
+    chopCooldown = bsoncxx_get_or_default(doc["chopCooldown"], int64);
+    cocaineEndTime = bsoncxx_get_or_default(doc["cocaineEndTime"], int64);
+    cocaineRecoveryTime = bsoncxx_get_or_default(doc["cocaineRecoveryTime"], int64);
+    dailyCooldown = bsoncxx_get_or_default(doc["dailyCooldown"], int64);
+    dealCooldown = bsoncxx_get_or_default(doc["dealCooldown"], int64);
+    digCooldown = bsoncxx_get_or_default(doc["digCooldown"], int64);
+    farmCooldown = bsoncxx_get_or_default(doc["farmCooldown"], int64);
+    fishCooldown = bsoncxx_get_or_default(doc["fishCooldown"], int64);
+    hackCooldown = bsoncxx_get_or_default(doc["hackCooldown"], int64);
+    huntCooldown = bsoncxx_get_or_default(doc["huntCooldown"], int64);
+    lootCooldown = bsoncxx_get_or_default(doc["lootCooldown"], int64);
+    messageCashCooldown = bsoncxx_get_or_default(doc["messageCashCooldown"], int64);
+    mineCooldown = bsoncxx_get_or_default(doc["mineCooldown"], int64);
+    pacifistCooldown = bsoncxx_get_or_default(doc["pacifistCooldown"], int64);
+    prestigeCooldown = bsoncxx_get_or_default(doc["prestigeCooldown"], int64);
+    rapeCooldown = bsoncxx_get_or_default(doc["rapeCooldown"], int64);
+    romanianFlagEndTime = bsoncxx_get_or_default(doc["romanianFlagEndTime"], int64);
+    robCooldown = bsoncxx_get_or_default(doc["robCooldown"], int64);
+    scavengeCooldown = bsoncxx_get_or_default(doc["scavengeCooldown"], int64);
+    shootCooldown = bsoncxx_get_or_default(doc["shootCooldown"], int64);
+    slaveryCooldown = bsoncxx_get_or_default(doc["slaveryCooldown"], int64);
+    viagraEndTime = bsoncxx_get_or_default(doc["viagraEndTime"], int64);
+    whoreCooldown = bsoncxx_get_or_default(doc["whoreCooldown"], int64);
 
     btc = RR::utility::get_long_double(doc["btc"]);
     cash = RR::utility::get_long_double(doc["cash"]);
     eth = RR::utility::get_long_double(doc["eth"]);
     gamblingMultiplier = RR::utility::get_long_double(doc["gamblingMultiplier"]);
-    health = doc["health"].get_int32();
+    health = bsoncxx_get_or_default(doc["health"], int32);
     ltc = RR::utility::get_long_double(doc["ltc"]);
-    prestige = doc["prestige"].get_int32();
+    prestige = bsoncxx_get_or_default(doc["prestige"], int32);
     xrp = RR::utility::get_long_double(doc["xrp"]);
 
-    gang = doc["gang"].get_string();
-    hasReachedAMilli = doc["hasReachedAMilli"].get_bool();
-    preferredBibleTranslation = doc["preferredBibleTranslation"].get_string();
-    usingSlots = doc["usingSlots"].get_bool();
+    gang = bsoncxx_get_value_or_default(doc["gang"], string);
+    hasReachedAMilli = bsoncxx_get_or_default(doc["hasReachedAMilli"], bool);
+    usingSlots = bsoncxx_get_or_default(doc["usingSlots"], bool);
 
-    bsoncxx::document::view achievementsDoc = doc["achievements"].get_document();
+    bsoncxx::document::view achievementsDoc = bsoncxx_get_or_default(doc["achievements"], document);
     for (auto it = achievementsDoc.cbegin(); it != achievementsDoc.cend(); ++it)
         achievements.emplace(it->key(), it->get_string());
 
-    bsoncxx::document::view ammoDoc = doc["ammo"].get_document();
+    bsoncxx::document::view ammoDoc = bsoncxx_get_or_default(doc["ammo"], document);
     for (auto it = ammoDoc.cbegin(); it != ammoDoc.cend(); ++it)
         ammo.emplace(it->key(), it->get_int32());
 
-    bsoncxx::document::view collectiblesDoc = doc["collectibles"].get_document();
+    bsoncxx::document::view collectiblesDoc = bsoncxx_get_or_default(doc["collectibles"], document);
     for (auto it = collectiblesDoc.cbegin(); it != collectiblesDoc.cend(); ++it)
         collectibles.emplace(it->key(), it->get_int32());
 
-    bsoncxx::document::view consumablesDoc = doc["consumables"].get_document();
+    bsoncxx::document::view consumablesDoc = bsoncxx_get_or_default(doc["consumables"], document);
     for (auto it = consumablesDoc.cbegin(); it != consumablesDoc.cend(); ++it)
         consumables.emplace(it->key(), it->get_int32());
 
-    bsoncxx::array::view cratesArr = doc["crates"].get_array();
+    bsoncxx::array::view cratesArr = bsoncxx_get_or_default(doc["crates"], array);
     for (auto it = cratesArr.cbegin(); it != cratesArr.cend(); ++it)
         crates.push_back(std::string(it->get_string()));
 
-    bsoncxx::array::view pendingGangInvitesArr = doc["pendingGangInvites"].get_array();
+    bsoncxx::array::view pendingGangInvitesArr = bsoncxx_get_or_default(doc["pendingGangInvites"], array);
     for (auto it = pendingGangInvitesArr.cbegin(); it != pendingGangInvitesArr.cend(); ++it)
         pendingGangInvites.push_back(std::string(it->get_string()));
 
-    bsoncxx::document::view perksDoc = doc["perks"].get_document();
+    bsoncxx::document::view perksDoc = bsoncxx_get_or_default(doc["perks"], document);
     for (auto it = perksDoc.cbegin(); it != perksDoc.cend(); ++it)
         perks.emplace(it->key(), it->get_int64());
 
-    bsoncxx::document::view statsDoc = doc["stats"].get_document();
+    bsoncxx::document::view statsDoc = bsoncxx_get_or_default(doc["stats"], document);
     for (auto it = statsDoc.cbegin(); it != statsDoc.cend(); ++it)
         stats.emplace(it->key(), it->get_string());
 
-    bsoncxx::array::view toolsArr = doc["tools"].get_array();
+    bsoncxx::array::view toolsArr = bsoncxx_get_or_default(doc["tools"], array);
     for (auto it = toolsArr.cbegin(); it != toolsArr.cend(); ++it)
         tools.push_back(std::string(it->get_string()));
 
-    bsoncxx::document::view usedConsumablesArr = doc["usedConsumables"].get_document();
+    bsoncxx::document::view usedConsumablesArr = bsoncxx_get_or_default(doc["usedConsumables"], document);
     for (auto it = usedConsumablesArr.cbegin(); it != usedConsumablesArr.cend(); ++it)
         usedConsumables.emplace(it->key(), it->get_int32());
 
-    bsoncxx::array::view weaponsArr = doc["weapons"].get_array();
+    bsoncxx::array::view weaponsArr = bsoncxx_get_or_default(doc["weapons"], array);
     for (auto it = weaponsArr.cbegin(); it != weaponsArr.cend(); ++it)
         weapons.push_back(std::string(it->get_string()));
 }
@@ -186,7 +185,6 @@ bsoncxx::document::value DbUser::toDocument() const
            << "xrp" << RR::utility::put_long_double(xrp)
            << "gang" << gang
            << "hasReachedAMilli" << hasReachedAMilli
-           << "preferredBibleTranslation" << preferredBibleTranslation
            << "usingSlots" << usingSlots
            << "achievements" << achievementsDoc
            << "ammo" << ammoDoc

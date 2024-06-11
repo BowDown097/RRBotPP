@@ -5,13 +5,13 @@
 
 DbConfigRanks::DbConfigRanks(const bsoncxx::document::value& doc)
 {
-    guildId = doc["guildId"].get_int64();
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
 
-    bsoncxx::document::view costsDoc = doc["costs"].get_document();
+    bsoncxx::document::view costsDoc = bsoncxx_get_or_default(doc["costs"], document);
     for (auto it = costsDoc.cbegin(); it != costsDoc.cend(); ++it)
         costs.emplace(dpp::utility::lexical_cast<int>(it->key()), RR::utility::get_long_double(*it));
 
-    bsoncxx::document::view idsDoc = doc["ids"].get_document();
+    bsoncxx::document::view idsDoc = bsoncxx_get_or_default(doc["ids"], document);
     for (auto it = idsDoc.cbegin(); it != idsDoc.cend(); ++it)
         ids.emplace(dpp::utility::lexical_cast<int>(it->key()), it->get_int64());
 }

@@ -3,10 +3,10 @@
 
 DbConfigRoles::DbConfigRoles(const bsoncxx::document::value& doc)
 {
-    djRole = doc["djRole"].get_int64();
-    guildId = doc["guildId"].get_int64();
-    staffLvl1Role = doc["staffLvl1Role"].get_int64();
-    staffLvl2Role = doc["staffLvl2Role"].get_int64();
+    djRole = bsoncxx_get_or_default(doc["djRole"], int64);
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
+    staffLvl1Role = bsoncxx_get_or_default(doc["staffLvl1Role"], int64);
+    staffLvl2Role = bsoncxx_get_or_default(doc["staffLvl2Role"], int64);
 }
 
 bsoncxx::document::value DbConfigRoles::toDocument() const

@@ -5,14 +5,14 @@
 
 DbGang::DbGang(const bsoncxx::document::value& doc)
 {
-    guildId = doc["guildId"].get_int64();
-    isPublic = doc["isPublic"].get_bool();
-    leader = doc["leader"].get_int64();
-    name = doc["name"].get_string();
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
+    isPublic = bsoncxx_get_or_default(doc["isPublic"], bool);
+    leader = bsoncxx_get_or_default(doc["leader"], int64);
+    name = bsoncxx_get_value_or_default(doc["name"], string);
     vaultBalance = RR::utility::get_long_double(doc["vaultBalance"]);
-    vaultUnlocked = doc["vaultUnlocked"].get_bool();
+    vaultUnlocked = bsoncxx_get_or_default(doc["vaultUnlocked"], bool);
 
-    bsoncxx::document::view membersDoc = doc["members"].get_document();
+    bsoncxx::document::view membersDoc = bsoncxx_get_or_default(doc["members"], document);
     for (auto it = membersDoc.cbegin(); it != membersDoc.cend(); ++it)
         members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), it->get_int32());
 }

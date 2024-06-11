@@ -3,9 +3,9 @@
 
 DbChill::DbChill(const bsoncxx::document::value& doc)
 {
-    channelId = doc["channelId"].get_int64();
-    guildId = doc["guildId"].get_int64();
-    time = doc["time"].get_int64();
+    channelId = bsoncxx_get_or_default(doc["channelId"], int64);
+    guildId = bsoncxx_get_or_default(doc["guildId"], int64);
+    time = bsoncxx_get_or_default(doc["time"], int64);
 }
 
 bsoncxx::document::value DbChill::toDocument() const
