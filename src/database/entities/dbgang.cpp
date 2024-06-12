@@ -1,6 +1,6 @@
 #include "dbgang.h"
-#include "dpp-command-handler/utils/lexical_cast.h"
 #include "utils/ld.h"
+#include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
 DbGang::DbGang(bsoncxx::document::view doc)
@@ -11,23 +11,19 @@ DbGang::DbGang(bsoncxx::document::view doc)
     name = bsoncxx_get_value_or_default(doc["name"], string);
     vaultBalance = RR::utility::get_long_double(doc["vaultBalance"]);
     vaultUnlocked = bsoncxx_get_or_default(doc["vaultUnlocked"], bool);
-
-    bsoncxx::document::view membersDoc = bsoncxx_get_or_default(doc["members"], document);
-    for (auto it = membersDoc.cbegin(); it != membersDoc.cend(); ++it)
-        members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), it->get_int32());
+    bsoncxx_elem_to_map(doc["members"], members, "id", int64, "position", int32);
 }
 
 bsoncxx::document::value DbGang::toDocument() const
 {
-    bsoncxx::builder::stream::document membersDoc;
-    for (const auto& [userId, position] : members)
-        membersDoc << dpp::utility::lexical_cast<std::string>(userId) << position;
+    bsoncxx::builder::stream::array membersArr;
+    bsoncxx_stream_map_into(members, membersArr, "id", "position");
 
     return bsoncxx::builder::stream::document()
            << "guildId" << guildId
            << "isPublic" << isPublic
            << "leader" << leader
-           << "members" << membersDoc
+           << "members" << membersArr
            << "name" << name
            << "vaultBalance" << RR::utility::put_long_double(vaultBalance)
            << "vaultUnlocked" << vaultUnlocked

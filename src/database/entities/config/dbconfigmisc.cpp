@@ -9,18 +9,9 @@ DbConfigMisc::DbConfigMisc(bsoncxx::document::view doc)
     inviteFilterEnabled = bsoncxx_get_or_default(doc["inviteFilterEnabled"], bool);
     nsfwEnabled = bsoncxx_get_or_default(doc["nsfwEnabled"], bool);
     scamFilterEnabled = bsoncxx_get_or_default(doc["scamFilterEnabled"], bool);
-
-    bsoncxx::array::view disabledCommandsArr = bsoncxx_get_or_default(doc["disabledCommands"], array);
-    for (auto it = disabledCommandsArr.cbegin(); it != disabledCommandsArr.cend(); ++it)
-        disabledCommands.push_back(std::string(it->get_string()));
-
-    bsoncxx::array::view disabledModulesArr = bsoncxx_get_or_default(doc["disabledModules"], array);
-    for (auto it = disabledModulesArr.cbegin(); it != disabledModulesArr.cend(); ++it)
-        disabledModules.push_back(std::string(it->get_string()));
-
-    bsoncxx::array::view filteredTermsArr = bsoncxx_get_or_default(doc["filteredTerms"], array);
-    for (auto it = filteredTermsArr.cbegin(); it != filteredTermsArr.cend(); ++it)
-        filteredTerms.push_back(std::string(it->get_string()));
+    bsoncxx_elem_to_array(doc["disabledCommands"], disabledCommands, string);
+    bsoncxx_elem_to_array(doc["disabledModules"], disabledModules, string);
+    bsoncxx_elem_to_array(doc["filteredTerms"], filteredTerms, string);
 }
 
 bsoncxx::document::value DbConfigMisc::toDocument() const

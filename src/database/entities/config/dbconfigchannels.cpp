@@ -7,14 +7,8 @@ DbConfigChannels::DbConfigChannels(bsoncxx::document::view doc)
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     logsChannel = bsoncxx_get_or_default(doc["logsChannel"], int64);
     potChannel = bsoncxx_get_or_default(doc["potChannel"], int64);
-
-    bsoncxx::array::view noFilterChannelsArr = bsoncxx_get_or_default(doc["noFilterChannels"], array);
-    for (auto it = noFilterChannelsArr.cbegin(); it != noFilterChannelsArr.cend(); ++it)
-        noFilterChannels.push_back(it->get_int64());
-
-    bsoncxx::array::view whitelistedChannelsArr = bsoncxx_get_or_default(doc["whitelistedChannels"], array);
-    for (auto it = whitelistedChannelsArr.cbegin(); it != whitelistedChannelsArr.cend(); ++it)
-        whitelistedChannels.push_back(it->get_int64());
+    bsoncxx_elem_to_array(doc["noFilterChannels"], noFilterChannels, int64);
+    bsoncxx_elem_to_array(doc["whitelistedChannels"], whitelistedChannels, int64);
 }
 
 bsoncxx::document::value DbConfigChannels::toDocument() const

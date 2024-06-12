@@ -1,7 +1,7 @@
 #include "dbpot.h"
-#include "dpp-command-handler/utils/lexical_cast.h"
 #include "utils/ld.h"
 #include "utils/random.h"
+#include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
 DbPot::DbPot(bsoncxx::document::view doc)
@@ -10,21 +10,29 @@ DbPot::DbPot(bsoncxx::document::view doc)
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     value = RR::utility::get_long_double(doc["value"]);
 
-    bsoncxx::document::view membersDoc = bsoncxx_get_or_default(doc["members"], document);
-    for (auto it = membersDoc.cbegin(); it != membersDoc.cend(); ++it)
-        members.emplace(dpp::utility::lexical_cast<int64_t>(it->key()), RR::utility::get_long_double(*it));
+    bsoncxx::array::view membersArr = bsoncxx_get_or_default(doc["members"], array);
+    for (auto it = membersArr.cbegin(); it != membersArr.cend(); ++it)
+    {
+        bsoncxx::document::view memberDoc = bsoncxx_get_or_default((*it), document);
+        members.emplace(bsoncxx_get_or_default(memberDoc["id"], int64), RR::utility::get_long_double(memberDoc["bet"]));
+    }
 }
 
 bsoncxx::document::value DbPot::toDocument() const
 {
-    bsoncxx::builder::stream::document membersDoc;
-    for (const auto& [userId, bet] : members)
-        membersDoc << dpp::utility::lexical_cast<std::string>(userId) << RR::utility::put_long_double(bet);
+    bsoncxx::builder::stream::array membersArr;
+    for (const auto& [id, bet] : members)
+    {
+        membersArr << bsoncxx::builder::stream::open_document
+                   << "id" << id
+                   << "bet" << RR::utility::put_long_double(bet)
+                   << bsoncxx::builder::stream::close_document;
+    }
 
     return bsoncxx::builder::stream::document()
            << "endTime" << endTime
            << "guildId" << guildId
-           << "members" << membersDoc
+           << "members" << membersArr
            << "value" << RR::utility::put_long_double(value)
            << bsoncxx::builder::stream::finalize;
 }
