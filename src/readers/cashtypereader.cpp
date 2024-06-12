@@ -7,22 +7,14 @@
 
 dpp::type_reader_result cash_in::read(dpp::cluster* cluster, const dpp::message_create_t* context, std::string_view input)
 {
-    if (input.size() > 1 && static_cast<char>(std::tolower(static_cast<unsigned char>(input.back()))) == 'k')
-    {
-        if (long double value = dpp::utility::lexical_cast<long double>(input.substr(0, input.size() - 1)))
-            add_result(value * 1000.0L);
-    }
+    if (input.size() > 1 && std::tolower(input.back()) == 'k')
+        add_result(dpp::utility::lexical_cast<long double>(input.substr(0, input.size() - 1)) * 1000.0L);
     else if (dpp::utility::iequals(input, "all"))
-    {
-        DbUser dbUser = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
-        add_result(dbUser.cash);
-    }
-    else if (long double value = dpp::utility::lexical_cast<long double>(input))
-    {
-        add_result(value);
-    }
+        add_result(MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id).cash);
+    else
+        add_result(dpp::utility::lexical_cast<long double>(input));
 
-    if (has_result())
-        return dpp::type_reader_result::from_success();
-    return dpp::type_reader_result::from_error(dpp::command_error::object_not_found, "Invalid input.");
+    // execution will not reach this point if any of the above casts have failed,
+    // so we can just return a success result here.
+    return dpp::type_reader_result::from_success();
 }

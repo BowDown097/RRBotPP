@@ -29,7 +29,7 @@ namespace RR
 
         long unixTimestamp(long offset)
         {
-            return time_point_cast<seconds>(system_clock::now()).time_since_epoch().count() + offset;
+            return duration_cast<seconds>(system_clock::now().time_since_epoch()).count() + offset;
         }
     }
 }

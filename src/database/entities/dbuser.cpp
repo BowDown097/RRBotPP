@@ -55,13 +55,13 @@ DbUser::DbUser(bsoncxx::document::view doc)
     hasReachedAMilli = bsoncxx_get_or_default(doc["hasReachedAMilli"], bool);
     usingSlots = bsoncxx_get_or_default(doc["usingSlots"], bool);
 
-    bsoncxx_elem_to_map(doc["achievements"], achievements, "name", string, "description", string);
-    bsoncxx_elem_to_map(doc["ammo"], ammo, "name", string, "count", int32);
-    bsoncxx_elem_to_map(doc["collectibles"], collectibles, "name", string, "count", int32);
-    bsoncxx_elem_to_map(doc["consumables"], consumables, "name", string, "count", int32);
-    bsoncxx_elem_to_map(doc["perks"], perks, "name", string, "duration", int64);
-    bsoncxx_elem_to_map(doc["stats"], stats, "name", string, "value", string);
-    bsoncxx_elem_to_map(doc["usedConsumables"], usedConsumables, "name", string, "uses", int32);
+    bsoncxx_elem_to_map(doc["achievements"], achievements, string);
+    bsoncxx_elem_to_map(doc["ammo"], ammo, int32);
+    bsoncxx_elem_to_map(doc["collectibles"], collectibles, int32);
+    bsoncxx_elem_to_map(doc["consumables"], consumables, int32);
+    bsoncxx_elem_to_map(doc["perks"], perks, int64);
+    bsoncxx_elem_to_map(doc["stats"], stats, string);
+    bsoncxx_elem_to_map(doc["usedConsumables"], usedConsumables, int32);
 
     bsoncxx_elem_to_array(doc["crates"], crates, string);
     bsoncxx_elem_to_array(doc["pendingGangInvites"], pendingGangInvites, string);
@@ -71,17 +71,17 @@ DbUser::DbUser(bsoncxx::document::view doc)
 
 bsoncxx::document::value DbUser::toDocument() const
 {
-    bsoncxx::builder::stream::array achievementsArr;
-    bsoncxx_stream_map_into(achievements, achievementsArr, "name", "description");
+    bsoncxx::builder::stream::document achievementsDoc;
+    bsoncxx_stream_map_into(achievements, achievementsDoc);
 
-    bsoncxx::builder::stream::array ammoArr;
-    bsoncxx_stream_map_into(ammo, ammoArr, "name", "count");
+    bsoncxx::builder::stream::document ammoDoc;
+    bsoncxx_stream_map_into(ammo, ammoDoc);
 
-    bsoncxx::builder::stream::array collectiblesArr;
-    bsoncxx_stream_map_into(collectibles, collectiblesArr, "name", "count");
+    bsoncxx::builder::stream::document collectiblesDoc;
+    bsoncxx_stream_map_into(collectibles, collectiblesDoc);
 
-    bsoncxx::builder::stream::array consumablesArr;
-    bsoncxx_stream_map_into(consumables, consumablesArr, "name", "count");
+    bsoncxx::builder::stream::document consumablesDoc;
+    bsoncxx_stream_map_into(consumables, consumablesDoc);
 
     bsoncxx::builder::stream::array cratesArr;
     for (const std::string& crate : crates)
@@ -91,26 +91,26 @@ bsoncxx::document::value DbUser::toDocument() const
     for (const std::string& pendingGangInvite : pendingGangInvites)
         pendingGangInvitesArr << pendingGangInvite;
 
-    bsoncxx::builder::stream::array perksArr;
-    bsoncxx_stream_map_into(perks, perksArr, "name", "duration");
+    bsoncxx::builder::stream::document perksDoc;
+    bsoncxx_stream_map_into(perks, perksDoc);
 
-    bsoncxx::builder::stream::array statsArr;
-    bsoncxx_stream_map_into(stats, statsArr, "name", "value");
+    bsoncxx::builder::stream::document statsDoc;
+    bsoncxx_stream_map_into(stats, statsDoc);
 
     bsoncxx::builder::stream::array toolsArr;
     for (const std::string& tool : tools)
         toolsArr << tool;
 
-    bsoncxx::builder::stream::array usedConsumablesArr;
-    bsoncxx_stream_map_into(usedConsumables, usedConsumablesArr, "name", "uses");
+    bsoncxx::builder::stream::document usedConsumablesDoc;
+    bsoncxx_stream_map_into(usedConsumables, usedConsumablesDoc);
 
     bsoncxx::builder::stream::array weaponsArr;
     for (const std::string& weapon : weapons)
         weaponsArr << weapon;
 
     return bsoncxx::builder::stream::document()
-           << "achievements" << achievementsArr
-           << "ammo" << ammoArr
+           << "achievements" << achievementsDoc
+           << "ammo" << ammoDoc
            << "blackHatEndTime" << blackHatEndTime
            << "btc" << RR::utility::put_long_double(btc)
            << "bullyCooldown" << bullyCooldown
@@ -118,8 +118,8 @@ bsoncxx::document::value DbUser::toDocument() const
            << "chopCooldown" << chopCooldown
            << "cocaineEndTime" << cocaineEndTime
            << "cocaineRecoveryTime" << cocaineRecoveryTime
-           << "collectibles" << collectiblesArr
-           << "consumables" << consumablesArr
+           << "collectibles" << collectiblesDoc
+           << "consumables" << consumablesDoc
            << "crates" << cratesArr
            << "dailyCooldown" << dailyCooldown
            << "dealCooldown" << dealCooldown
@@ -140,7 +140,7 @@ bsoncxx::document::value DbUser::toDocument() const
            << "mineCooldown" << mineCooldown
            << "pacifistCooldown" << pacifistCooldown
            << "pendingGangInvites" << pendingGangInvitesArr
-           << "perks" << perksArr
+           << "perks" << perksDoc
            << "prestige" << prestige
            << "prestigeCooldown" << prestigeCooldown
            << "rapeCooldown" << rapeCooldown
@@ -149,9 +149,9 @@ bsoncxx::document::value DbUser::toDocument() const
            << "scavengeCooldown" << scavengeCooldown
            << "shootCooldown" << shootCooldown
            << "slaveryCooldown" << slaveryCooldown
-           << "stats" << statsArr
+           << "stats" << statsDoc
            << "tools" << toolsArr
-           << "usedConsumables" << usedConsumablesArr
+           << "usedConsumables" << usedConsumablesDoc
            << "userId" << userId
            << "usingSlots" << usingSlots
            << "viagraEndTime" << viagraEndTime
