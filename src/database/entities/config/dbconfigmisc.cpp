@@ -2,7 +2,7 @@
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbConfigMisc::DbConfigMisc(const bsoncxx::document::value& doc)
+DbConfigMisc::DbConfigMisc(bsoncxx::document::view doc)
 {
     dropsDisabled = bsoncxx_get_or_default(doc["dropsDisabled"], bool);
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);

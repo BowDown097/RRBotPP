@@ -9,6 +9,6 @@ struct DbConfigRanks : DbObject
     std::unordered_map<int, int64_t> ids; // level, id
 
     DbConfigRanks() = default;
-    explicit DbConfigRanks(const bsoncxx::document::value& doc);
+    explicit DbConfigRanks(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

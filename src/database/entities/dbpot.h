@@ -10,7 +10,7 @@ struct DbPot : DbObject
     long double value{};
 
     DbPot() = default;
-    explicit DbPot(const bsoncxx::document::value& doc);
+    explicit DbPot(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 
     uint64_t drawMember();

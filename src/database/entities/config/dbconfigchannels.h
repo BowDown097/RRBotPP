@@ -11,6 +11,6 @@ struct DbConfigChannels : DbObject
     std::vector<int64_t> whitelistedChannels;
 
     DbConfigChannels() = default;
-    explicit DbConfigChannels(const bsoncxx::document::value& doc);
+    explicit DbConfigChannels(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

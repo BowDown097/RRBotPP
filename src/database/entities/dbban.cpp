@@ -1,7 +1,7 @@
 #include "dbban.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbBan::DbBan(const bsoncxx::document::value& doc)
+DbBan::DbBan(bsoncxx::document::view doc)
 {
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     time = bsoncxx_get_or_default(doc["time"], int64);

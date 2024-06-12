@@ -8,6 +8,6 @@ struct DbChill : DbObject
     int64_t time = -1;
 
     DbChill() = default;
-    explicit DbChill(const bsoncxx::document::value& doc);
+    explicit DbChill(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

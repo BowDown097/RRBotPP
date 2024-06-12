@@ -13,6 +13,6 @@ struct DbGang : DbObject
     bool vaultUnlocked{};
 
     DbGang() = default;
-    explicit DbGang(const bsoncxx::document::value& doc);
+    explicit DbGang(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

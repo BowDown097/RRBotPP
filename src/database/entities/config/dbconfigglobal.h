@@ -8,6 +8,6 @@ struct DbConfigGlobal : DbObject
     std::vector<std::string> disabledCommands;
 
     DbConfigGlobal() = default;
-    explicit DbConfigGlobal(const bsoncxx::document::value& doc);
+    explicit DbConfigGlobal(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

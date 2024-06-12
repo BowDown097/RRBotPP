@@ -2,7 +2,7 @@
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbConfigGlobal::DbConfigGlobal(const bsoncxx::document::value& doc)
+DbConfigGlobal::DbConfigGlobal(bsoncxx::document::view doc)
 {
     bsoncxx::array::view bannedUsersDoc = bsoncxx_get_or_default(doc["bannedUsers"], array);
     for (auto it = bannedUsersDoc.cbegin(); it != bannedUsersDoc.cend(); ++it)

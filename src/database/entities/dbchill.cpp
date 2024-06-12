@@ -1,7 +1,7 @@
 #include "dbchill.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbChill::DbChill(const bsoncxx::document::value& doc)
+DbChill::DbChill(bsoncxx::document::view doc)
 {
     channelId = bsoncxx_get_or_default(doc["channelId"], int64);
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);

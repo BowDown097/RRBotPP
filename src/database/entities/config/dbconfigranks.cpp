@@ -3,7 +3,7 @@
 #include "utils/ld.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbConfigRanks::DbConfigRanks(const bsoncxx::document::value& doc)
+DbConfigRanks::DbConfigRanks(bsoncxx::document::view doc)
 {
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
 

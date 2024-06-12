@@ -73,7 +73,7 @@ struct DbUser : DbObject
     std::vector<std::string> weapons;
 
     DbUser() = default;
-    explicit DbUser(const bsoncxx::document::value& doc);
+    explicit DbUser(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 
     std::unordered_map<std::string, int64_t> constructCooldownMap();

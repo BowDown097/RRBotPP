@@ -9,6 +9,6 @@ struct DbConfigRoles : DbObject
     int64_t staffLvl2Role{};
 
     DbConfigRoles() = default;
-    explicit DbConfigRoles(const bsoncxx::document::value& doc);
+    explicit DbConfigRoles(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

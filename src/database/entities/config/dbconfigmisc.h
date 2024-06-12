@@ -14,6 +14,6 @@ struct DbConfigMisc : DbObject
     bool scamFilterEnabled{};
 
     DbConfigMisc() = default;
-    explicit DbConfigMisc(const bsoncxx::document::value& doc);
+    explicit DbConfigMisc(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

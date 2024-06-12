@@ -4,7 +4,7 @@
 #include "utils/random.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbPot::DbPot(const bsoncxx::document::value& doc)
+DbPot::DbPot(bsoncxx::document::view doc)
 {
     endTime = bsoncxx_get_or_default(doc["endTime"], int64);
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);

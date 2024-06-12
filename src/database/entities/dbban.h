@@ -8,6 +8,6 @@ struct DbBan : DbObject
     int64_t userId{};
 
     DbBan() = default;
-    explicit DbBan(const bsoncxx::document::value& doc);
+    explicit DbBan(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 };

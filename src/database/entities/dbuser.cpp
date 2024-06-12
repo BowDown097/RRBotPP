@@ -11,7 +11,7 @@
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-DbUser::DbUser(const bsoncxx::document::value& doc)
+DbUser::DbUser(bsoncxx::document::view doc)
 {
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     userId = bsoncxx_get_or_default(doc["userId"], int64);

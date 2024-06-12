@@ -2,7 +2,7 @@
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbConfigChannels::DbConfigChannels(const bsoncxx::document::value& doc)
+DbConfigChannels::DbConfigChannels(bsoncxx::document::view doc)
 {
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     logsChannel = bsoncxx_get_or_default(doc["logsChannel"], int64);

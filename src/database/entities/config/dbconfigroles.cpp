@@ -1,7 +1,7 @@
 #include "dbconfigroles.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbConfigRoles::DbConfigRoles(const bsoncxx::document::value& doc)
+DbConfigRoles::DbConfigRoles(bsoncxx::document::view doc)
 {
     djRole = bsoncxx_get_or_default(doc["djRole"], int64);
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);

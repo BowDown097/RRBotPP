@@ -3,7 +3,7 @@
 #include "utils/ld.h"
 #include <bsoncxx/builder/stream/document.hpp>
 
-DbGang::DbGang(const bsoncxx::document::value& doc)
+DbGang::DbGang(bsoncxx::document::view doc)
 {
     guildId = bsoncxx_get_or_default(doc["guildId"], int64);
     isPublic = bsoncxx_get_or_default(doc["isPublic"], bool);
