@@ -1,5 +1,4 @@
 #pragma once
-#include <concepts>
 #include <limits>
 #include <ranges>
 #include <sodium.h>
@@ -27,9 +26,18 @@ namespace RR
         template<typename T> requires std::integral<T> || std::floating_point<T>
         T random(T max) { return random((T)0, max); }
 
-        auto randomElement(std::ranges::input_range auto&& range)
+        template<typename T>
+        using ref_if_not_trivial = std::conditional_t<std::is_trivially_copyable_v<T>, T, T&>;
+
+        template<std::ranges::range Range>
+        ref_if_not_trivial<std::ranges::range_value_t<Range>> randomElement(Range&& range)
         {
-            return range[random(std::ranges::size(range))];
+            if constexpr (std::ranges::input_range<Range>)
+                return range[random(std::ranges::size(range))];
+            else if constexpr (std::ranges::sized_range<Range>)
+                return *std::ranges::next(std::ranges::begin(range), random(std::ranges::size(range)));
+            else
+                return *std::ranges::next(std::ranges::begin(range), random(std::ranges::distance(range)));
         }
     }
 }

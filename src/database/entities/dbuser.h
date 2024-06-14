@@ -61,7 +61,7 @@ struct DbUser : DbObject
     std::unordered_map<std::string, int> consumables; // name, count
     std::vector<std::string> crates;
     std::vector<std::string> pendingGangInvites;
-    std::unordered_map<std::string, int64_t> perks; // name, duration
+    std::map<std::string, int64_t> perks; // name, duration
     std::unordered_map<std::string, std::string> stats; // name, value
     std::vector<std::string> tools;
     std::unordered_map<std::string, int> usedConsumables = { // name, uses
@@ -81,10 +81,10 @@ struct DbUser : DbObject
     void mergeStats(const std::unordered_map<std::string, std::string>& statsToMerge);
     void modCooldown(int64_t& duration, const dpp::guild_member& member);
     dpp::task<void> setCash(const dpp::guild_member& member, long double amount,
-                            dpp::cluster* cluster, const dpp::message_create_t* context,
+                            dpp::cluster* cluster, const dpp::message_create_t* context = nullptr,
                             std::string message = "", bool showPrestigeMessage = true);
     dpp::task<void> setCashWithoutAdjustment(const dpp::guild_member& member, long double amount,
-                                             dpp::cluster* cluster, const dpp::message_create_t* context,
+                                             dpp::cluster* cluster, const dpp::message_create_t* context = nullptr,
                                              const std::string& message = "");
     void unlockAchievement(const std::string& name, const dpp::message_create_t* context);
 };

@@ -78,7 +78,7 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
     }
 
     statUpdate(user, matches > 0, payout);
-    co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster, context);
+    co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster);
     MongoManager::updateUser(user);
 
     dpp::embed embed = dpp::embed()
@@ -100,12 +100,12 @@ dpp::task<dpp::command_result> Gambling::doubleGamble()
     if (RR::utility::random(100) < Constants::DoubleOdds)
     {
         statUpdate(user, true, user.cash);
-        co_await user.setCashWithoutAdjustment(member.value(), user.cash * 2, cluster, context);
+        co_await user.setCashWithoutAdjustment(member.value(), user.cash * 2, cluster);
     }
     else
     {
         statUpdate(user, false, user.cash);
-        co_await user.setCashWithoutAdjustment(member.value(), 0, cluster, context);
+        co_await user.setCashWithoutAdjustment(member.value(), 0, cluster);
     }
 
     MongoManager::updateUser(user);
@@ -169,7 +169,7 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
         pot.members[context->msg.author.id] = bet;
 
     pot.value += bet;
-    co_await user.setCashWithoutAdjustment(member.value(), user.cash - bet, cluster, context);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash - bet, cluster);
 
     MongoManager::updatePot(pot);
     MongoManager::updateUser(user);
@@ -195,12 +195,11 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
     if (user.cash < bet)
         co_return dpp::command_result::from_error(Responses::NotEnoughCash);
 
-    // not sure about this part! it SHOULD round to 2 decimals which SHOULD make 69.69 possible. should probably test.
     long double roll = std::ceil(RR::utility::random(1.0L, 100.0L) * 100.0L) / 100.0L;
     if (!exactRoll && user.perks.contains("Speed Demon"))
         odds *= 1.05L;
 
-    if (!exactRoll ? roll >= odds : roll == odds)
+    if (exactRoll ? roll == odds : roll >= odds)
     {
         long double payout = bet * mult;
         long double totalCash = user.cash + payout;

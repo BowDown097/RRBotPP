@@ -102,20 +102,20 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
     if (author.perks.contains("Speed Demon"))
         odds *= 0.95;
 
-    long double rapePercent = RR::utility::random(Constants::RapeMinPercent, Constants::RapeMaxPercent);
-    if (RR::utility::random(1, 101) < odds)
+    long double rapePercent = RR::utility::random(Constants::RapeMinPercent, Constants::RapeMaxPercent + 1);
+    if (RR::utility::random(100) < odds)
     {
         long double repairs = target.cash / 100.0L * rapePercent;
         statUpdate(target, false, repairs);
         context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::currencyToStr(repairs)));
-        co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster, context);
+        co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster);
     }
     else
     {
         long double repairs = author.cash / 100.0L * rapePercent;
         statUpdate(author, false, repairs);
         context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::currencyToStr(repairs)));
-        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster, context);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster);
     }
 
     author.modCooldown(author.rapeCooldown = Constants::RapeCooldown, authorMember.value());
@@ -167,10 +167,10 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     if (author.perks.contains("Speed Demon"))
         odds *= 0.95;
 
-    if (RR::utility::random(1, 101) < odds)
+    if (RR::utility::random(100) < odds)
     {
-        co_await target.setCashWithoutAdjustment(member, target.cash - amount, cluster, context);
-        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash + amount, cluster, context);
+        co_await target.setCashWithoutAdjustment(member, target.cash - amount, cluster);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash + amount, cluster);
         statUpdate(author, true, amount);
         statUpdate(target, false, amount);
 
@@ -179,7 +179,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     }
     else
     {
-        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster, context);
+        co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster);
         statUpdate(author, false, amount);
 
         context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobSuccesses),
@@ -220,7 +220,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
 
     std::string outcome;
     long double totalCash;
-    if (RR::utility::random(1, 101) < winOdds)
+    if (RR::utility::random(100) < winOdds)
     {
         size_t outcomeNum = RR::utility::random(successOutcomes.size());
         long double moneyEarned = RR::utility::random(Constants::GenericCrimeWinMin, Constants::GenericCrimeWinMax);
@@ -247,15 +247,15 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
     co_await user.setCash(member.value(), totalCash, cluster, context,
                           std::format("{}\nBalance: {}", outcome, RR::utility::currencyToStr(totalCash)));
 
-    if (RR::utility::random(1, 101) < Constants::GenericCrimeToolOdds)
+    if (RR::utility::random(100) < Constants::GenericCrimeToolOdds)
     {
         auto availableTools = Constants::Tools
             | std::views::filter([&user](const Tool& t) { return !std::ranges::contains(user.tools, t.name()); })
             | std::views::transform([](const Tool& t) { return t.name(); });
 
-        if (size_t cnt = std::ranges::distance(availableTools))
+        if (!std::ranges::empty(availableTools))
         {
-            std::string tool(*std::ranges::next(std::ranges::begin(availableTools), RR::utility::random(cnt)));
+            std::string tool(RR::utility::randomElement(availableTools));
             user.tools.push_back(tool);
             context->reply(std::format(Responses::GotTool, tool));
         }

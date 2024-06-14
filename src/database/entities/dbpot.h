@@ -4,7 +4,7 @@
 
 struct DbPot : DbObject
 {
-    int64_t endTime = -1;
+    int64_t endTime{};
     int64_t guildId{};
     std::unordered_map<int64_t, long double> members; // user ID, bet
     long double value{};

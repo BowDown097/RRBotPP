@@ -48,7 +48,7 @@ dpp::task<dpp::command_result> Gangs::buyVault()
         co_return dpp::command_result::from_error(Responses::GangHasVault);
 
     gang.vaultUnlocked = true;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangVaultCost, cluster, context);
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangVaultCost, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
@@ -76,7 +76,7 @@ dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::strin
         co_return dpp::command_result::from_error(Responses::AlreadyInGang);
 
     user.gang = *name;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangCreationCost, cluster, context);
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangCreationCost, cluster);
 
     DbGang newGang;
     newGang.guildId = context->msg.guild_id;
@@ -112,7 +112,7 @@ dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
 
     long double finalAmount = amount / 100.0L * (100.0L - Constants::VaultTaxPercent);
     gang.vaultBalance += finalAmount;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - finalAmount, cluster, context);
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - finalAmount, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
@@ -449,7 +449,7 @@ dpp::task<dpp::command_result> Gangs::withdrawVault(const cash_in& amountIn)
         co_return dpp::command_result::from_error(Responses::VaultNotEnoughCash);
 
     gang.vaultBalance -= amount;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash + amount, cluster, context);
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash + amount, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);

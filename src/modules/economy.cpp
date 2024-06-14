@@ -204,8 +204,8 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
     if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
-    co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster, context);
-    co_await target.setCashWithoutAdjustment(member, target.cash + amount, cluster, context);
+    co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster);
+    co_await target.setCashWithoutAdjustment(member, target.cash + amount, cluster);
 
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);

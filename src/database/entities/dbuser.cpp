@@ -265,7 +265,7 @@ dpp::task<void> DbUser::setCashWithoutAdjustment(const dpp::guild_member& member
     this->cash = amount;
     dpp::guild* guild = dpp::find_guild(member.guild_id);
 
-    if (!message.empty())
+    if (!message.empty() && context)
         context->reply(message);
 
     DbConfigRanks ranks = MongoManager::fetchRankConfig(member.guild_id);

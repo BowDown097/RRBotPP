@@ -117,7 +117,7 @@ dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_i
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    co_await dbUser.setCashWithoutAdjustment(member, amount, cluster, context);
+    co_await dbUser.setCashWithoutAdjustment(member, amount, cluster);
 
     MongoManager::updateUser(dbUser);
     co_return dpp::command_result::from_success(std::format(Responses::SetCash,

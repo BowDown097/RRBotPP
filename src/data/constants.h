@@ -57,10 +57,10 @@ namespace Constants
     //        CRIME
     // ********************
     constexpr double GenericCrimeWinOdds = 80;
-    constexpr long double GenericCrimeLossMax = 461;
+    constexpr long double GenericCrimeLossMax = 420;
     constexpr long double GenericCrimeLossMin = 69;
     constexpr double GenericCrimeToolOdds = 4;
-    constexpr long double GenericCrimeWinMax = 691;
+    constexpr long double GenericCrimeWinMax = 690;
     constexpr long double GenericCrimeWinMin = 69;
     constexpr double HackOdds = 10;
     constexpr double RapeOdds = 50;
