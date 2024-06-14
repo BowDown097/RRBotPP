@@ -30,7 +30,10 @@ namespace MongoManager
     mongocxx::collection rankConfigs();
     mongocxx::collection roleConfigs();
 
+    void deleteBan(int64_t userId, int64_t guildId);
+    void deleteChill(int64_t channelId, int64_t guildId);
     void deleteGang(std::string_view name, int64_t guildId, bool caseInsensitive);
+    void deletePot(int64_t guildId);
     void deleteUser(int64_t userId, int64_t guildId);
 
     void deleteChannelConfig(int64_t guildId);

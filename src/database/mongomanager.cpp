@@ -73,11 +73,26 @@ namespace MongoManager
         pool = new mongocxx::pool(uri, options);
     }
 
+    void deleteBan(int64_t userId, int64_t guildId)
+    {
+        bans().delete_one(stream_document() << "guildId" << guildId << "userId" << userId << finalize);
+    }
+
+    void deleteChill(int64_t channelId, int64_t guildId)
+    {
+        chills().delete_one(stream_document() << "channelId" << channelId << "guildId" << guildId << finalize);
+    }
+
     void deleteGang(std::string_view name, int64_t guildId, bool caseInsensitive)
     {
         gangs().delete_one(
             stream_document() << "guildId" << guildId << "name" << name << finalize,
             caseOpt<mongocxx::options::delete_options>(caseInsensitive));
+    }
+
+    void deletePot(int64_t guildId)
+    {
+        pots().delete_one(stream_document() << "guildId" << guildId << finalize);
     }
 
     void deleteUser(int64_t userId, int64_t guildId)

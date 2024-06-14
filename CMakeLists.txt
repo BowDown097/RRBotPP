@@ -45,6 +45,7 @@ add_executable(RRBot
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
     src/systems/filtersystem.h src/systems/filtersystem.cpp
     src/systems/itemsystem.h src/systems/itemsystem.cpp
+    src/systems/monitorsystem.h src/systems/monitorsystem.cpp
     src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h

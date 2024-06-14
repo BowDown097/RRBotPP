@@ -11,6 +11,7 @@
 #include "modules/gangs.h"
 #include "modules/general.h"
 #include "systems/filtersystem.h"
+#include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
 #include <dpp/cluster.h>
 #include <sodium.h>
@@ -65,6 +66,8 @@ int main()
 
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);
+
+    MonitorSystem::initialize(cluster.get());
 
     cluster->start(dpp::st_wait);
 }

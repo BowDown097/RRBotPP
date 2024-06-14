@@ -82,6 +82,7 @@ namespace Constants
     //       GAMBLING
     // ********************
     constexpr int DoubleOdds = 45;
+    constexpr long double PotFee = 3;
     // ********************
     //        GANGS
     // ********************

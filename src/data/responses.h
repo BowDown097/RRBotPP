@@ -237,6 +237,7 @@ constexpr const char* Doubled = "I have doubled your cash.";
 constexpr const char* GenericGambleFail = "Well damn, you rolled a {}, which wasn't enough. You lost **{}**.\nBalance: {}";
 constexpr const char* GenericGambleSuccess = "Good shit my guy! You rolled a {:.2f} and got yourself **{}**!\nBalance: {}";
 constexpr const char* InvalidDice = "Your number needs to be between 1 and 6.";
+constexpr const char* PotDrawn = "The pot has been drawn, and our LUCKY WINNER is {}!!! After a fee of {:.1f}%, they have won {} with a {:.1f}% chance of winning the pot!";
 // ********************
 //        GANGS
 // ********************
@@ -303,4 +304,8 @@ constexpr const char* CollectibleFoundDescription = "**{}**: {}\n\nWorth {} - $d
 constexpr const char* CollectibleFoundTitle = "Collectible found!";
 constexpr const char* HavePacifistPerk = "You have the Pacifist perk and cannot buy another.";
 constexpr const char* ReachedMaxCrates = "You already reached the maximum amount of {} crates (10).";
+// ********************
+//      MODERATION
+// ********************
+constexpr const char* ChannelThawed = "This channel has thawed out! Continue the chaos!";
 }
