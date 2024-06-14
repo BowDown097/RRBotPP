@@ -1,7 +1,13 @@
 #pragma once
 #include <array>
 #include "entities/achievement.h"
+#include "entities/goods/ammo.h"
+#include "entities/goods/crate.h"
+#include "entities/goods/collectible.h"
+#include "entities/goods/consumable.h"
+#include "entities/goods/perk.h"
 #include "entities/goods/tool.h"
+#include "entities/goods/weapon.h"
 
 namespace Constants
 {
@@ -87,6 +93,13 @@ namespace Constants
     constexpr int MaxGangsPerGuild = 50;
     constexpr long double VaultTaxPercent = 1.5L;
     // ********************
+    //        GOODS
+    // ********************
+    constexpr long BlackHatDuration = 3600;
+    constexpr long CocaineDuration = 3600;
+    constexpr long RomanianFlagDuration = 3600;
+    constexpr long ViagraDuration = 3600;
+    // ********************
     //     INVESTMENTS
     // ********************
     constexpr long double InvestmentFeePercent = 1.5L;
@@ -113,6 +126,37 @@ namespace Constants
     // ********************
     //        ITEMS
     // ********************
+    constexpr std::array Ammos = {
+        Ammo("Pistol Round", 3),
+        Ammo("Rifle Round", 2),
+        Ammo("Sniper Round", 1),
+        Ammo("Rocket", 0.5)
+    };
+    constexpr std::array Crates = {
+        Crate("Daily", 0, Crate::Tier::Daily, 1, 0, 1500),
+        Crate("Bronze", 5000, Crate::Tier::Bronze, 2),
+        Crate("Silver", 10000, Crate::Tier::Silver, 2, 1),
+        Crate("Gold", 15000, Crate::Tier::Gold, 4, 2),
+        Crate("Diamond", 25000, Crate::Tier::Diamond, 6, 3)
+    };
+    constexpr std::array Collectibles = {
+        Collectible("Ape NFT", 1000, "Who actually likes these? Why does this have value?", "https://i.ibb.co/w0syJ61/nft.png"),
+        Collectible("Bank Cheque", -1, "Hey hey hey, we got ourselves some free money!", "https://i.ibb.co/wCYcrP7/Blank-Cheque.png"),
+        Collectible("Coconut", 3, "Well this is cool, I guess.", "https://i.ibb.co/svxvLKP/coconut.png"),
+        Collectible("V Card", 69696969.69L, "Here you go, ya fuckin' virgin. Get a life bro.", "https://i.ibb.co/rvKXgb5/vcard.png", false)
+    };
+    constexpr std::array Consumables = {
+        Consumable("Black Hat", "Become an epic hax0r.", "You might get busted by the feds and get fined.", "$hack chance increased by 10%.", BlackHatDuration, 1),
+        Consumable("Cocaine", "Snorting a line of this funny sugar makes you HYPER and has some crazy effects.", "You have a chance of overdosing, which will make you lose all your remaining cocaine as well as not be able to use commands with cooldowns for a certain amount of time. The chance of overdosing and how long you can't use economy commands depends on how many lines you have in your system.", "Cooldowns are reduced by 10% for each line snorted.", CocaineDuration),
+        Consumable("Romanian Flag", "A neat little good luck charm for $rob. Your Romanian pride makes stealing wallets much easier!", "A Romanian might notice you and take some of your money.", "$rob chance increased by 10%.", RomanianFlagDuration, 1),
+        Consumable("Viagra", "Get it goin', if you know what I mean.", "The pill has a chance to backfire and give you ED.", "$rape chance increased by 10%.", ViagraDuration, 1)
+    };
+    constexpr std::array Perks = {
+        Perk("Enchanter", 5000, "Tasks are 20% more effective, but your tools have a 2% chance of breaking after use.", 172800),
+        Perk("Speed Demon", 5000, "Cooldowns are 15% shorter, but you have a 5% higher chance of failing any command that can fail.", 172800),
+        Perk("Multiperk", 10000, "Grants the ability to equip 2 perks, not including this one.", 604800),
+        Perk("Pacifist", 0, "You are immune to all crimes, but you cannot use any crime commands and you also cannot appear on the leaderboard. Cannot be stacked with other perks, even if you have the Multiperk. Can be discarded, but cannot be used again for 3 days.", -1)
+    };
     constexpr std::array Tools = {
         Tool("Wooden Pickaxe", 4500),
         Tool("Stone Pickaxe", 6000, 0, 0, 1.33L),
@@ -140,6 +184,15 @@ namespace Constants
         Tool("Diamond Hoe", 9000, GenericTaskDiamondMin * 2.5L, GenericTaskDiamondMax * 2.5L),
         Tool("Netherite Hoe", 10500, GenericTaskNetheriteMin * 2.5L, GenericTaskNetheriteMax * 2.5L),
         Tool("Fishing Rod", 7500, Fish.front().second * 7L, Fish.back().second * 15L)
+    };
+    constexpr std::array Weapons = {
+        Weapon("Glock 17", 30, "Pistol Round", 13, 21, 40, "The classic. Also the weakest. Upgrade when?", "Gun", { "Bronze", "Silver", "Gold", "Diamond" }),
+        Weapon("Python", 35, "Pistol Round", 20, 25, 30, "Nice, small, and hits like a truck. Like a Glock but it doesn't suck.", "Gun", { "Silver", "Gold", "Diamond" }),
+        Weapon("AR-15", 50, "Rifle Round", 40, 45, 25, "\"Ummmm.. This is like a full on military weapon, we should ban it\" said some fucking loser no one cares about. This gun is awesome.", "Gun", { "Gold", "Diamond" }),
+        Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", "Gun", { "Gold", "Diamond" }),
+        Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", "Gun", { "Gold", "Diamond" }),
+        Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold", "Diamond" }),
+        Weapon("RPG", 30, "Rocket", 99, 100, 15, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond" })
     };
     // ********************
     //      PRESTIGE

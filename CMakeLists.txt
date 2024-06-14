@@ -25,8 +25,14 @@ add_executable(RRBot
     src/database/entities/config/dbconfigranks.h src/database/entities/config/dbconfigranks.cpp
     src/database/entities/config/dbconfigroles.h src/database/entities/config/dbconfigroles.cpp
     src/entities/achievement.h
+    src/entities/goods/ammo.h
+    src/entities/goods/collectible.h
+    src/entities/goods/consumable.h
+    src/entities/goods/crate.h src/entities/goods/crate.cpp
     src/entities/goods/item.h
+    src/entities/goods/perk.h
     src/entities/goods/tool.h
+    src/entities/goods/weapon.h
     src/modules/administration.h src/modules/administration.cpp
     src/modules/botowner.h src/modules/botowner.cpp
     src/modules/config.h src/modules/config.cpp
@@ -37,12 +43,15 @@ add_executable(RRBot
     src/modules/gangs.h src/modules/gangs.cpp
     src/modules/general.h src/modules/general.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
-    src/systems/filtersystem.cpp src/systems/filtersystem.h
+    src/systems/filtersystem.h src/systems/filtersystem.cpp
+    src/systems/itemsystem.h src/systems/itemsystem.cpp
     src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h
     src/utils/strings.h src/utils/strings.cpp
-    src/utils/timestamp.h src/utils/timestamp.cpp)
+    src/utils/timestamp.h src/utils/timestamp.cpp
+    src/utils/views_concat/concat.hpp
+    src/utils/views_concat/utils.hpp)
 
 find_package(Boost REQUIRED COMPONENTS locale url)
 

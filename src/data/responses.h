@@ -7,6 +7,8 @@ namespace Responses
 // ********************
 //       GENERIC
 // ********************
+constexpr const char* AlreadyHaveAThing = "You already have a {}!";
+constexpr const char* AlreadyHaveThing = "You already have {}!";
 constexpr const char* BadIdea = "I don't think that's a good idea.";
 constexpr const char* GetChannelFailed = "Failed to get channel info.";
 constexpr const char* GetGuildFailed = "Failed to get server info.";
@@ -289,4 +291,16 @@ constexpr const char* UserHasNoAchs = "{} has no achievements!";
 constexpr const char* UserHasNoStats = "{} has no available stats!";
 constexpr const char* YouHaveNoAchs = "You have no achievements!";
 constexpr const char* YouHaveNoStats = "You have no available stats!";
+// ********************
+//        GOODS
+// ********************
+constexpr const char* BoughtCrate = "You got yourself a {} crate for **{}**!";
+constexpr const char* BoughtPacifistRecently = "You bought the Pacifist perk less than 3 days ago. You still have to wait {}.";
+constexpr const char* BoughtPacifistPerk = "You got yourself the Pacifist perk for **{}**! Additionally, as you bought the Pacifist perk, any perks you previously had have been refunded.";
+constexpr const char* BoughtPerk = "You got yourself the {} perk for **{}**!";
+constexpr const char* BoughtTool = "You got yourself a fresh {} for **{}**!";
+constexpr const char* CollectibleFoundDescription = "**{}**: {}\n\nWorth {} - $discard this item to cash in!";
+constexpr const char* CollectibleFoundTitle = "Collectible found!";
+constexpr const char* HavePacifistPerk = "You have the Pacifist perk and cannot buy another.";
+constexpr const char* ReachedMaxCrates = "You already reached the maximum amount of {} crates (10).";
 }
