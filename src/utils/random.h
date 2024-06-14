@@ -26,15 +26,11 @@ namespace RR
         template<typename T> requires std::integral<T> || std::floating_point<T>
         T random(T max) { return random((T)0, max); }
 
-        template<typename T>
-        using ref_if_not_trivial = std::conditional_t<std::is_trivially_copyable_v<T>, T, T&>;
-
-        template<std::ranges::range Range>
-        ref_if_not_trivial<std::ranges::range_value_t<Range>> randomElement(Range&& range)
+        auto randomElement(std::ranges::range auto&& range)
         {
-            if constexpr (std::ranges::input_range<Range>)
+            if constexpr (std::ranges::random_access_range<decltype(range)>)
                 return range[random(std::ranges::size(range))];
-            else if constexpr (std::ranges::sized_range<Range>)
+            else if constexpr (std::ranges::sized_range<decltype(range)>)
                 return *std::ranges::next(std::ranges::begin(range), random(std::ranges::size(range)));
             else
                 return *std::ranges::next(std::ranges::begin(range), random(std::ranges::distance(range)));
