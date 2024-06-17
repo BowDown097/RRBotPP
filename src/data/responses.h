@@ -7,9 +7,12 @@ namespace Responses
 // ********************
 //       GENERIC
 // ********************
-constexpr const char* AlreadyHaveAThing = "You already have a {}!";
+constexpr const char* AlreadyHaveAThing = "You already have a(n) {}!";
 constexpr const char* AlreadyHaveThing = "You already have {}!";
 constexpr const char* BadIdea = "I don't think that's a good idea.";
+constexpr const char* DontHaveAThing = "You don't have a(n) {}!";
+constexpr const char* DontHaveAnyThing = "You don't have any {}(s)!";
+constexpr const char* DontHaveThing = "You don't have {}!";
 constexpr const char* GetChannelFailed = "Failed to get channel info.";
 constexpr const char* GetGuildFailed = "Failed to get server info.";
 constexpr const char* GetUserFailed = "Failed to get user info.";
@@ -295,15 +298,34 @@ constexpr const char* YouHaveNoStats = "You have no available stats!";
 // ********************
 //        GOODS
 // ********************
-constexpr const char* BoughtCrate = "You got yourself a {} crate for **{}**!";
+constexpr const char* BlackHatFail = "Dammit! The feds caught onto you! You were fined **{}**.";
+constexpr const char* BlackHatSuccess = "Oh yeah. Hacker mode activated. 10% greater $hack chance.";
+constexpr const char* BoughtCrate = "You got yourself a {} for **{}**!";
 constexpr const char* BoughtPacifistRecently = "You bought the Pacifist perk less than 3 days ago. You still have to wait {}.";
 constexpr const char* BoughtPacifistPerk = "You got yourself the Pacifist perk for **{}**! Additionally, as you bought the Pacifist perk, any perks you previously had have been refunded.";
 constexpr const char* BoughtPerk = "You got yourself the {} perk for **{}**!";
 constexpr const char* BoughtTool = "You got yourself a fresh {} for **{}**!";
+constexpr const char* CanOnlyDiscardPacifist = "No perks other than Pacifist can be discarded!";
+constexpr const char* CantBeDiscarded = "This item cannot be discarded!";
+constexpr const char* CantBePurchased = "This item cannot be purchased!";
+constexpr const char* CocaineFail = "OH SHIT, HOMIE! You overdosed! This is why you don't do drugs! You lost all your remaining cocaine and have to go into recovery for {} hour(s), meaning no economy commands for you!";
+constexpr const char* CocaineSuccess = "PHEW WEE! That nose candy is already making you feel pumped as FUCK! Your cooldowns have been reduced by a solid 10%.";
 constexpr const char* CollectibleFoundDescription = "**{}**: {}\n\nWorth {} - $discard this item to cash in!";
 constexpr const char* CollectibleFoundTitle = "Collectible found!";
+constexpr const char* DiscardedPacifist = "You discarded your Pacifist perk. If you wish to buy it again, you will have to wait 3 days.";
+constexpr const char* GotDailyCrate = "Here's a Daily crate, my good man! Best of luck.";
 constexpr const char* HavePacifistPerk = "You have the Pacifist perk and cannot buy another.";
-constexpr const char* ReachedMaxCrates = "You already reached the maximum amount of {} crates (10).";
+constexpr const char* InCratesOnly = "{} can only be obtained from crates!";
+constexpr const char* ItemDiscarded = "You gave your {} to some dude for **{}**.";
+constexpr const char* NotAConsumable = "That is not a consumable!";
+constexpr const char* NotACrate = "That is not a crate!";
+constexpr const char* NotAnItem = "That is not an item!";
+constexpr const char* ReachedMaxCrates = "You already reached the maximum amount of {}s (10).";
+constexpr const char* SkiMaskFail = "You got arrested on suspicion and charged for some other shit before you could even do anything! Systemic racism in action. A homie bailed you out for **{}**, and you had to pay him back.";
+constexpr const char* SkiMaskSuccess = "Damn, you look good in this! You're a natural! You've now got a 10% higher success rate when robbing people.";
+constexpr const char* UsedMaxConsumable = "You cannot use more than {} {}(s)!";
+constexpr const char* ViagraFail = "The pill was laced and your dick stopped working completely! You had to pay **{}** to get that sorted out.";
+constexpr const char* ViagraSuccess = "Zoo wee mama! You can feel your blood rushing straight to your dong. You're now 10% more likely for a rape to land.";
 // ********************
 //      MODERATION
 // ********************

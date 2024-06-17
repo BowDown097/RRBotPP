@@ -10,6 +10,7 @@
 #include "modules/gambling.h"
 #include "modules/gangs.h"
 #include "modules/general.h"
+#include "modules/goods.h"
 #include "systems/filtersystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
@@ -62,7 +63,7 @@ int main()
     );
 
     modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::module_service_config { .command_prefix = '|' });
-    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
+    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General, Goods>();
 
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);
