@@ -11,7 +11,7 @@ namespace RR
         long double get_long_double(const bsoncxx::document::element& element);
         bsoncxx::decimal128 put_long_double(long double value);
 
-        std::string currencyToStr(long double value);
-        std::optional<long double> strToCurrency(const std::string& value);
+        std::string curr2str(long double value);
+        std::optional<long double> str2curr(const std::string& value);
     }
 }

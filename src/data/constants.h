@@ -52,6 +52,7 @@ namespace Constants
     constexpr long LootCooldown = 3600;
     constexpr long MessageCashCooldown = 60;
     constexpr long MineCooldown = 3600;
+    constexpr long PacifistCooldown = 259200;
     constexpr long PrestigeCooldown = 43200;
     constexpr long RapeCooldown = 3600;
     constexpr long RobCooldown = 3600;
@@ -98,7 +99,7 @@ namespace Constants
     // ********************
     constexpr long BlackHatDuration = 3600;
     constexpr long CocaineDuration = 3600;
-    constexpr long RomanianFlagDuration = 3600;
+    constexpr long SkiMaskDuration = 3600;
     constexpr long ViagraDuration = 3600;
     // ********************
     //     INVESTMENTS
@@ -134,11 +135,11 @@ namespace Constants
         Ammo("Rocket", 0.5)
     };
     constexpr std::array Crates = {
-        Crate("Daily", 0, Crate::Tier::Daily, 1, 0, 1500),
-        Crate("Bronze", 5000, Crate::Tier::Bronze, 2),
-        Crate("Silver", 10000, Crate::Tier::Silver, 2, 1),
-        Crate("Gold", 15000, Crate::Tier::Gold, 4, 2),
-        Crate("Diamond", 25000, Crate::Tier::Diamond, 6, 3)
+        Crate("Daily Crate", 0, Crate::Tier::Daily, 1, 0, 1500),
+        Crate("Bronze Crate", 5000, Crate::Tier::Bronze, 2),
+        Crate("Silver Crate", 10000, Crate::Tier::Silver, 2, 1),
+        Crate("Gold Crate", 15000, Crate::Tier::Gold, 4, 2),
+        Crate("Diamond Crate", 25000, Crate::Tier::Diamond, 6, 3)
     };
     constexpr std::array Collectibles = {
         Collectible("Ape NFT", 1000, "Who actually likes these? Why does this have value?", "https://i.ibb.co/w0syJ61/nft.png"),
@@ -147,16 +148,16 @@ namespace Constants
         Collectible("V Card", 69696969.69L, "Here you go, ya fuckin' virgin. Get a life bro.", "https://i.ibb.co/rvKXgb5/vcard.png", false)
     };
     constexpr std::array Consumables = {
-        Consumable("Black Hat", "Become an epic hax0r.", "You might get busted by the feds and get fined.", "$hack chance increased by 10%.", BlackHatDuration, 1),
+        Consumable("Black Hat", "Become an epic hax0r.", "You might get busted by the feds and get fined.", "$hack success rate increased by 10%.", BlackHatDuration, 5),
         Consumable("Cocaine", "Snorting a line of this funny sugar makes you HYPER and has some crazy effects.", "You have a chance of overdosing, which will make you lose all your remaining cocaine as well as not be able to use commands with cooldowns for a certain amount of time. The chance of overdosing and how long you can't use economy commands depends on how many lines you have in your system.", "Cooldowns are reduced by 10% for each line snorted.", CocaineDuration),
-        Consumable("Romanian Flag", "A neat little good luck charm for $rob. Your Romanian pride makes stealing wallets much easier!", "A Romanian might notice you and take some of your money.", "$rob chance increased by 10%.", RomanianFlagDuration, 1),
-        Consumable("Viagra", "Get it goin', if you know what I mean.", "The pill has a chance to backfire and give you ED.", "$rape chance increased by 10%.", ViagraDuration, 1)
+        Consumable("Ski Mask", "Well, all good robbers wear ski masks right?", "Paying back some bail money might be in your future.", "$rob success rate increased by 10%.", SkiMaskDuration, 5),
+        Consumable("Viagra", "Get it goin', if you know what I mean.", "The pill has a chance to backfire and give you ED.", "$rape success rate increased by 10%.", ViagraDuration, 5)
     };
     constexpr std::array Perks = {
         Perk("Enchanter", 5000, "Tasks are 20% more effective, but your tools have a 2% chance of breaking after use.", 172800),
-        Perk("Speed Demon", 5000, "Cooldowns are 15% shorter, but you have a 5% higher chance of failing any command that can fail.", 172800),
         Perk("Multiperk", 10000, "Grants the ability to equip 2 perks, not including this one.", 604800),
-        Perk("Pacifist", 0, "You are immune to all crimes, but you cannot use any crime commands and you also cannot appear on the leaderboard. Cannot be stacked with other perks, even if you have the Multiperk. Can be discarded, but cannot be used again for 3 days.", -1)
+        Perk("Pacifist", 0, "You are immune to all crimes, but you cannot use any crime commands and you also cannot appear on the leaderboard. Cannot be stacked with other perks, even if you have the Multiperk. Can be discarded, but cannot be used again for 3 days.", -1),
+        Perk("Speed Demon", 5000, "Cooldowns are 15% shorter, but you have a 5% higher chance of failing any command that can fail.", 172800)
     };
     constexpr std::array Tools = {
         Tool("Wooden Pickaxe", 4500),
@@ -193,7 +194,7 @@ namespace Constants
         Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", "Gun", { "Gold", "Diamond" }),
         Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", "Gun", { "Gold", "Diamond" }),
         Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold", "Diamond" }),
-        Weapon("RPG", 30, "Rocket", 99, 100, 15, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond" })
+        Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond" })
     };
     // ********************
     //      PRESTIGE

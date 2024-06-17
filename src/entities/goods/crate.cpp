@@ -3,23 +3,23 @@
 #include "database/entities/dbuser.h"
 #include "utils/random.h"
 
-std::vector<Item> Crate::open(const DbUser& user) const
+std::vector<const Item*> Crate::open(const DbUser& user) const
 {
-    std::vector<Item> items;
+    std::vector<const Item*> items;
 
     if (tierValue() > static_cast<int>(Tier::Daily))
     {
         if (int ammoRoll = RR::utility::random(tierValue() + 1))
         {
-            Ammo randomAmmo = RR::utility::randomElement(Constants::Ammos | std::views::filter([ammoRoll](const Ammo& a) {
+            const Ammo& rammo = RR::utility::randomElement(Constants::Ammos | std::views::filter([ammoRoll](const Ammo& a) {
                 return a.crateMultiplier() * ammoRoll >= 1;
             }));
-            items.insert(items.cend(), randomAmmo.crateMultiplier() * ammoRoll, randomAmmo);
+            items.insert(items.cend(), rammo.crateMultiplier() * ammoRoll, &rammo);
         }
     }
 
     for (int i = 0; i < m_consumableCount; ++i)
-        items.push_back(RR::utility::randomElement(Constants::Consumables));
+        items.push_back(&RR::utility::randomElement(Constants::Consumables));
 
     if (m_toolCount > 0)
     {
@@ -29,12 +29,12 @@ std::vector<Item> Crate::open(const DbUser& user) const
                 return !t.name().starts_with("Netherite");
             });
             for (int i = 0; i < m_toolCount; ++i)
-                items.push_back(RR::utility::randomElement(availableTools));
+                items.push_back(&RR::utility::randomElement(availableTools));
         }
         else
         {
             for (int i = 0; i < m_toolCount; ++i)
-                items.push_back(RR::utility::randomElement(Constants::Tools));
+                items.push_back(&RR::utility::randomElement(Constants::Tools));
         }
     }
 
@@ -48,14 +48,14 @@ std::vector<Item> Crate::open(const DbUser& user) const
 
         if (!std::ranges::empty(availableWeapons))
         {
-            items.push_back(RR::utility::randomElement(availableWeapons));
+            items.push_back(&RR::utility::randomElement(availableWeapons));
             break;
         }
     }
 
-    size_t dupeTools = std::erase_if(items, [&user](const Item& i) { return std::ranges::contains(user.tools, i.name()); });
+    size_t dupeTools = std::erase_if(items, [&user](const Item* i) { return std::ranges::contains(user.tools, i->name()); });
     for (int i = 0; i < dupeTools * 3; ++i)
-        items.push_back(RR::utility::randomElement(Constants::Consumables));
+        items.push_back(&RR::utility::randomElement(Constants::Consumables));
 
     return items;
 }

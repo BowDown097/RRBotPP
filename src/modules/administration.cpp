@@ -121,7 +121,7 @@ dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_i
 
     MongoManager::updateUser(dbUser);
     co_return dpp::command_result::from_success(std::format(Responses::SetCash,
-        user->get_mention(), RR::utility::currencyToStr(amount)));
+        user->get_mention(), RR::utility::curr2str(amount)));
 }
 
 dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const std::string& crypto, long double amount)

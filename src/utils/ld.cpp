@@ -21,7 +21,7 @@ namespace RR
             return bsoncxx::decimal128(dpp::utility::lexical_cast<std::string>(value));
         }
 
-        std::string currencyToStr(long double value)
+        std::string curr2str(long double value)
         {
             std::ostringstream ss;
             ss.imbue(std::locale(""));
@@ -29,7 +29,7 @@ namespace RR
             return ss.str();
         }
 
-        std::optional<long double> strToCurrency(const std::string& value)
+        std::optional<long double> str2curr(const std::string& value)
         {
             if (size_t ind = value.find('$'); ind != std::string::npos)
             {

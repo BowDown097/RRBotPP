@@ -97,8 +97,8 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     double odds = Constants::RapeOdds;
-    if (author.usedConsumables.contains("Viagra"))
-        odds += 10;
+    if (author.usedConsumables["Viagra"] > 0)
+        odds += 10 * author.usedConsumables["Viagra"];
     if (author.perks.contains("Speed Demon"))
         odds *= 0.95;
 
@@ -107,14 +107,14 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
     {
         long double repairs = target.cash / 100.0L * rapePercent;
         statUpdate(target, false, repairs);
-        context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::currencyToStr(repairs)));
+        context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::curr2str(repairs)));
         co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster);
     }
     else
     {
         long double repairs = author.cash / 100.0L * rapePercent;
         statUpdate(author, false, repairs);
-        context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::currencyToStr(repairs)));
+        context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::curr2str(repairs)));
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster);
     }
 
@@ -129,7 +129,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
-        co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::currencyToStr(Constants::RobMinCash)));
+        co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::curr2str(Constants::RobMinCash)));
 
     dpp::guild_member member = memberIn.top_result();
     dpp::user* user = member.get_user();
@@ -150,7 +150,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     if (amount > robMax)
     {
         co_return dpp::command_result::from_error(std::format(Responses::RobTooLarge, Constants::RobMaxPercent,
-            user->get_mention(), RR::utility::currencyToStr(robMax)));
+            user->get_mention(), RR::utility::curr2str(robMax)));
     }
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -162,8 +162,8 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     double odds = Constants::RobOdds;
-    if (author.usedConsumables.contains("Romanian Flag"))
-        odds += 10;
+    if (author.usedConsumables["Ski Mask"] > 0)
+        odds += 10 * author.usedConsumables["Ski Mask"];
     if (author.perks.contains("Speed Demon"))
         odds *= 0.95;
 
@@ -174,16 +174,16 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
         statUpdate(author, true, amount);
         statUpdate(target, false, amount);
 
-        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobFails),
-                                   RR::utility::currencyToStr(author.cash)));
+        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobSuccesses),
+                                   RR::utility::curr2str(author.cash)));
     }
     else
     {
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster);
         statUpdate(author, false, amount);
 
-        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobSuccesses),
-                                   RR::utility::currencyToStr(author.cash)));
+        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobFails),
+                                   RR::utility::curr2str(author.cash)));
     }
 
     author.modCooldown(author.robCooldown = Constants::RobCooldown, authorMember.value());
@@ -227,7 +227,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         if (hasMehOutcome && outcomeNum == successOutcomes.size() - 1)
             moneyEarned /= 5;
 
-        std::string curr = RR::utility::currencyToStr(moneyEarned);
+        std::string curr = RR::utility::curr2str(moneyEarned);
         outcome = std::vformat(successOutcomes[outcomeNum], std::make_format_args(curr));
         totalCash = user.cash + moneyEarned;
         statUpdate(user, true, moneyEarned);
@@ -238,14 +238,14 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         if (lostCash > user.cash)
             lostCash = user.cash;
 
-        std::string curr = RR::utility::currencyToStr(lostCash);
+        std::string curr = RR::utility::curr2str(lostCash);
         outcome = std::vformat(RR::utility::randomElement(failOutcomes), std::make_format_args(curr));
         totalCash = user.cash - lostCash;
         statUpdate(user, false, lostCash);
     }
 
     co_await user.setCash(member.value(), totalCash, cluster, context,
-                          std::format("{}\nBalance: {}", outcome, RR::utility::currencyToStr(totalCash)));
+                          std::format("{}\nBalance: {}", outcome, RR::utility::curr2str(totalCash)));
 
     if (RR::utility::random(100) < Constants::GenericCrimeToolOdds)
     {
@@ -268,7 +268,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
 
 void Crime::statUpdate(DbUser& user, bool success, long double gain)
 {
-    std::string gainStr = RR::utility::currencyToStr(gain);
+    std::string gainStr = RR::utility::curr2str(gain);
     if (success)
     {
         user.mergeStats(std::unordered_map<std::string, std::string> {
@@ -282,7 +282,7 @@ void Crime::statUpdate(DbUser& user, bool success, long double gain)
         user.mergeStats(std::unordered_map<std::string, std::string> {
             { "Crimes Failed", "1" },
             { "Money Lost to Crimes", gainStr },
-            { "Net Gain/Loss from Crimes", RR::utility::currencyToStr(-gain) }
+            { "Net Gain/Loss from Crimes", RR::utility::curr2str(-gain) }
         });
     }
 }

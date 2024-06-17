@@ -9,13 +9,13 @@ namespace RR
     namespace utility
     {
         // there is most likely an easier way to do this. that being said, if there is, i couldn't find it.
-        std::string formatTimestamp(long timestamp)
+        std::string formatSeconds(long secs)
         {
-            auto duration = system_clock::now() - system_clock::from_time_t(timestamp);
+            duration<long> duration(secs);
             if (auto h = duration_cast<hours>(duration); h.count() > 0)
             {
                 auto m = duration_cast<minutes>(duration - h);
-                auto s = duration_cast<seconds>(duration - h -m);
+                auto s = duration_cast<seconds>(duration - h - m);
                 return std::format("{}:{:02}:{:02}", h.count(), m.count(), s.count());
             }
             else if (auto m = duration_cast<minutes>(duration); m.count() > 0)
@@ -24,7 +24,7 @@ namespace RR
                 return std::format("{}:{:02}", m.count(), s.count());
             }
 
-            return std::format("{}s", duration_cast<seconds>(duration).count());
+            return std::format("{}s", secs);
         }
 
         long unixTimestamp(long offset)

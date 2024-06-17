@@ -18,7 +18,7 @@ public:
     constexpr int tierValue() const { return static_cast<int>(m_tier); }
     constexpr int toolCount() const { return m_toolCount; }
 
-    std::vector<Item> open(const DbUser& user) const;
+    std::vector<const Item*> open(const DbUser& user) const;
 private:
     long double m_cash;
     int m_consumableCount;

@@ -2,6 +2,7 @@
 #include "data/constants.h"
 #include "data/responses.h"
 #include "database/entities/dbuser.h"
+#include "dpp-command-handler/utils/strings.h"
 #include "entities/goods/crate.h"
 #include "entities/goods/perk.h"
 #include "entities/goods/tool.h"
@@ -20,16 +21,17 @@ namespace ItemSystem
     dpp::task<dpp::command_result> buyCrate(const Crate& crate, const dpp::guild_member& member, DbUser& dbUser,
                                             dpp::cluster* cluster, bool notify)
     {
+        std::string crateName(crate.name());
         if (crate.price() > dbUser.cash)
             co_return dpp::command_result::from_error(Responses::NotEnoughCash);
-        if (std::ranges::count(dbUser.crates, crate.name()) >= 10)
+        if (dbUser.crates[crateName] >= 10)
             co_return dpp::command_result::from_error(std::format(Responses::ReachedMaxCrates, crate.name()));
 
-        dbUser.crates.emplace_back(crate.name());
+        dbUser.crates[crateName]++;
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - crate.price(), cluster);
 
         if (notify)
-            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::currencyToStr(crate.price())));
+            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::curr2str(crate.price())));
         co_return dpp::command_result::from_success();
     }
 
@@ -52,7 +54,7 @@ namespace ItemSystem
             if (dbUser.pacifistCooldown > 0)
             {
                 if (long cooldownSecs = dbUser.pacifistCooldown - RR::utility::unixTimestamp())
-                    co_return dpp::command_result::from_error(std::format(Responses::BoughtPacifistRecently, RR::utility::formatTimestamp(cooldownSecs)));
+                    co_return dpp::command_result::from_error(std::format(Responses::BoughtPacifistRecently, RR::utility::formatSeconds(cooldownSecs)));
                 dbUser.pacifistCooldown = 0;
             }
 
@@ -63,13 +65,19 @@ namespace ItemSystem
                 dbUser.perks.erase(it);
             }
         }
+        else if (perk.name() == "Speed Demon")
+        {
+            for (const auto& [_, value] : dbUser.constructCooldownMap())
+                if (int64_t cooldownSecs = value - RR::utility::unixTimestamp(); cooldownSecs > 0)
+                    value = RR::utility::unixTimestamp(cooldownSecs * 0.85);
+        }
 
         dbUser.perks.emplace(perk.name(), RR::utility::unixTimestamp(perk.duration()));
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - perk.price(), cluster);
 
         co_return dpp::command_result::from_success(perk.name() == "Pacifist"
-            ? std::format(Responses::BoughtPacifistPerk, RR::utility::currencyToStr(perk.price()))
-            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::currencyToStr(perk.price())));
+            ? std::format(Responses::BoughtPacifistPerk, RR::utility::curr2str(perk.price()))
+            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::curr2str(perk.price())));
     }
 
     dpp::task<dpp::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
@@ -82,7 +90,7 @@ namespace ItemSystem
 
         dbUser.tools.emplace_back(tool.name());
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.price(), cluster);
-        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::currencyToStr(tool.price())));
+        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::curr2str(tool.price())));
     }
 
     std::string getBestTool(std::span<const std::string> tools, std::string_view type)
@@ -111,7 +119,7 @@ namespace ItemSystem
             ITEMS_CASTED(Constants::Weapons)
         );
 
-        auto it = std::ranges::find_if(allItems, [name](const Item* i) { return i->name() == name; });
+        auto it = std::ranges::find_if(allItems, [name](const Item* i) { return dpp::utility::iequals(i->name(), name); });
         if (it != allItems.end())
             return *it;
         else
@@ -123,7 +131,7 @@ namespace ItemSystem
         if (const Collectible* collectible = dynamic_cast<const Collectible*>(getItem(name)))
         {
             std::string worthDescription = collectible->price() > 0
-                ? RR::utility::currencyToStr(collectible->price())
+                ? RR::utility::curr2str(collectible->price())
                 : "some amount of money";
 
             dpp::embed embed = dpp::embed()

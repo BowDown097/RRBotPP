@@ -26,7 +26,7 @@ namespace RR
         template<typename T> requires std::integral<T> || std::floating_point<T>
         T random(T max) { return random((T)0, max); }
 
-        auto randomElement(std::ranges::range auto&& range)
+        decltype(auto) randomElement(std::ranges::range auto&& range)
         {
             if constexpr (std::ranges::random_access_range<decltype(range)>)
                 return range[random(std::ranges::size(range))];

@@ -28,7 +28,7 @@ namespace RR
 
         void strReplace(std::string& str, std::string_view from, std::string_view to)
         {
-            size_t pos = 0;
+            size_t pos{};
             while ((pos = str.find(from, pos)) != std::string::npos)
             {
                 str.replace(pos, from.size(), to);

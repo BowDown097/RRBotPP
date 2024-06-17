@@ -51,7 +51,7 @@ dpp::command_result Config::addRank(int level, const cash_in& costIn, const dpp:
     ranks.ids.emplace(level, role->id);
 
     MongoManager::updateRankConfig(ranks);
-    return dpp::command_result::from_success(std::format(Responses::AddedRank, role->get_mention(), level, RR::utility::currencyToStr(cost)));
+    return dpp::command_result::from_success(std::format(Responses::AddedRank, role->get_mention(), level, RR::utility::curr2str(cost)));
 }
 
 dpp::command_result Config::clearConfig()
@@ -95,7 +95,7 @@ dpp::command_result Config::currentConfig()
         for (const auto& [level, cost] : ranks.costs | std::ranges::to<std::map>())
         {
             description += std::format("Level {}: {} - {}\n",
-                level, dpp::role::get_mention(ranks.ids[level]), RR::utility::currencyToStr(cost));
+                level, dpp::role::get_mention(ranks.ids[level]), RR::utility::curr2str(cost));
         }
     }
     else

@@ -31,10 +31,10 @@ struct DbUser : DbObject
     int64_t pacifistCooldown{};
     int64_t prestigeCooldown{};
     int64_t rapeCooldown{};
-    int64_t romanianFlagEndTime{};
     int64_t robCooldown{};
     int64_t scavengeCooldown{};
     int64_t shootCooldown{};
+    int64_t skiMaskEndTime{};
     int64_t slaveryCooldown{};
     int64_t viagraEndTime{};
     int64_t whoreCooldown{};
@@ -59,7 +59,7 @@ struct DbUser : DbObject
     std::unordered_map<std::string, int> ammo; // name, count
     std::unordered_map<std::string, int> collectibles; // name, count
     std::unordered_map<std::string, int> consumables; // name, count
-    std::vector<std::string> crates;
+    std::unordered_map<std::string, int> crates; // name, count
     std::vector<std::string> pendingGangInvites;
     std::map<std::string, int64_t> perks; // name, duration
     std::unordered_map<std::string, std::string> stats; // name, value
@@ -67,7 +67,7 @@ struct DbUser : DbObject
     std::unordered_map<std::string, int> usedConsumables = { // name, uses
         { "Black Hat", 0 },
         { "Cocaine", 0 },
-        { "Romanian Flag", 0 },
+        { "Ski Mask", 0 },
         { "Viagra", 0 }
     };
     std::vector<std::string> weapons;
@@ -76,10 +76,11 @@ struct DbUser : DbObject
     explicit DbUser(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 
-    std::unordered_map<std::string, int64_t> constructCooldownMap();
+    std::unordered_map<std::string, int64_t&> constructCooldownMap();
     void mergeStat(const std::string& stat, const std::string& value);
     void mergeStats(const std::unordered_map<std::string, std::string>& statsToMerge);
-    void modCooldown(int64_t& duration, const dpp::guild_member& member);
+    void modCooldown(int64_t& duration, const dpp::guild_member& member, bool speedDemon = true,
+                     bool ranks = true, bool cocaine = true);
     dpp::task<void> setCash(const dpp::guild_member& member, long double amount,
                             dpp::cluster* cluster, const dpp::message_create_t* context = nullptr,
                             std::string message = "", bool showPrestigeMessage = true);

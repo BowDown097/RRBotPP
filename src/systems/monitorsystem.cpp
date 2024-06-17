@@ -83,10 +83,10 @@ namespace MonitorSystem
     {
         // reset used consumables when their end times have passed up
         constexpr std::array<std::pair<std::string_view, std::string_view>, 4> endTimeMap = {
-            std::make_pair("Black Hat", "blackHatEndTime"),
-            std::make_pair("Cocaine", "cocaineEndTime"),
-            std::make_pair("Romanian Flag", "romanianFlagEndTime"),
-            std::make_pair("Viagra", "viagraEndTime")
+            std::pair { "Black Hat", "blackHatEndTime" },
+            std::pair { "Cocaine", "cocaineEndTime" },
+            std::pair { "Ski Mask", "skiMaskEndTime" },
+            std::pair { "Viagra", "viagraEndTime" },
         };
 
         for (const auto& [name, key] : endTimeMap)
@@ -200,7 +200,7 @@ namespace MonitorSystem
                     {
                         cluster->message_create(dpp::message(channels.potChannel, std::format(Responses::PotDrawn,
                             dpp::user::get_mention(luckyGuy), Constants::PotFee,
-                            RR::utility::currencyToStr(winnings), pot.getMemberOdds(luckyGuy))));
+                            RR::utility::curr2str(winnings), pot.getMemberOdds(luckyGuy))));
                     }
 
                     MongoManager::updateUser(luckyUser);

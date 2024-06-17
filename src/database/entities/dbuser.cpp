@@ -34,10 +34,10 @@ DbUser::DbUser(bsoncxx::document::view doc)
     pacifistCooldown = bsoncxx_get_or_default(doc["pacifistCooldown"], int64);
     prestigeCooldown = bsoncxx_get_or_default(doc["prestigeCooldown"], int64);
     rapeCooldown = bsoncxx_get_or_default(doc["rapeCooldown"], int64);
-    romanianFlagEndTime = bsoncxx_get_or_default(doc["romanianFlagEndTime"], int64);
     robCooldown = bsoncxx_get_or_default(doc["robCooldown"], int64);
     scavengeCooldown = bsoncxx_get_or_default(doc["scavengeCooldown"], int64);
     shootCooldown = bsoncxx_get_or_default(doc["shootCooldown"], int64);
+    skiMaskEndTime = bsoncxx_get_or_default(doc["skiMaskEndTime"], int64);
     slaveryCooldown = bsoncxx_get_or_default(doc["slaveryCooldown"], int64);
     viagraEndTime = bsoncxx_get_or_default(doc["viagraEndTime"], int64);
     whoreCooldown = bsoncxx_get_or_default(doc["whoreCooldown"], int64);
@@ -59,11 +59,11 @@ DbUser::DbUser(bsoncxx::document::view doc)
     bsoncxx_elem_to_map(doc["ammo"], ammo, int32);
     bsoncxx_elem_to_map(doc["collectibles"], collectibles, int32);
     bsoncxx_elem_to_map(doc["consumables"], consumables, int32);
+    bsoncxx_elem_to_map(doc["crates"], crates, int32);
     bsoncxx_elem_to_map(doc["perks"], perks, int64);
     bsoncxx_elem_to_map(doc["stats"], stats, string);
     bsoncxx_elem_to_map(doc["usedConsumables"], usedConsumables, int32);
 
-    bsoncxx_elem_to_array(doc["crates"], crates, string);
     bsoncxx_elem_to_array(doc["pendingGangInvites"], pendingGangInvites, string);
     bsoncxx_elem_to_array(doc["tools"], tools, string);
     bsoncxx_elem_to_array(doc["weapons"], weapons, string);
@@ -83,9 +83,8 @@ bsoncxx::document::value DbUser::toDocument() const
     bsoncxx::builder::stream::document consumablesDoc;
     bsoncxx_stream_map_into(consumables, consumablesDoc);
 
-    bsoncxx::builder::stream::array cratesArr;
-    for (const std::string& crate : crates)
-        cratesArr << crate;
+    bsoncxx::builder::stream::document cratesDoc;
+    bsoncxx_stream_map_into(crates, cratesDoc);
 
     bsoncxx::builder::stream::array pendingGangInvitesArr;
     for (const std::string& pendingGangInvite : pendingGangInvites)
@@ -120,7 +119,7 @@ bsoncxx::document::value DbUser::toDocument() const
            << "cocaineRecoveryTime" << cocaineRecoveryTime
            << "collectibles" << collectiblesDoc
            << "consumables" << consumablesDoc
-           << "crates" << cratesArr
+           << "crates" << cratesDoc
            << "dailyCooldown" << dailyCooldown
            << "dealCooldown" << dealCooldown
            << "digCooldown" << digCooldown
@@ -144,10 +143,10 @@ bsoncxx::document::value DbUser::toDocument() const
            << "prestige" << prestige
            << "prestigeCooldown" << prestigeCooldown
            << "rapeCooldown" << rapeCooldown
-           << "romanianFlagEndTime" << romanianFlagEndTime
            << "robCooldown" << robCooldown
            << "scavengeCooldown" << scavengeCooldown
            << "shootCooldown" << shootCooldown
+           << "skiMaskEndTime" << skiMaskEndTime
            << "slaveryCooldown" << slaveryCooldown
            << "stats" << statsDoc
            << "tools" << toolsArr
@@ -161,7 +160,7 @@ bsoncxx::document::value DbUser::toDocument() const
            << bsoncxx::builder::stream::finalize;
 }
 
-std::unordered_map<std::string, int64_t> DbUser::constructCooldownMap()
+std::unordered_map<std::string, int64_t&> DbUser::constructCooldownMap()
 {
     return {
         { "Bully", bullyCooldown },
@@ -198,10 +197,10 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
     {
         if (auto it = stats.find(name); it != stats.end())
         {
-            if (std::optional<long double> toAdd = RR::utility::strToCurrency(value);
-                std::optional<long double> oldValue = RR::utility::strToCurrency(it->second))
+            if (std::optional<long double> toAdd = RR::utility::str2curr(value);
+                std::optional<long double> oldValue = RR::utility::str2curr(it->second))
             {
-                stats[name] = RR::utility::currencyToStr(oldValue.value() + toAdd.value());
+                stats[name] = RR::utility::curr2str(oldValue.value() + toAdd.value());
             }
             else if (long double toAdd = dpp::utility::lexical_cast<long double>(value);
                      long double oldValue = dpp::utility::lexical_cast<long double>(it->second))
@@ -219,20 +218,23 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
     }
 }
 
-void DbUser::modCooldown(int64_t& duration, const dpp::guild_member& member)
+void DbUser::modCooldown(int64_t& duration, const dpp::guild_member& member, bool speedDemon, bool ranks, bool cocaine)
 {
     duration = RR::utility::unixTimestamp(duration);
     // speed demon cooldown reducer
-    if (this->perks.contains("Speed Demon"))
+    if (speedDemon && this->perks.contains("Speed Demon"))
         duration *= 0.85;
     // 4th rank cooldown reducer
-    DbConfigRanks ranks = MongoManager::fetchRankConfig(member.guild_id);
-    if (auto it = ranks.ids.find(4); it != ranks.ids.end())
-        if (std::ranges::contains(member.get_roles(), dpp::snowflake(it->second)))
-            duration *= 0.8;
+    if (ranks)
+    {
+        DbConfigRanks ranksConfig = MongoManager::fetchRankConfig(member.guild_id);
+        if (auto it = ranksConfig.ids.find(4); it != ranksConfig.ids.end())
+            if (std::ranges::contains(member.get_roles(), dpp::snowflake(it->second)))
+                duration *= 0.8;
+    }
     // cocaine cooldown reducer
-    if (auto it = this->usedConsumables.find("Cocaine"); it != this->usedConsumables.end())
-        duration *= 1 * pow(0.9, it->second);
+    if (cocaine && this->usedConsumables["Cocaine"] > 0)
+        duration *= std::pow(0.9, usedConsumables["Cocaine"]);
 }
 
 dpp::task<void> DbUser::setCash(const dpp::guild_member& member, long double amount,
@@ -252,7 +254,7 @@ dpp::task<void> DbUser::setCash(const dpp::guild_member& member, long double amo
         long double prestigeCash = difference * 0.20 * this->prestige;
         difference += prestigeCash;
         if (showPrestigeMessage)
-            message += std::format("\n*(+{} from Prestige)*", RR::utility::currencyToStr(prestigeCash));
+            message += std::format("\n*(+{} from Prestige)*", RR::utility::curr2str(prestigeCash));
     }
 
     co_await setCashWithoutAdjustment(member, this->cash + difference, cluster, context, message);
@@ -306,7 +308,7 @@ void DbUser::unlockAchievement(const std::string& name, const dpp::message_creat
     if (ach->reward() > 0)
     {
         this->cash += ach->reward();
-        embedDescription += "\nReward: " + RR::utility::currencyToStr(ach->reward());
+        embedDescription += "\nReward: " + RR::utility::curr2str(ach->reward());
     }
 
     dpp::embed embed = dpp::embed()
