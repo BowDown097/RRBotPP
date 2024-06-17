@@ -148,10 +148,10 @@ namespace Constants
         Collectible("V Card", 69696969.69L, "Here you go, ya fuckin' virgin. Get a life bro.", "https://i.ibb.co/rvKXgb5/vcard.png", false)
     };
     constexpr std::array Consumables = {
-        Consumable("Black Hat", "Become an epic hax0r.", "You might get busted by the feds and get fined.", "$hack success rate increased by 10%.", BlackHatDuration, 5),
+        Consumable("Black Hat", "Become an epic hax0r.", "You might get busted by the feds and get fined.", "$hack success rate increased by 10%.", BlackHatDuration, 2),
         Consumable("Cocaine", "Snorting a line of this funny sugar makes you HYPER and has some crazy effects.", "You have a chance of overdosing, which will make you lose all your remaining cocaine as well as not be able to use commands with cooldowns for a certain amount of time. The chance of overdosing and how long you can't use economy commands depends on how many lines you have in your system.", "Cooldowns are reduced by 10% for each line snorted.", CocaineDuration),
-        Consumable("Ski Mask", "Well, all good robbers wear ski masks right?", "Paying back some bail money might be in your future.", "$rob success rate increased by 10%.", SkiMaskDuration, 5),
-        Consumable("Viagra", "Get it goin', if you know what I mean.", "The pill has a chance to backfire and give you ED.", "$rape success rate increased by 10%.", ViagraDuration, 5)
+        Consumable("Ski Mask", "Well, all good robbers wear ski masks right?", "Paying back some bail money might be in your future.", "$rob success rate increased by 10%.", SkiMaskDuration, 2),
+        Consumable("Viagra", "Get it goin', if you know what I mean.", "The pill has a chance to backfire and give you ED.", "$rape success rate increased by 10%.", ViagraDuration, 2)
     };
     constexpr std::array Perks = {
         Perk("Enchanter", 5000, "Tasks are 20% more effective, but your tools have a 2% chance of breaking after use.", 172800),
@@ -188,13 +188,13 @@ namespace Constants
         Tool("Fishing Rod", 7500, Fish.front().second * 7L, Fish.back().second * 15L)
     };
     constexpr std::array Weapons = {
-        Weapon("Glock 17", 30, "Pistol Round", 13, 21, 40, "The classic. Also the weakest. Upgrade when?", "Gun", { "Bronze", "Silver", "Gold", "Diamond" }),
-        Weapon("Python", 35, "Pistol Round", 20, 25, 30, "Nice, small, and hits like a truck. Like a Glock but it doesn't suck.", "Gun", { "Silver", "Gold", "Diamond" }),
-        Weapon("AR-15", 50, "Rifle Round", 40, 45, 25, "\"Ummmm.. This is like a full on military weapon, we should ban it\" said some fucking loser no one cares about. This gun is awesome.", "Gun", { "Gold", "Diamond" }),
-        Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", "Gun", { "Gold", "Diamond" }),
-        Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", "Gun", { "Gold", "Diamond" }),
-        Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold", "Diamond" }),
-        Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond" })
+        Weapon("Glock 17", 30, "Pistol Round", 13, 21, 40, "The classic. Also the weakest. Upgrade when?", "Gun", { "Bronze Crate", "Silver Crate", "Gold Crate", "Diamond Crate" }),
+        Weapon("Python", 35, "Pistol Round", 20, 25, 30, "Nice, small, and hits like a truck. Like a Glock but it doesn't suck.", "Gun", { "Silver Crate", "Gold Crate", "Diamond Crate" }),
+        Weapon("AR-15", 50, "Rifle Round", 40, 45, 25, "\"Ummmm.. This is like a full on military weapon, we should ban it\" said some fucking loser no one cares about. This gun is awesome.", "Gun", { "Gold Crate", "Diamond Crate" }),
+        Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", "Gun", { "Gold Crate", "Diamond Crate" }),
+        Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", "Gun", { "Gold Crate", "Diamond Crate" }),
+        Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold Crate", "Diamond Crate" }),
+        Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond Crate" })
     };
     // ********************
     //      PRESTIGE
