@@ -4,7 +4,7 @@
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-Fun::Fun() : dpp::module_base("Fun", "Commands that don't do anything related to the cash system and what not: they just exist for fun (hence the name).")
+Fun::Fun() : dpp::module<Fun>("Fun", "Commands that don't do anything related to the cash system and what not: they just exist for fun (hence the name).")
 {
     register_command(&Fun::cat, "cat", "Random cat picture!");
     register_command(&Fun::dog, "dog", "Random dog picture!");

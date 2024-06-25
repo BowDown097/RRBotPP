@@ -5,11 +5,10 @@
 #include "dpp-command-handler/readers/usertypereader.h"
 #include "readers/cashtypereader.h"
 
-class Administration : public dpp::module_base
+class Administration : public dpp::module<Administration>
 {
 public:
     Administration();
-    MODULE_SETUP(Administration)
 private:
     dpp::task<dpp::command_result> clearTextChannel(const dpp::channel_in& channelIn);
     dpp::command_result drawPot();

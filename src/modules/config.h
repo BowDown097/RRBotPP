@@ -4,11 +4,10 @@
 #include "dpp-command-handler/readers/roletypereader.h"
 #include "readers/cashtypereader.h"
 
-class Config : public dpp::module_base
+class Config : public dpp::module<Config>
 {
 public:
     Config();
-    MODULE_SETUP(Config)
 private:
     dpp::command_result addRank(int level, const cash_in& costIn, const dpp::role_in& roleIn);
     dpp::command_result clearConfig();

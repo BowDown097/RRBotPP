@@ -14,7 +14,7 @@
 #include <mongocxx/collection.hpp>
 #include <regex>
 
-Gangs::Gangs() : dpp::module_base("Gangs", "All about that gang shit.")
+Gangs::Gangs() : dpp::module<Gangs>("Gangs", "All about that gang shit.")
 {
     register_command(&Gangs::buyVault, "buyvault", "Buy a vault for your gang.");
     register_command(&Gangs::createGang, "creategang", "Create a gang.", "$creategang [name]");

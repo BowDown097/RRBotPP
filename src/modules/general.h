@@ -3,11 +3,10 @@
 #include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
-class General : public dpp::module_base
+class General : public dpp::module<General>
 {
 public:
     General();
-    MODULE_SETUP(General)
 private:
     dpp::command_result achievements(const std::optional<dpp::user_in>& userOpt);
     dpp::command_result help(const std::optional<std::string>& commandName);

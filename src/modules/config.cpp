@@ -16,7 +16,7 @@
 #include <format>
 #include <regex>
 
-Config::Config() : dpp::module_base("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
+Config::Config() : dpp::module<Config>("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
 {
     register_command(&Config::addRank, "addrank", "Register a rank, its level, and the money required to get it.", "$addrank [level] [cost] [role]");
     register_command(&Config::clearConfig, "clearconfig", "Clear all configuration for this server.");

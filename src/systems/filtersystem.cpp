@@ -100,7 +100,7 @@ namespace FilterSystem
              std::regex_search(it, message.content.cend(), res, inviteRegex);
              it = res.suffix().first)
         {
-            dpp::confirmation_callback_t inviteEvent = co_await cluster->co_invite_get(res[1]);
+            dpp::confirmation_callback_t inviteEvent = co_await cluster->co_invite_get(res[1].str());
             if (!inviteEvent.is_error())
             {
                 co_await cluster->co_message_delete(message.id, message.channel_id);

@@ -3,11 +3,10 @@
 #include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "readers/cashtypereader.h"
 
-class Crime : public dpp::module_base
+class Crime : public dpp::module<Crime>
 {
 public:
     Crime();
-    MODULE_SETUP(Crime)
 private:
     dpp::task<dpp::command_result> bully(const dpp::guild_member_in& memberIn, const dpp::remainder<std::string>& nickname);
     dpp::task<dpp::command_result> deal();

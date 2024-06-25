@@ -1,6 +1,7 @@
 #include "data/credentials.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/moduleservice.h"
+#include "dpp-interactive/interactiveservice.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
 #include "modules/config.h"
@@ -18,6 +19,7 @@
 #include <sodium.h>
 
 std::unique_ptr<dpp::cluster> cluster;
+std::unique_ptr<dpp::interactive_service> interactive;
 std::unique_ptr<dpp::module_service> modules;
 
 dpp::task<void> handleMessage(const dpp::message_create_t& event)
@@ -43,6 +45,13 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
     {
         std::cout << dpp::utility::lexical_cast<std::string>(error.value()) << ": " << result.message() << std::endl;
     }
+
+    co_return;
+}
+
+dpp::task<void> onButtonClick(const dpp::button_click_t& event)
+{
+    co_await interactive->handle_button_click(event);
 }
 
 int main()
@@ -62,9 +71,13 @@ int main()
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::module_service_config { .command_prefix = '|' });
-    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General, Goods>();
+    interactive = std::make_unique<dpp::interactive_service>(cluster.get());
 
+    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::module_service_config { .command_prefix = '|' });
+    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
+    modules->register_module<Goods>(interactive.get());
+
+    cluster->on_button_click(&onButtonClick);
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);
 

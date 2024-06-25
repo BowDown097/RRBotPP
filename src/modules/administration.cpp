@@ -11,7 +11,7 @@
 #include <dpp/cluster.h>
 #include <mongocxx/collection.hpp>
 
-Administration::Administration() : dpp::module_base("Administration", "Commands for admin stuff. Whether you wanna screw with the economy or fuck someone over, I'm sure you'll have fun. However, you'll need to have a very high role to have all this fun. Sorry!")
+Administration::Administration() : dpp::module<Administration>("Administration", "Commands for admin stuff. Whether you wanna screw with the economy or fuck someone over, I'm sure you'll have fun. However, you'll need to have a very high role to have all this fun. Sorry!")
 {
     register_command(&Administration::clearTextChannel, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
     register_command(&Administration::drawPot, "drawpot", "Draw the pot before it ends.");

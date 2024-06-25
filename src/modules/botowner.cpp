@@ -7,7 +7,7 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-BotOwner::BotOwner() : dpp::module_base("BotOwner", "Commands for bot owners only.")
+BotOwner::BotOwner() : dpp::module<BotOwner>("BotOwner", "Commands for bot owners only.")
 {
     register_command(&BotOwner::blacklist, "blacklist", "Ban a user from using the bot.", "$blacklist [user]");
     register_command(&BotOwner::disableCommandGlobal, "disablecmdglobal", "Globally disable a command.", "$disablecmdglobal [command]");

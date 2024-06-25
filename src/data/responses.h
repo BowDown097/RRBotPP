@@ -326,6 +326,8 @@ constexpr const char* SkiMaskSuccess = "Damn, you look good in this! You're a na
 constexpr const char* UsedMaxConsumable = "You cannot use more than {} {}(s)!";
 constexpr const char* ViagraFail = "The pill was laced and your dick stopped working completely! You had to pay **{}** to get that sorted out.";
 constexpr const char* ViagraSuccess = "Zoo wee mama! You can feel your blood rushing straight to your dong. You're now 10% more likely for a rape to land.";
+constexpr const char* UserHasNothing = "{} has nothing!";
+constexpr const char* YouHaveNothing = "You've got nothing!";
 // ********************
 //      MODERATION
 // ********************

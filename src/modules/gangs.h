@@ -3,11 +3,10 @@
 #include "dpp-command-handler/readers/usertypereader.h"
 #include "readers/cashtypereader.h"
 
-class Gangs : public dpp::module_base
+class Gangs : public dpp::module<Gangs>
 {
 public:
     Gangs();
-    MODULE_SETUP(Gangs)
 private:
     dpp::task<dpp::command_result> buyVault();
     dpp::task<dpp::command_result> createGang(const dpp::remainder<std::string>& name);

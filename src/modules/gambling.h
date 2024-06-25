@@ -2,11 +2,10 @@
 #include "dpp-command-handler/module.h"
 #include "readers/cashtypereader.h"
 
-class Gambling : public dpp::module_base
+class Gambling : public dpp::module<Gambling>
 {
 public:
     Gambling();
-    MODULE_SETUP(Gambling)
 private:
     dpp::task<dpp::command_result> dice(const cash_in& betIn, int number);
     dpp::task<dpp::command_result> doubleGamble();

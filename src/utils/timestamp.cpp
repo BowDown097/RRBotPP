@@ -11,6 +11,9 @@ namespace RR
         // there is most likely an easier way to do this. that being said, if there is, i couldn't find it.
         std::string formatSeconds(long secs)
         {
+            if (secs < 0)
+                return "Indefinite";
+
             duration<long> duration(secs);
             if (auto h = duration_cast<hours>(duration); h.count() > 0)
             {

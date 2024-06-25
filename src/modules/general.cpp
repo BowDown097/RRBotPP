@@ -6,12 +6,11 @@
 #include "dpp-command-handler/moduleservice.h"
 #include "dpp-command-handler/utils/join.h"
 #include "utils/dpp.h"
-#include "utils/strings.h"
 #include <boost/locale/conversion.hpp>
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-General::General() : dpp::module_base("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
+General::General() : dpp::module<General>("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
 {
     register_command(&General::achievements, std::initializer_list<std::string> { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
     register_command(&General::help, "help", "View info about a command.", "$help <command>");
@@ -41,7 +40,8 @@ dpp::command_result General::achievements(const std::optional<dpp::user_in>& use
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Achievements")
-        .set_description(dpp::utility::join(dbUser.achievements, '\n', RR::utility::formatPair));
+        .set_description(dpp::utility::join(dbUser.achievements, '\n', [](const auto& p) {
+                               return std::format("**{}**: {}", p.first, p.second); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();
@@ -198,7 +198,8 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Stats")
-        .set_description(dpp::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', RR::utility::formatPair));
+        .set_description(dpp::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', [](const auto& p) {
+                               return std::format("**{}**: {}", p.first, p.second); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();

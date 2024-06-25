@@ -2,11 +2,10 @@
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
-class Fun : public dpp::module_base
+class Fun : public dpp::module<Fun>
 {
 public:
     Fun();
-    MODULE_SETUP(Fun)
 private:
     dpp::task<dpp::command_result> cat();
     dpp::task<dpp::command_result> dog();

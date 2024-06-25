@@ -4,11 +4,10 @@
 #include "dpp-command-handler/readers/usertypereader.h"
 #include "readers/cashtypereader.h"
 
-class Economy : public dpp::module_base
+class Economy : public dpp::module<Economy>
 {
 public:
     Economy();
-    MODULE_SETUP(Economy)
 private:
     dpp::command_result balance(const std::optional<dpp::user_in>& userOpt);
     dpp::command_result cooldowns(const std::optional<dpp::user_in>& userOpt);

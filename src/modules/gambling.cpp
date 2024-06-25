@@ -13,7 +13,7 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Gambling::Gambling() : dpp::module_base("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
+Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
 {
     register_command(&Gambling::roll55, "55x2", "Roll 55 or higher on a 100 sided die, get 2x what you put in.", "$55x2 [bet]");
     register_command(&Gambling::roll6969, "6969", "Roll 69.69 on a 100 sided die, get 6969x what you put in.", "$6969 bet");

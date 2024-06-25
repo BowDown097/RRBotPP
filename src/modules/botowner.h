@@ -2,11 +2,10 @@
 #include "dpp-command-handler/module.h"
 #include "dpp-command-handler/readers/usertypereader.h"
 
-class BotOwner : public dpp::module_base
+class BotOwner : public dpp::module<BotOwner>
 {
 public:
     BotOwner();
-    MODULE_SETUP(BotOwner)
 private:
     dpp::command_result blacklist(const dpp::user_in& userIn);
     dpp::command_result disableCommandGlobal(const std::string& cmd);

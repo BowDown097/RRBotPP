@@ -1,16 +1,11 @@
 #include "strings.h"
-#include <algorithm>
 #include <array>
+#include <algorithm>
 
 namespace RR
 {
     namespace utility
     {
-        std::string formatPair(const std::pair<std::string, std::string>& pair)
-        {
-            return "**" + pair.first + "**: " + pair.second;
-        }
-
         std::string sanitizeString(std::string_view str)
         {
             std::string sanitized(str);
