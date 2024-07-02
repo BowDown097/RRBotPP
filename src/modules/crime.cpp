@@ -155,7 +155,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.cash < amount)
-        co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)

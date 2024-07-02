@@ -181,7 +181,7 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::SauceTooLow, RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "sauce", RR::utility::curr2str(Constants::TransactionMin)));
 
     dpp::guild_member member = memberIn.top_result();
     dpp::user* user = member.get_user();
@@ -194,7 +194,7 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.cash < amount)
-        co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (target.usingSlots)

@@ -76,6 +76,9 @@ struct DbUser : DbObject
     explicit DbUser(bsoncxx::document::view doc);
     bsoncxx::document::value toDocument() const override;
 
+    // this method is NOT safe. validate with resolveAbbreviation() before using!
+    long double* getCrypto(std::string_view abbrev);
+
     std::unordered_map<std::string, int64_t&> constructCooldownMap();
     void mergeStat(const std::string& stat, const std::string& value);
     void mergeStats(const std::unordered_map<std::string, std::string>& statsToMerge);

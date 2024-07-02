@@ -186,6 +186,19 @@ std::unordered_map<std::string, int64_t&> DbUser::constructCooldownMap()
     };
 }
 
+long double* DbUser::getCrypto(std::string_view abbrev)
+{
+    if (abbrev == "btc")
+        return std::addressof(btc);
+    else if (abbrev == "eth")
+        return std::addressof(eth);
+    else if (abbrev == "ltc")
+        return std::addressof(ltc);
+    else if (abbrev == "xrp")
+        return std::addressof(xrp);
+    return nullptr;
+}
+
 void DbUser::mergeStat(const std::string& stat, const std::string& value)
 {
     mergeStats({ { stat, value } });

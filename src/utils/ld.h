@@ -13,5 +13,8 @@ namespace RR
 
         std::string curr2str(long double value);
         std::optional<long double> str2curr(const std::string& value);
+
+        long double round(long double value, int digits);
+
     }
 }

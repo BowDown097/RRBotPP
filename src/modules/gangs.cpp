@@ -94,7 +94,7 @@ dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::DepositTooLow, RR::utility::curr2str(amount)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::curr2str(amount)));
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)
@@ -104,7 +104,7 @@ dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
     if (user.gang.empty())
         co_return dpp::command_result::from_error(Responses::NotInGang);
     if (user.cash < amount)
-        co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     DbGang gang = MongoManager::fetchGang(user.gang, gm->guild_id, false);
     if (!gang.vaultUnlocked)
@@ -432,7 +432,7 @@ dpp::task<dpp::command_result> Gangs::withdrawVault(const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::WithdrawTooLow, RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::curr2str(Constants::TransactionMin)));
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)

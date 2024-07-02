@@ -2,6 +2,7 @@
 #include "dpp-command-handler/utils/lexical_cast.h"
 #include <bsoncxx/document/element.hpp>
 #include <bsoncxx/types.hpp>
+#include <cmath>
 
 namespace RR
 {
@@ -42,6 +43,21 @@ namespace RR
             }
 
             return std::nullopt;
+        }
+
+        long double round(long double value, int digits)
+        {
+            constexpr int digits10 = std::numeric_limits<long double>::digits10;
+            if (digits > digits10)
+                throw std::out_of_range("Rounding beyond max of " + std::to_string(digits10) + " digits for long double");
+
+            if (std::abs(value) < std::pow(10, digits10 + 1))
+            {
+                long double scaleFactor = std::pow(10, digits);
+                value = std::round(value * scaleFactor) / scaleFactor;
+            }
+
+            return value;
         }
     }
 }

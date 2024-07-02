@@ -23,7 +23,7 @@ namespace ItemSystem
     {
         std::string crateName(crate.name());
         if (crate.price() > dbUser.cash)
-            co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.crates[crateName] >= 10)
             co_return dpp::command_result::from_error(std::format(Responses::ReachedMaxCrates, crate.name()));
 
@@ -39,7 +39,7 @@ namespace ItemSystem
                                            DbUser& dbUser, dpp::cluster* cluster)
     {
         if (perk.price() > dbUser.cash)
-            co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.perks.contains(std::string(perk.name())))
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveThing, perk.name()));
         if (dbUser.perks.contains("Pacifist"))
@@ -58,11 +58,11 @@ namespace ItemSystem
                 dbUser.pacifistCooldown = 0;
             }
 
-            for (auto it = dbUser.perks.cbegin(); it != dbUser.perks.cend(); ++it)
+            for (auto it = dbUser.perks.cbegin(); it != dbUser.perks.cend();)
             {
                 if (const Perk* perk = dynamic_cast<const Perk*>(getItem(it->first)))
                     dbUser.cash += perk->price();
-                dbUser.perks.erase(it);
+                it = dbUser.perks.erase(it);
             }
         }
         else if (perk.name() == "Speed Demon")
@@ -84,7 +84,7 @@ namespace ItemSystem
                                            DbUser& dbUser, dpp::cluster* cluster)
     {
         if (tool.price() > dbUser.cash)
-            co_return dpp::command_result::from_error(Responses::NotEnoughCash);
+            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (std::ranges::contains(dbUser.tools, tool.name()))
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 

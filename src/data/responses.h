@@ -10,16 +10,18 @@ namespace Responses
 constexpr const char* AlreadyHaveAThing = "You already have a(n) {}!";
 constexpr const char* AlreadyHaveThing = "You already have {}!";
 constexpr const char* BadIdea = "I don't think that's a good idea.";
+constexpr const char* CashInputTooLow = "You need to {} at least {}.";
 constexpr const char* DontHaveAThing = "You don't have a(n) {}!";
 constexpr const char* DontHaveAnyThing = "You don't have any {}(s)!";
 constexpr const char* DontHaveThing = "You don't have {}!";
 constexpr const char* GetChannelFailed = "Failed to get channel info.";
+constexpr const char* GetCryptoValueFailed = "Failed to get crypto value.";
 constexpr const char* GetGuildFailed = "Failed to get server info.";
 constexpr const char* GetUserFailed = "Failed to get user info.";
 constexpr const char* InvalidCrypto = "That is not a currently accepted currency!";
 constexpr const char* NonexistentCommand = "You have specified a nonexistent command!";
 constexpr const char* NonexistentModule = "You have specified a nonexistent module!";
-constexpr const char* NotEnoughCash = "You don't have that much money!";
+constexpr const char* NotEnoughOfThing = "You don't have that much {}!";
 constexpr const char* UserIsBot = "Nope.";
 constexpr const char* UserIsBroke = "{} is broke!";
 constexpr const char* UserIsGambling = "{} is using the slot machine! Let them finish!";
@@ -137,7 +139,6 @@ constexpr std::array<std::string_view, 3> WhoreSuccesses = {
 // ********************
 //       ECONOMY
 // ********************
-constexpr const char* SauceTooLow = "You need to sauce at least {}.";
 constexpr const char* SaucedUser = "You sauced **{}** {}.";
 constexpr const char* UserBalance = "{} has **{}**.";
 constexpr const char* YourBalance = "You have **{}**.";
@@ -230,7 +231,6 @@ constexpr std::array Waifus = {
 //       GAMBLING
 // ********************
 constexpr const char* AddedIntoPot = "Added **{}** into the pot.";
-constexpr const char* BetTooLow = "You need to bet at least {}.";
 constexpr const char* Dice1Match = "Good stuff! 1 match. You got paid out your bet.";
 constexpr const char* Dice2Matches = "DOUBLES! Now we're cooking with gas. You got paid out DOUBLE your bet (**{}**).";
 constexpr const char* Dice3Matches = "WOOOAAHHH! Good shit, man! That's a fine set of TRIPLES you just rolled. You got paid out TEN TIMES your bet (**{}**).";
@@ -246,7 +246,6 @@ constexpr const char* PotDrawn = "The pot has been drawn, and our LUCKY WINNER i
 // ********************
 constexpr const char* AlreadyInGang = "You are already in a gang!";
 constexpr const char* ChangedUserPosition = "Changed {} to a(n) **{}**.";
-constexpr const char* DepositTooLow = "You need to deposit at least {}.";
 constexpr const char* DepositedIntoVault = "Deposited **{}** into your gang's vault (after {}% tax).";
 constexpr const char* DisbandedGang = "Your gang has been disbanded!";
 constexpr const char* GangAlreadyExists = "There is already a gang with that name.";
@@ -280,7 +279,6 @@ constexpr const char* UserHasHigherGangPosition = "{} is in a higher gang positi
 constexpr const char* UserNotInYourGang = "{} is not in your gang!";
 constexpr const char* VaultNotEnoughCash = "Your gang's vault doesn't have that much money!";
 constexpr const char* VaultUnlocked = "Unlocked a vault for your gang for **{}**!";
-constexpr const char* WithdrawTooLow = "You need to withdraw at least {}.";
 constexpr const char* WithdrewFromVault = "Withdrew **{}** from your gang's vault.";
 constexpr const char* YourGangAtMaxMembers = "Your gang has already reached the maximum of {} members.";
 // ********************
@@ -328,6 +326,12 @@ constexpr const char* ViagraFail = "The pill was laced and your dick stopped wor
 constexpr const char* ViagraSuccess = "Zoo wee mama! You can feel your blood rushing straight to your dong. You're now 10% more likely for a rape to land.";
 constexpr const char* UserHasNothing = "{} has nothing!";
 constexpr const char* YouHaveNothing = "You've got nothing!";
+// ********************
+//     INVESTMENTS
+// ********************
+constexpr const char* InvestmentSuccess = "You invested in **{:.4f}** {}, currently valued at **{}**.";
+constexpr const char* InvestmentTooLow = "The cash amount converts to less than {} of {}, which is too low.\nYou'll need to invest at least **{}**.";
+constexpr const char* WithdrawSuccess = "You withdrew **{:.4f}** {}, currently valued at **{}**.\nA {}% withdrawal fee was taken from this amount, leaving you **{}** richer.";
 // ********************
 //      MODERATION
 // ********************
