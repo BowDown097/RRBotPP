@@ -1,5 +1,6 @@
 #include "dbconfigroles.h"
 #include <bsoncxx/builder/stream/document.hpp>
+#include <dpp/guild.h>
 
 DbConfigRoles::DbConfigRoles(bsoncxx::document::view doc)
 {
@@ -17,4 +18,11 @@ bsoncxx::document::value DbConfigRoles::toDocument() const
            << "staffLvl1Role" << staffLvl1Role
            << "staffLvl2Role" << staffLvl2Role
            << bsoncxx::builder::stream::finalize;
+}
+
+bool DbConfigRoles::memberIsStaff(const dpp::guild_member& member) const
+{
+    return std::ranges::any_of(member.get_roles(), [this](dpp::snowflake roleId) {
+        return roleId == staffLvl1Role || roleId == staffLvl2Role;
+    });
 }

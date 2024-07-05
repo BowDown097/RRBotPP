@@ -41,12 +41,8 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn
         co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "bully", user->get_mention()));
 
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
-    const std::vector<dpp::snowflake>& memberRoles = member.get_roles();
-    if (std::ranges::contains(memberRoles, dpp::snowflake(roles.staffLvl1Role)) ||
-        std::ranges::contains(memberRoles, dpp::snowflake(roles.staffLvl2Role)))
-    {
+    if (roles.memberIsStaff(member))
         co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
-    }
 
     member.set_nickname(*nickname);
     co_await cluster->co_guild_edit_member(member);

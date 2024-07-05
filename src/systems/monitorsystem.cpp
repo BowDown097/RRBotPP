@@ -59,15 +59,14 @@ namespace MonitorSystem
             DbChill chill(doc);
             if (dpp::channel* channel = dpp::find_channel(chill.channelId))
             {
-                for (const dpp::permission_overwrite& overwrite : channel->permission_overwrites)
+                for (dpp::permission_overwrite& overwrite : channel->permission_overwrites)
                 {
                     // overwrite with guild ID corresponds to @everyone role
                     if (overwrite.id != chill.guildId || !overwrite.deny.has(dpp::permissions::p_send_messages))
                         continue;
 
-                    dpp::permission_overwrite owCopy = overwrite;
-                    owCopy.deny.remove(dpp::permissions::p_send_messages);
-                    cluster->channel_edit_permissions(*channel, chill.guildId, owCopy.allow, owCopy.deny, false);
+                    overwrite.deny.remove(dpp::permissions::p_send_messages);
+                    cluster->channel_edit_permissions(*channel, overwrite.id, overwrite.allow, overwrite.deny, false);
                     cluster->message_create(dpp::message(channel->id, Responses::ChannelThawed));
                     break;
                 }
