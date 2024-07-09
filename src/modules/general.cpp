@@ -3,7 +3,7 @@
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/extensions/cache.h"
-#include "dpp-command-handler/moduleservice.h"
+#include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-command-handler/utils/join.h"
 #include "utils/dpp.h"
 #include <boost/locale/conversion.hpp>

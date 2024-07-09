@@ -5,7 +5,7 @@
 #include "database/entities/config/dbconfigranks.h"
 #include "database/entities/config/dbconfigroles.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/moduleservice.h"
+#include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-command-handler/utils/join.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"

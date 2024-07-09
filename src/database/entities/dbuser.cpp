@@ -300,7 +300,7 @@ dpp::task<void> DbUser::setCashWithoutAdjustment(const dpp::guild_member& member
     }
 }
 
-void DbUser::unlockAchievement(const std::string& name, const dpp::message_create_t* context)
+void DbUser::unlockAchievement(const std::string& name, const dpp::message_create_t* context, const dpp::user* user)
 {
     if (std::ranges::any_of(this->achievements, [&name](const auto& p) { return dpp::utility::iequals(p.first, name); }))
         return;
@@ -316,7 +316,7 @@ void DbUser::unlockAchievement(const std::string& name, const dpp::message_creat
 
     std::string embedDescription = std::format(
         "GG {}, you unlocked an achievement.\n**{}**: {}",
-        context->msg.author.get_mention(), ach->name(), ach->description());
+        user ? user->get_mention() : context->msg.author.get_mention(), ach->name(), ach->description());
 
     if (ach->reward() > 0)
     {

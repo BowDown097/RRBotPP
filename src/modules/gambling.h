@@ -1,5 +1,5 @@
 #pragma once
-#include "dpp-command-handler/module.h"
+#include "dpp-command-handler/modules/module.h"
 #include "readers/cashtypereader.h"
 
 class Gambling : public dpp::module<Gambling>

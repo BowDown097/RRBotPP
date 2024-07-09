@@ -2,7 +2,7 @@
 #include "data/responses.h"
 #include "database/entities/config/dbconfigglobal.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/moduleservice.h"
+#include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-command-handler/utils/strings.h"
 #include <dpp/dispatcher.h>
 #include <format>

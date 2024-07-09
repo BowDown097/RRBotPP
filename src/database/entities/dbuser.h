@@ -90,5 +90,5 @@ struct DbUser : DbObject
     dpp::task<void> setCashWithoutAdjustment(const dpp::guild_member& member, long double amount,
                                              dpp::cluster* cluster, const dpp::message_create_t* context = nullptr,
                                              const std::string& message = "");
-    void unlockAchievement(const std::string& name, const dpp::message_create_t* context);
+    void unlockAchievement(const std::string& name, const dpp::message_create_t* context, const dpp::user* user = nullptr);
 };

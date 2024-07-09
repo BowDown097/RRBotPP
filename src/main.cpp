@@ -1,6 +1,6 @@
 #include "data/credentials.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/moduleservice.h"
+#include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-interactive/interactiveservice.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
@@ -74,10 +74,10 @@ int main()
 
     interactive = std::make_unique<dpp::interactive_service>(cluster.get());
 
-    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::module_service_config { .command_prefix = '|' });
+    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::command_service_config { .command_prefix = '|' });
     modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
     modules->register_module<Goods>(interactive.get());
-    modules->register_modules<Investments>();
+    modules->register_module<Investments>();
 
     cluster->on_button_click(&onButtonClick);
     cluster->on_log(dpp::utility::cout_logger());
