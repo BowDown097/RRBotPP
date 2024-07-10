@@ -143,6 +143,14 @@ constexpr const char* SaucedUser = "You sauced **{}** {}.";
 constexpr const char* UserBalance = "{} has **{}**.";
 constexpr const char* YourBalance = "You have **{}**.";
 // ********************
+//       ERRORS
+// ********************
+constexpr const char* BadArgCount = "You must provide {} argument(s)!\nCommand usage: ``{}``";
+constexpr const char* BadArgument = "Couldn't understand your input of \"{}\".\n"
+                                    "This error info might help: ``{}``\n"
+                                    "Or maybe the command usage will: ``{}``";
+constexpr const char* ErrorOccurred = "An error occurred while running the command. You should probably report this! Here's some info: ``{}``";
+// ********************
 //         FUN
 // ********************
 constexpr const char* CatFailed = "404 Cat Not Found :(";

@@ -1,4 +1,5 @@
 #include "data/credentials.h"
+#include "data/responses.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-interactive/interactiveservice.h"
@@ -32,22 +33,35 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
     co_await FilterSystem::doInviteCheck(event.msg, cluster.get());
     co_await FilterSystem::doScamCheck(event.msg, cluster.get());
 
-    dpp::command_result result = co_await modules->handle_message(&event);
-    if (result.message().empty())
-        co_return;
-
-    std::optional<dpp::command_error> error = result.error();
-    if (result.success() || error == dpp::command_error::unsuccessful || error == dpp::command_error::unmet_precondition)
+    try
     {
-        event.reply(result.message());
-    }
-    else if (error == dpp::command_error::exception || error == dpp::command_error::object_not_found ||
-             error == dpp::command_error::parse_failed || error == dpp::command_error::bad_arg_count)
-    {
-        std::cout << dpp::utility::lexical_cast<std::string>(error.value()) << ": " << result.message() << std::endl;
-    }
+        dpp::command_result result = co_await modules->handle_message(&event);
+        if (result.message().empty())
+            co_return;
 
-    co_return;
+        std::optional<dpp::command_error> error = result.error();
+        using CE = dpp::command_error;
+        if (result.success() || error == CE::unsuccessful || error == CE::unmet_precondition)
+            event.reply(result.message());
+    }
+    catch (const dpp::bad_argument_count& ex)
+    {
+        std::vector<std::reference_wrapper<const dpp::command_info>> cmds = modules->search_command(ex.command());
+        event.reply(!cmds.empty()
+            ? std::format(Responses::BadArgCount, ex.target_arg_count(), cmds.front().get().remarks())
+            : std::format(Responses::ErrorOccurred, ex.what()));
+    }
+    catch (const dpp::bad_command_argument& ex)
+    {
+        std::vector<std::reference_wrapper<const dpp::command_info>> cmds = modules->search_command(ex.command());
+        event.reply(!cmds.empty()
+            ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front().get().remarks())
+            : std::format(Responses::ErrorOccurred, ex.what()));
+    }
+    catch (const std::exception& ex)
+    {
+        event.reply(std::format(Responses::ErrorOccurred, ex.what()));
+    }
 }
 
 dpp::task<void> onButtonClick(const dpp::button_click_t& event)
@@ -74,7 +88,8 @@ int main()
 
     interactive = std::make_unique<dpp::interactive_service>(cluster.get());
 
-    modules = std::make_unique<dpp::module_service>(cluster.get(), dpp::command_service_config { .command_prefix = '|' });
+    dpp::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
+    modules = std::make_unique<dpp::module_service>(cluster.get(), config);
     modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
     modules->register_module<Goods>(interactive.get());
     modules->register_module<Investments>();
