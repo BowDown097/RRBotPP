@@ -5,6 +5,7 @@
 #include "dpp-command-handler/utils/lexical_cast.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "utils/ld.h"
+#include "utils/strings.h"
 #include "utils/timestamp.h"
 #include <bsoncxx/builder/stream/array.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
@@ -210,19 +211,20 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
     {
         if (auto it = stats.find(name); it != stats.end())
         {
-            if (std::optional<long double> toAdd = RR::utility::str2curr(value);
-                std::optional<long double> oldValue = RR::utility::str2curr(it->second))
+            if (std::optional<long double> toAdd = RR::utility::str2curr(value),
+                oldValue = RR::utility::str2curr(it->second); toAdd && oldValue)
             {
                 stats[name] = RR::utility::curr2str(oldValue.value() + toAdd.value());
             }
-            else if (long double toAdd = dpp::utility::lexical_cast<long double>(value);
-                     long double oldValue = dpp::utility::lexical_cast<long double>(it->second))
+
+            try
             {
-                long double finalValue = oldValue + toAdd;
-                stats[name] = std::floor(finalValue) == finalValue
-                    ? dpp::utility::lexical_cast<std::string>(finalValue)
-                    : std::format("{:.4f}", finalValue);
+                long double toAdd = dpp::utility::lexical_cast<long double>(value);
+                long double oldValue = dpp::utility::lexical_cast<long double>(value);
+                std::string finalValue = std::format("{:.4f}", oldValue + toAdd);
+                stats[name] = RR::utility::trimZeros(finalValue);
             }
+            catch (const dpp::utility::bad_lexical_cast&) {}
         }
         else
         {

@@ -44,14 +44,15 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn
     if (roles.memberIsStaff(member))
         co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
 
-    member.set_nickname(*nickname);
+    std::string nicknameValue = *nickname;
+    member.set_nickname(nicknameValue);
     co_await cluster->co_guild_edit_member(member);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     author.modCooldown(author.bullyCooldown = Constants::BullyCooldown, member);
     MongoManager::updateUser(author);
 
-    co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitizeString(*nickname)));
+    co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitize(nicknameValue)));
 }
 
 dpp::task<dpp::command_result> Crime::deal()

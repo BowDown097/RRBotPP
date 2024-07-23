@@ -30,15 +30,25 @@ namespace RR
             return ss.str();
         }
 
-        std::optional<long double> str2curr(const std::string& value)
+        std::optional<long double> str2curr(std::string_view value)
         {
-            if (size_t ind = value.find('$'); ind != std::string::npos)
+            if (size_t ind = value.find('$'); ind != std::string_view::npos)
             {
-                std::istringstream ss(value.substr(ind + 1));
-                ss.imbue(std::locale(""));
+                std::string_view cashValue = value.substr(ind + 1);
+                // i hope the string values for these numbers aren't implementation defined...
+                if (cashValue == "nan") [[unlikely]]
+                    return std::numeric_limits<long double>::quiet_NaN();
+                if (cashValue == "inf") [[unlikely]]
+                    return std::numeric_limits<long double>::infinity();
+                if (cashValue == "-inf") [[unlikely]]
+                    return -std::numeric_limits<long double>::infinity();
+
+                dpp::utility::memstreambuf sbuf(cashValue.data(), cashValue.size());
+                std::istream in(&sbuf);
+                in.imbue(std::locale(""));
 
                 long double result;
-                if (!(ss >> std::fixed >> result).fail())
+                if (!(in >> std::fixed >> result).fail())
                     return result;
             }
 

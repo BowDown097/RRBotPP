@@ -5,8 +5,9 @@ namespace RR
 {
     namespace utility
     {
-        std::string sanitizeString(std::string_view str);
-        void strReplace(std::string& str, std::string_view from, std::string_view to);
+        std::string& sanitize(std::string& str);
+        std::string& strReplace(std::string& str, std::string_view from, std::string_view to);
+        std::string& trimZeros(std::string& str);
         std::string toLower(std::string_view str);
         std::string toUpper(std::string_view str);
     }

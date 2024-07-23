@@ -6,22 +6,21 @@ namespace RR
 {
     namespace utility
     {
-        std::string sanitizeString(std::string_view str)
+        std::string& sanitize(std::string& str)
         {
-            std::string sanitized(str);
             if (str.empty())
-                return sanitized;
+                return str;
 
             constexpr std::array escapedChars = { "\\*", "\\_", "\\`", "\\~", "\\>" };
             constexpr std::array sensitiveChars = { "*", "_", "`", "~", ">" };
 
             for (int i = 0; i < sensitiveChars.size(); ++i)
-                strReplace(sanitized, sensitiveChars[i], escapedChars[i]);
+                strReplace(str, sensitiveChars[i], escapedChars[i]);
 
-            return sanitized;
+            return str;
         }
 
-        void strReplace(std::string& str, std::string_view from, std::string_view to)
+        std::string& strReplace(std::string& str, std::string_view from, std::string_view to)
         {
             size_t pos{};
             while ((pos = str.find(from, pos)) != std::string::npos)
@@ -29,6 +28,22 @@ namespace RR
                 str.replace(pos, from.size(), to);
                 pos += to.size();
             }
+
+            return str;
+        }
+
+        std::string& trimZeros(std::string& str)
+        {
+            if (size_t dotPos = str.find('.'); dotPos != std::string::npos)
+            {
+                size_t endPos = str.find_last_not_of('0');
+                if (endPos == dotPos)
+                    str.erase(dotPos);
+                else
+                    str.erase(endPos + 1);
+            }
+
+            return str;
         }
 
         std::string toLower(std::string_view str)
