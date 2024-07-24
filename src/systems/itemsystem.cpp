@@ -58,12 +58,9 @@ namespace ItemSystem
                 dbUser.pacifistCooldown = 0;
             }
 
-            for (auto it = dbUser.perks.cbegin(); it != dbUser.perks.cend();)
-            {
+            for (auto it = dbUser.perks.cbegin(); it != dbUser.perks.cend(); it = dbUser.perks.erase(it))
                 if (const Perk* perk = dynamic_cast<const Perk*>(getItem(it->first)))
                     dbUser.cash += perk->price();
-                it = dbUser.perks.erase(it);
-            }
         }
         else if (perk.name() == "Speed Demon")
         {
@@ -83,6 +80,8 @@ namespace ItemSystem
     dpp::task<dpp::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
                                            DbUser& dbUser, dpp::cluster* cluster)
     {
+        if (tool.tier() >= Tool::Tier::Netherite)
+            co_return dpp::command_result::from_error(Responses::InCratesOnly);
         if (tool.price() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (std::ranges::contains(dbUser.tools, tool.name()))

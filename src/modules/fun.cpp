@@ -80,9 +80,9 @@ dpp::command_result Fun::gay(const std::optional<dpp::user_in>& userOpt)
     const char* title = Responses::Gay1;
     if (gay <= 10)
         title = Responses::Gay2;
-    else if (gay > 10 && gay < 50)
+    else if (gay < 50)
         title = Responses::Gay3;
-    else if (gay >= 50 && gay < 90)
+    else if (gay < 90)
         title = Responses::Gay4;
 
     std::string description = user->id == context->msg.author.id
@@ -134,9 +134,9 @@ dpp::command_result Fun::penis(const std::optional<dpp::user_in>& userOpt)
     std::string title = Responses::Penis4;
     if (equals <= 3)
         title = Responses::Penis1;
-    else if (equals > 3 && equals < 7)
+    else if (equals < 7)
         title = Responses::Penis2;
-    else if (equals >= 7 && equals < 12)
+    else if (equals < 12)
         title = Responses::Penis3;
 
     std::string penis(equals, '=');

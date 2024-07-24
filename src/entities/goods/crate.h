@@ -12,6 +12,9 @@ public:
                     long double cash = 0)
         : Item(name, price), m_cash(cash), m_consumableCount(consumableCount), m_tier(tier), m_toolCount(toolCount) {}
 
+    friend constexpr auto operator<=>(Tier lhs, Tier rhs) noexcept
+    { return static_cast<int>(lhs) <=> static_cast<int>(rhs); }
+
     constexpr long double cash() const { return m_cash; }
     constexpr int consumableCount() const { return m_consumableCount; }
     constexpr Tier tier() const { return m_tier; }

@@ -161,7 +161,6 @@ dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& 
 dpp::command_result Economy::ranks()
 {
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);
-    DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
 
     std::string description;
     for (const auto& [level, cost] : ranks.costs)

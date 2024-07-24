@@ -88,8 +88,7 @@ bsoncxx::document::value DbUser::toDocument() const
     bsoncxx_stream_map_into(crates, cratesDoc);
 
     bsoncxx::builder::stream::array pendingGangInvitesArr;
-    for (const std::string& pendingGangInvite : pendingGangInvites)
-        pendingGangInvitesArr << pendingGangInvite;
+    bsoncxx_stream_array_into(pendingGangInvites, pendingGangInvitesArr);
 
     bsoncxx::builder::stream::document perksDoc;
     bsoncxx_stream_map_into(perks, perksDoc);
@@ -98,15 +97,13 @@ bsoncxx::document::value DbUser::toDocument() const
     bsoncxx_stream_map_into(stats, statsDoc);
 
     bsoncxx::builder::stream::array toolsArr;
-    for (const std::string& tool : tools)
-        toolsArr << tool;
+    bsoncxx_stream_array_into(tools, toolsArr);
 
     bsoncxx::builder::stream::document usedConsumablesDoc;
     bsoncxx_stream_map_into(usedConsumables, usedConsumablesDoc);
 
     bsoncxx::builder::stream::array weaponsArr;
-    for (const std::string& weapon : weapons)
-        weaponsArr << weapon;
+    bsoncxx_stream_array_into(weapons, weaponsArr);
 
     return bsoncxx::builder::stream::document()
            << "achievements" << achievementsDoc

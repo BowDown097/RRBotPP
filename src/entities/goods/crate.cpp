@@ -7,14 +7,14 @@ std::vector<const Item*> Crate::open(const DbUser& user) const
 {
     std::vector<const Item*> items;
 
-    if (tierValue() > static_cast<int>(Tier::Daily))
+    if (m_tier > Tier::Daily)
     {
         if (int ammoRoll = RR::utility::random(tierValue() + 1))
         {
-            const Ammo& rammo = RR::utility::randomElement(Constants::Ammos | std::views::filter([ammoRoll](const Ammo& a) {
-                return a.crateMultiplier() * ammoRoll >= 1;
-            }));
-            items.insert(items.cend(), rammo.crateMultiplier() * ammoRoll, &rammo);
+            auto checkAvailable = [ammoRoll](const Ammo& a) { return a.crateMultiplier() * ammoRoll >= 1; };
+            const Ammo& randomAmmo = RR::utility::randomElement(Constants::Ammos | std::views::filter(checkAvailable));
+            // the use of addressof here avoids a weird false positive some static code analyzers will throw
+            items.insert(items.cend(), randomAmmo.crateMultiplier() * ammoRoll, std::addressof(randomAmmo));
         }
     }
 
@@ -23,18 +23,16 @@ std::vector<const Item*> Crate::open(const DbUser& user) const
 
     if (m_toolCount > 0)
     {
-        if (tierValue() < static_cast<int>(Tier::Diamond))
-        {
-            auto availableTools = Constants::Tools | std::views::filter([](const Tool& t) {
-                return !t.name().starts_with("Netherite");
-            });
-            for (int i = 0; i < m_toolCount; ++i)
-                items.push_back(&RR::utility::randomElement(availableTools));
-        }
-        else
+        if (m_tier >= Tier::Diamond)
         {
             for (int i = 0; i < m_toolCount; ++i)
                 items.push_back(&RR::utility::randomElement(Constants::Tools));
+        }
+        else
+        {
+            auto notNetherite = [](const Tool& t) { return t.tier() < Tool::Tier::Netherite; };
+            for (int i = 0; i < m_toolCount; ++i)
+                items.push_back(&RR::utility::randomElement(Constants::Tools | std::views::filter(notNetherite)));
         }
     }
 

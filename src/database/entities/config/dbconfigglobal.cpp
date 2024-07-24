@@ -11,12 +11,10 @@ DbConfigGlobal::DbConfigGlobal(bsoncxx::document::view doc)
 bsoncxx::document::value DbConfigGlobal::toDocument() const
 {
     bsoncxx::builder::stream::array bannedUsersArr;
-    for (int64_t userId : bannedUsers)
-        bannedUsersArr << userId;
+    bsoncxx_stream_array_into(bannedUsers, bannedUsersArr);
 
     bsoncxx::builder::stream::array disabledCommandsArr;
-    for (const std::string& command : disabledCommands)
-        disabledCommandsArr << command;
+    bsoncxx_stream_array_into(disabledCommands, disabledCommandsArr);
 
     return bsoncxx::builder::stream::document()
            << "bannedUsers" << bannedUsersArr

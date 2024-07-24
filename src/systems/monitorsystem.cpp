@@ -156,7 +156,7 @@ namespace MonitorSystem
                 user.perks.erase(name);
                 if (name == "Multiperk" && user.perks.size() >= 2)
                 {
-                    std::string lastPerk = user.perks.cend()->first;
+                    std::string lastPerk = user.perks.crbegin()->first;
                     if (const Perk* perk = dynamic_cast<const Perk*>(ItemSystem::getItem(lastPerk)))
                         user.cash += perk->price();
                     user.perks.erase(lastPerk);

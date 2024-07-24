@@ -16,6 +16,10 @@
     for (auto it = map##Doc.cbegin(); it != map##Doc.cend(); ++it) \
         map.emplace(dpp::utility::lexical_cast<decltype(map)::key_type>(it->key()), it->get_##valType());
 
+#define bsoncxx_stream_array_into(array, doc) \
+    for (const auto& val : array) \
+        doc << val;
+
 #define bsoncxx_stream_map_into(map, doc) \
     for (const auto& [key, val] : map) \
         doc << dpp::utility::lexical_cast<std::string>(key) << val;

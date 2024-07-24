@@ -14,12 +14,10 @@ DbConfigChannels::DbConfigChannels(bsoncxx::document::view doc)
 bsoncxx::document::value DbConfigChannels::toDocument() const
 {
     bsoncxx::builder::stream::array noFilterChannelsArr;
-    for (int64_t noFilterChannel : noFilterChannels)
-        noFilterChannelsArr << noFilterChannel;
+    bsoncxx_stream_array_into(noFilterChannels, noFilterChannelsArr);
 
     bsoncxx::builder::stream::array whitelistedChannelsArr;
-    for (int64_t whitelistedChannel : whitelistedChannels)
-        whitelistedChannelsArr << whitelistedChannel;
+    bsoncxx_stream_array_into(whitelistedChannels, whitelistedChannelsArr);
 
     return bsoncxx::builder::stream::document()
            << "guildId" << guildId

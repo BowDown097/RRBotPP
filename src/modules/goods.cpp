@@ -37,8 +37,6 @@ dpp::task<dpp::command_result> Goods::buy(const dpp::remainder<std::string>& ite
     {
         if (item->name() == "Daily Crate")
             co_return dpp::command_result::from_error(Responses::CantBePurchased);
-        if (item->name().starts_with("Netherite"))
-            co_return dpp::command_result::from_error(std::format(Responses::InCratesOnly, "Netherite tools"));
 
         std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
         if (!gm)
@@ -47,20 +45,16 @@ dpp::task<dpp::command_result> Goods::buy(const dpp::remainder<std::string>& ite
         DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
 
         dpp::command_result result;
-        if (dynamic_cast<const Ammo*>(item))
-            result = dpp::command_result::from_error(std::format(Responses::InCratesOnly, "Ammo"));
+        if (dynamic_cast<const Ammo*>(item) || dynamic_cast<const Consumable*>(item) || dynamic_cast<const Weapon*>(item))
+            result = dpp::command_result::from_error(Responses::InCratesOnly);
         else if (dynamic_cast<const Collectible*>(item))
             result = dpp::command_result::from_error(Responses::CantBePurchased);
-        else if (dynamic_cast<const Consumable*>(item))
-            result = dpp::command_result::from_error(std::format(Responses::InCratesOnly, "Consumables"));
         else if (const Crate* crate = dynamic_cast<const Crate*>(item))
             result = co_await ItemSystem::buyCrate(*crate, gm.value(), user, cluster);
         else if (const Perk* perk = dynamic_cast<const Perk*>(item))
             result = co_await ItemSystem::buyPerk(*perk, gm.value(), user, cluster);
         else if (const Tool* tool = dynamic_cast<const Tool*>(item))
             result = co_await ItemSystem::buyTool(*tool, gm.value(), user, cluster);
-        else if (dynamic_cast<const Weapon*>(item))
-            result = dpp::command_result::from_error(std::format(Responses::InCratesOnly, "Weapons"));
 
         MongoManager::updateUser(user);
         co_return result;
@@ -219,7 +213,7 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
                 : RR::utility::curr2str(tool->genericMin()) + " - " + RR::utility::curr2str(tool->genericMax()),
                 true);
 
-            if (tool->name().starts_with("Netherite"))
+            if (tool->tier() >= Tool::Tier::Netherite)
                 embed.add_field("Additional Info", "Only obtainable from Diamond crates", true);
         }
         else if (const Weapon* weapon = dynamic_cast<const Weapon*>(item))
@@ -378,7 +372,7 @@ dpp::task<dpp::command_result> Goods::shop()
                 RR::utility::formatSeconds(p.duration()), RR::utility::curr2str(p.price()));
           });
     auto tools = Constants::Tools
-        | std::views::filter([](const Tool& t) { return !t.name().starts_with("Netherite"); })
+        | std::views::filter([](const Tool& t) { return t.tier() < Tool::Tier::Netherite; })
         | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::curr2str(t.price())); });
     auto weapons = Constants::Weapons
         | std::views::transform([](const Weapon& w) { return std::format("**{}**: {}", w.name(), w.information()); });

@@ -17,16 +17,13 @@ DbConfigMisc::DbConfigMisc(bsoncxx::document::view doc)
 bsoncxx::document::value DbConfigMisc::toDocument() const
 {
     bsoncxx::builder::stream::array disabledCommandsArr;
-    for (const std::string& disabledCommand : disabledCommands)
-        disabledCommandsArr << disabledCommand;
+    bsoncxx_stream_array_into(disabledCommands, disabledCommandsArr);
 
     bsoncxx::builder::stream::array disabledModulesArr;
-    for (const std::string& disabledModule : disabledModules)
-        disabledModulesArr << disabledModule;
+    bsoncxx_stream_array_into(disabledModules, disabledModulesArr);
 
     bsoncxx::builder::stream::array filteredTermsArr;
-    for (const std::string& filteredTerm : filteredTerms)
-        filteredTermsArr << filteredTerm;
+    bsoncxx_stream_array_into(filteredTerms, filteredTermsArr);
 
     return bsoncxx::builder::stream::document()
            << "disabledCommands" << disabledCommandsArr
