@@ -107,6 +107,11 @@ namespace Constants
     constexpr long double InvestmentFeePercent = 1.5L;
     constexpr long double InvestmentMinAmount = 0.01L;
     // ********************
+    //      MODERATION
+    // ********************
+    constexpr int ChillMaxSeconds = 21600;
+    constexpr int ChillMinSeconds = 10;
+    // ********************
     //        TASKS
     // ********************
     constexpr std::array Fish = {

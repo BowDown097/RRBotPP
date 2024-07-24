@@ -1,4 +1,5 @@
 #include "dpp.h"
+#include "utils/timestamp.h"
 #include <dpp/message.h>
 
 namespace RR
@@ -30,6 +31,15 @@ namespace RR
                 return guildAvatar;
             else
                 return user->get_avatar_url();
+        }
+
+        std::vector<dpp::snowflake> getLast14DaysMessages(const dpp::message_map& map)
+        {
+            long ts14DaysAgo = RR::utility::unixTimestamp(-RR::utility::secondsInDays(14));
+            return map
+                | std::views::filter([ts14DaysAgo](const auto& p) { return p.second.sent > ts14DaysAgo; })
+                | std::views::keys
+                | std::ranges::to<std::vector>();
         }
 
         std::vector<std::pair<dpp::permissions, std::string>> permissionsToList(const dpp::permission& permissions)

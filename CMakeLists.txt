@@ -45,6 +45,7 @@ add_executable(RRBot
     src/modules/general.h src/modules/general.cpp
     src/modules/goods.h src/modules/goods.cpp
     src/modules/investments.h src/modules/investments.cpp
+    src/modules/moderation.h src/modules/moderation.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
     src/systems/filtersystem.h src/systems/filtersystem.cpp
     src/systems/itemsystem.h src/systems/itemsystem.cpp

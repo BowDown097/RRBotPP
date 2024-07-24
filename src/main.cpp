@@ -14,6 +14,7 @@
 #include "modules/general.h"
 #include "modules/goods.h"
 #include "modules/investments.h"
+#include "modules/moderation.h"
 #include "systems/filtersystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
@@ -92,7 +93,7 @@ int main()
     modules = std::make_unique<dpp::module_service>(cluster.get(), config);
     modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
     modules->register_module<Goods>(interactive.get());
-    modules->register_module<Investments>();
+    modules->register_modules<Investments, Moderation>();
 
     cluster->on_button_click(&onButtonClick);
     cluster->on_log(dpp::utility::cout_logger());

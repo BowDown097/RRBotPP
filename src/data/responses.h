@@ -343,5 +343,25 @@ constexpr const char* WithdrawSuccess = "You withdrew **{:.4f}** {}, currently v
 // ********************
 //      MODERATION
 // ********************
+constexpr const char* ActionFailed = "{} failed: {}.";
+constexpr const char* BannedUser = "Banned {}"; // do not add period!
+constexpr const char* CantDoActionOnStaff = "You cannot {} {} because they are a staff member.";
+constexpr const char* ChannelAlreadyChilled = "This channel is already chilled.";
+constexpr const char* ChannelChilled = "Chilled the chat for {}.";
+constexpr const char* ChannelNotChilled = "This channel is not chilled.";
 constexpr const char* ChannelThawed = "This channel has thawed out! Continue the chaos!";
+constexpr const char* GetEveryoneOverwriteFailed = "Failed to get permissions for this channel. This should not happen!";
+constexpr const char* InvalidChillDuration = "You cannot chill the chat for {} than {}!";
+constexpr const char* InvalidDuration = "You have specified an invalid amount of time!";
+constexpr const char* KickedUser = "Kicked {}"; // do not add period!
+constexpr const char* MutedUser = "Muted {} for {}"; // do not add period!
+constexpr const char* MuteTooLong = "You cannot mute for longer than 28 days!";
+constexpr const char* PurgeFoundNoMessages = "There are no messages to delete matching your input.";
+constexpr const char* PurgeRangeDidNotReachEnd = "WARNING: The end of your range was further from the beginning message than could be purged. You will have to run this command again.";
+constexpr const char* PurgeSuccess = "Purged {} messages.";
+constexpr const char* PurgeTooManyMessages = "You can only purge up to 100 messages at once!";
+constexpr const char* UnbanFailed = "There is no banned user with that ID!";
+constexpr const char* UnmutedUser = "Unmuted {}.";
+constexpr const char* UserAlreadyMuted = "{} is already muted!";
+constexpr const char* UserNotMuted = "{} is not muted!";
 }
