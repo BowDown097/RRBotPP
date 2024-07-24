@@ -246,7 +246,7 @@ inline void createItemsPage(std::vector<dpp::interaction_page>& pages, std::stri
         .set_description(dpp::utility::join(range, '\n')));
 }
 
-dpp::task<dpp::command_result> Goods::items(const std::optional<dpp::user_in>& userIn)
+dpp::command_result Goods::items(const std::optional<dpp::user_in>& userIn)
 {
     DbUser dbUser = MongoManager::fetchUser(
         userIn ? userIn->top_result()->id : context->msg.author.id,
@@ -278,7 +278,7 @@ dpp::task<dpp::command_result> Goods::items(const std::optional<dpp::user_in>& u
 
     if (pages.empty())
     {
-        co_return dpp::command_result::from_error(userIn
+        return dpp::command_result::from_error(userIn
             ? std::format(Responses::UserHasNothing, userIn->top_result()->get_mention())
             : Responses::YouHaveNothing);
     }
@@ -286,8 +286,8 @@ dpp::task<dpp::command_result> Goods::items(const std::optional<dpp::user_in>& u
     auto paginator = std::make_unique<dpp::static_paginator>();
     paginator->with_default_buttons().add_user(context->msg.author.id).set_pages(pages);
 
-    co_await extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), context->msg.channel_id);
-    co_return dpp::command_result::from_success();
+    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    return dpp::command_result::from_success();
 }
 
 dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& crateIn)
@@ -361,16 +361,19 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
     co_return dpp::command_result::from_error(Responses::NotAnItem);
 }
 
-dpp::task<dpp::command_result> Goods::shop()
+dpp::command_result Goods::shop()
 {
+    auto transformPerk = [](const Perk& p) {
+        return std::format("**{}**: {}\nDuration: {}\nPrice: {}",
+                           p.name(), p.description(),
+                           RR::utility::formatSeconds(p.duration()),
+                           RR::utility::curr2str(p.price()));
+    };
+
     auto crates = Constants::Crates
         | std::views::filter([](const Crate& c) { return c.name() != "Daily Crate"; })
         | std::views::transform([](const Crate& c) { return std::format("**{}**: {}", c.name(), RR::utility::curr2str(c.price())); });
-    auto perks = Constants::Perks
-        | std::views::transform([](const Perk& p) {
-            return std::format("**{}**: {}\nDuration: {}\nPrice: {}", p.name(), p.description(),
-                RR::utility::formatSeconds(p.duration()), RR::utility::curr2str(p.price()));
-          });
+    auto perks = Constants::Perks | std::views::transform(transformPerk);
     auto tools = Constants::Tools
         | std::views::filter([](const Tool& t) { return t.tier() < Tool::Tier::Netherite; })
         | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::curr2str(t.price())); });
@@ -386,8 +389,8 @@ dpp::task<dpp::command_result> Goods::shop()
     auto paginator = std::make_unique<dpp::static_paginator>();
     paginator->with_default_buttons().add_user(context->msg.author.id).set_pages(pages);
 
-    co_await extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), context->msg.channel_id);
-    co_return dpp::command_result::from_success();
+    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    return dpp::command_result::from_success();
 }
 
 dpp::task<dpp::command_result> Goods::use(const dpp::remainder<std::string>& consumableIn)

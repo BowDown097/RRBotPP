@@ -16,9 +16,9 @@ private:
     dpp::task<dpp::command_result> daily();
     dpp::task<dpp::command_result> discard(const dpp::remainder<std::string>& itemIn);
     dpp::command_result itemInfo(const dpp::remainder<std::string>& itemIn);
-    dpp::task<dpp::command_result> items(const std::optional<dpp::user_in>& userIn);
+    dpp::command_result items(const std::optional<dpp::user_in>& userIn);
     dpp::task<dpp::command_result> open(const dpp::remainder<std::string>& crateIn);
-    dpp::task<dpp::command_result> shop();
+    dpp::command_result shop();
 
     dpp::task<dpp::command_result> use(const dpp::remainder<std::string>& consumableIn);
 

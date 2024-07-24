@@ -65,9 +65,9 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
     }
 }
 
-dpp::task<void> onButtonClick(const dpp::button_click_t& event)
+void onButtonClick(const dpp::button_click_t& event)
 {
-    co_await interactive->handle_button_click(event);
+    interactive->handle_button_click(event);
 }
 
 int main()
@@ -87,7 +87,7 @@ int main()
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    interactive = std::make_unique<dpp::interactive_service>(cluster.get());
+    interactive = std::make_unique<dpp::interactive_service>();
 
     dpp::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
     modules = std::make_unique<dpp::module_service>(cluster.get(), config);
