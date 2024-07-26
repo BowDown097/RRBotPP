@@ -179,7 +179,7 @@ dpp::command_result Fun::waifu()
         .set_color(dpp::colors::red)
         .set_title(Responses::WaifuTitle)
         .set_description(std::format(Responses::WaifuDescription, name))
-        .set_image(image);
+        .set_image(std::string(image));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();

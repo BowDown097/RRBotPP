@@ -81,12 +81,12 @@ namespace MonitorSystem
     void checkConsumables(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
     {
         // reset used consumables when their end times have passed up
-        constexpr std::array<std::pair<std::string_view, std::string_view>, 4> endTimeMap = {
-            std::pair { "Black Hat", "blackHatEndTime" },
-            std::pair { "Cocaine", "cocaineEndTime" },
-            std::pair { "Ski Mask", "skiMaskEndTime" },
-            std::pair { "Viagra", "viagraEndTime" },
-        };
+        constexpr std::array<std::pair<std::string_view, std::string_view>, 4> endTimeMap = {{
+            { "Black Hat", "blackHatEndTime" },
+            { "Cocaine", "cocaineEndTime" },
+            { "Ski Mask", "skiMaskEndTime" },
+            { "Viagra", "viagraEndTime" },
+        }};
 
         for (const auto& [name, key] : endTimeMap)
         {

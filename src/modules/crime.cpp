@@ -5,10 +5,14 @@
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/extensions/cache.h"
+#include "dpp-interactive/interactiveservice.h"
+#include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/random.h"
+#include "utils/regex.h"
 #include "utils/strings.h"
 #include <dpp/cluster.h>
+#include <dpp/colors.h>
 
 Crime::Crime() : dpp::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways of being a law-abiding citizen for some cold hard cash and maybe even a tool. Or, maybe not. Depends how good you are at being a criminal.")
 {
@@ -17,6 +21,7 @@ Crime::Crime() : dpp::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways 
     register_command(&Crime::loot, "loot", "Loot some locations.");
     register_command(&Crime::rape, std::initializer_list<std::string> { "rape", "strugglesnuggle" }, "Get yourself some ass!", "$rape [user]");
     register_command(&Crime::rob, "rob", "Yoink money from a user.", "$rob [user] [amount]");
+    register_command(&Crime::scavenge, "scavenge", "Scavenge around the streets for some cash money.");
     register_command(&Crime::slavery, "slavery", "Get some slave labor goin'.");
     register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
 }
@@ -190,6 +195,74 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     co_return dpp::command_result::from_success();
 }
 
+std::string scrambledMatch(const RR::utility::svmatch& m)
+{
+    std::string str = m.str();
+
+    for (size_t i = 0; i < str.size(); ++i)
+    {
+        size_t j = RR::utility::random<size_t>(0, str.size() - 1);
+        std::swap(str[i], str[j]);
+    }
+
+    return str;
+}
+
+dpp::task<dpp::command_result> Crime::scavenge()
+{
+    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+
+    auto [word, espanol] = RR::utility::randomElement(Constants::ScavengeWordSet);
+    DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
+    dpp::embed embed = dpp::embed().set_color(dpp::colors::red);
+
+    if (RR::utility::random(2) == 0)
+    {
+        static std::regex alnumRegex("\\w+");
+        std::string scrambled = RR::utility::regex_replace(word.begin(), word.end(), alnumRegex, scrambledMatch);
+        while (dpp::utility::iequals(scrambled, word) && scrambled != "egg")
+            scrambled = RR::utility::regex_replace(word.begin(), word.end(), alnumRegex, scrambledMatch);
+
+        embed.set_title("Scramble!");
+        embed.set_description(std::format(Responses::ScavengeScrambleDescription, scrambled, Constants::ScavengeTimeout));
+
+        if (scrambled == "egg")
+        {
+            context->reply(Responses::HardBoiledEgg);
+            user.unlockAchievement("Hard Boiled Egg", context);
+        }
+    }
+    else
+    {
+        embed.set_title("Translate!");
+        embed.set_description(std::format(Responses::ScavengeTranslateDescription, espanol, Constants::ScavengeTimeout));
+    }
+
+    dpp::message inMsg = dpp::message(context->msg.channel_id, embed).set_reference(context->msg.id);
+    dpp::confirmation_callback_t event = co_await cluster->co_message_create(inMsg);
+    dpp::message outMsg = event.get<dpp::message>();
+
+    dpp::interactive_service* interactive = extra_data<dpp::interactive_service*>();
+    dpp::interactive_result<dpp::message> result = co_await interactive->next_message([this](const dpp::message& m) {
+        return m.channel_id == context->msg.channel_id && m.author.id == context->msg.author.id;
+    }, std::chrono::seconds(Constants::ScavengeTimeout));
+
+    std::string content = result.value ? result.value->content : std::string();
+    co_await handleScavenge(outMsg, result, user, member.value(), dpp::utility::iequals(content, word),
+                            std::format(Responses::ScavengeSuccess, word),
+                            std::format(Responses::ScavengeTimeout, Constants::ScavengeTimeout, word),
+                            std::format(Responses::ScavengeFail, word));
+
+    if (RR::utility::random(50) == 1)
+        ItemSystem::giveCollectible("Ape NFT", context, user);
+
+    user.modCooldown(user.scavengeCooldown = Constants::ScavengeCooldown, member.value());
+    MongoManager::updateUser(user);
+    co_return dpp::command_result::from_success();
+}
+
 dpp::task<dpp::command_result> Crime::slavery()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -261,6 +334,41 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
     user.modCooldown(cooldown, member.value());
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success();
+}
+
+dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_result<dpp::message>& result,
+                                      DbUser& user, const dpp::guild_member& member,
+                                      bool successCondition, std::string_view successResponse,
+                                      std::string_view timeoutResponse, std::string_view failureResponse)
+{
+    dpp::embed embed = dpp::embed().set_color(dpp::colors::red).set_title(msg.embeds.front().title);
+
+    if (result.timed_out())
+    {
+        embed.set_description(std::string(timeoutResponse));
+    }
+    else if (successCondition)
+    {
+        long double rewardCash = RR::utility::random(Constants::ScavengeMinCash, Constants::ScavengeMaxCash);
+        long double prestigeCash = rewardCash * 0.2L * user.prestige;
+        long double totalCash = user.cash + rewardCash + prestigeCash;
+
+        std::string response(successResponse);
+        response += std::format(" Here's {}.\nBalance: {}",
+                                RR::utility::curr2str(rewardCash), RR::utility::curr2str(totalCash));
+        if (prestigeCash > 0)
+            response += std::format("\n*(+{} from Prestige)*", RR::utility::curr2str(prestigeCash));
+
+        co_await user.setCashWithoutAdjustment(member, totalCash, cluster);
+        embed.set_description(response);
+    }
+    else
+    {
+        embed.set_description(std::string(failureResponse));
+    }
+
+    msg.embeds.assign(1, embed);
+    co_await cluster->co_message_edit(msg);
 }
 
 void Crime::statUpdate(DbUser& user, bool success, long double gain)

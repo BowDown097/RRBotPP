@@ -65,11 +65,6 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
     }
 }
 
-void onButtonClick(const dpp::button_click_t& event)
-{
-    interactive->handle_button_click(event);
-}
-
 int main()
 {
     Credentials::instance().initialize();
@@ -88,14 +83,16 @@ int main()
     );
 
     interactive = std::make_unique<dpp::interactive_service>();
+    interactive->setup_event_handlers(cluster.get());
 
     dpp::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
     modules = std::make_unique<dpp::module_service>(cluster.get(), config);
-    modules->register_modules<Administration, BotOwner, Config, Crime, Economy, Fun, Gambling, Gangs, General>();
+    modules->register_modules<Administration, BotOwner, Config>();
+    modules->register_module<Crime>(interactive.get());
+    modules->register_modules<Economy, Fun, Gambling, Gangs, General>();
     modules->register_module<Goods>(interactive.get());
     modules->register_modules<Investments, Moderation>();
 
-    cluster->on_button_click(&onButtonClick);
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);
 
