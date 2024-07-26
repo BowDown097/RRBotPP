@@ -341,11 +341,9 @@ dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_
                                       bool successCondition, std::string_view successResponse,
                                       std::string_view timeoutResponse, std::string_view failureResponse)
 {
-    dpp::embed embed = dpp::embed().set_color(dpp::colors::red).set_title(msg.embeds.front().title);
-
     if (result.timed_out())
     {
-        embed.set_description(std::string(timeoutResponse));
+        msg.embeds.front().set_description(std::string(timeoutResponse));
     }
     else if (successCondition)
     {
@@ -360,14 +358,13 @@ dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_
             response += std::format("\n*(+{} from Prestige)*", RR::utility::curr2str(prestigeCash));
 
         co_await user.setCashWithoutAdjustment(member, totalCash, cluster);
-        embed.set_description(response);
+        msg.embeds.front().set_description(response);
     }
     else
     {
-        embed.set_description(std::string(failureResponse));
+        msg.embeds.front().set_description(std::string(failureResponse));
     }
 
-    msg.embeds.assign(1, embed);
     co_await cluster->co_message_edit(msg);
 }
 
