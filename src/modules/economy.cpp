@@ -115,8 +115,8 @@ dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& 
         items += std::format("**Perks**: {}\n", dbUser.perks.size());
     if (!dbUser.consumables.empty())
         items += std::format("**Consumables**: {}\n", dbUser.consumables.size());
-    if (!dbUser.crates.empty())
-        items += std::format("**Crates**: {}\n", dbUser.crates.size());
+    if (auto count = std::ranges::count_if(dbUser.crates, [](const auto& p) { return p.second > 0; }))
+        items += std::format("**Crates**: {}\n", count);
 
     if (!items.empty())
     {

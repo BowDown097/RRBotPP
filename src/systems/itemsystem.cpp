@@ -84,10 +84,9 @@ namespace ItemSystem
             co_return dpp::command_result::from_error(Responses::InCratesOnly);
         if (tool.price() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
-        if (dbUser.tools.contains(tool.name()))
+        if (auto it = dbUser.tools.emplace(tool.name()); !it.second)
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 
-        dbUser.tools.emplace(tool.name());
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.price(), cluster);
         co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::curr2str(tool.price())));
     }
