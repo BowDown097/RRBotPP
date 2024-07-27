@@ -6,6 +6,7 @@
 #include "database/mongomanager.h"
 #include "dpp-command-handler/utils/strings.h"
 #include "investments.h"
+#include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/strings.h"
 #include "utils/timestamp.h"
@@ -16,6 +17,7 @@ Administration::Administration() : dpp::module<Administration>("Administration",
 {
     register_command(&Administration::clearTextChannel, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
     register_command(&Administration::drawPot, "drawpot", "Draw the pot before it ends.");
+    register_command(&Administration::giveItem, "giveitem", "Give a user an item.", "$giveitem [user] [item]");
     register_command(&Administration::removeAchievement, std::initializer_list<std::string> { "removeachievement", "rmach" }, "Remove a user's achievement.", "$removeachievement [user] [name]");
     register_command(&Administration::removeCrates, std::initializer_list<std::string> { "removecrates", "rmcrates" }, "Remove a user's crates.", "$removecrates [user]");
     register_command(&Administration::removeStat, std::initializer_list<std::string> { "removestat", "rmstat" }, "Remove a user's stat.", "$removestat [user] [stat]");
@@ -44,6 +46,61 @@ dpp::command_result Administration::drawPot()
     pot.endTime = 69;
     MongoManager::updatePot(pot);
     return dpp::command_result::from_success(Responses::PotDrawing);
+}
+
+dpp::command_result Administration::giveItem(const dpp::user_in& userIn, const dpp::remainder<std::string>& itemIn)
+{
+    dpp::user* user = userIn.top_result();
+    if (user->is_bot())
+        return dpp::command_result::from_error(Responses::UserIsBot);
+
+    if (const Item* item = ItemSystem::getItem(*itemIn))
+    {
+        DbUser dbUser = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
+
+        if (dynamic_cast<const Ammo*>(item))
+        {
+            dbUser.ammo[std::string(item->name())]++;
+        }
+        else if (dynamic_cast<const Collectible*>(item))
+        {
+            dbUser.collectibles[std::string(item->name())]++;
+        }
+        else if (dynamic_cast<const Consumable*>(item))
+        {
+            dbUser.consumables[std::string(item->name())]++;
+        }
+        else if (dynamic_cast<const Crate*>(item))
+        {
+            dbUser.crates[std::string(item->name())]++;
+        }
+        else if (const Perk* perk = dynamic_cast<const Perk*>(item))
+        {
+            std::string perkName(perk->name());
+            if (dbUser.perks.contains(perkName))
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), perkName));
+            dbUser.perks.emplace(perkName, perk->duration());
+        }
+        else if (dynamic_cast<const Tool*>(item))
+        {
+            std::string toolName(item->name());
+            if (std::ranges::contains(dbUser.tools, toolName))
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), toolName));
+            dbUser.tools.push_back(toolName);
+        }
+        else if (dynamic_cast<const Weapon*>(item))
+        {
+            std::string weaponName(item->name());
+            if (std::ranges::contains(dbUser.weapons, weaponName))
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), weaponName));
+            dbUser.weapons.push_back(weaponName);
+        }
+
+        MongoManager::updateUser(dbUser);
+        return dpp::command_result::from_success(std::format(Responses::GaveUserItem, user->get_mention(), item->name()));
+    }
+
+    return dpp::command_result::from_error(Responses::NotAnItem);
 }
 
 dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name)

@@ -22,6 +22,7 @@ constexpr const char* InvalidCrypto = "That is not a currently accepted currency
 constexpr const char* NonexistentCommand = "You have specified a nonexistent command!";
 constexpr const char* NonexistentModule = "You have specified a nonexistent module!";
 constexpr const char* NotEnoughOfThing = "You don't have that much {}!";
+constexpr const char* UserAlreadyHasThing = "{} already has a(n) {}!";
 constexpr const char* UserIsBot = "Nope.";
 constexpr const char* UserIsBroke = "{} is broke!";
 constexpr const char* UserIsGambling = "{} is using the slot machine! Let them finish!";
@@ -29,6 +30,7 @@ constexpr const char* YouAreBroke = "You're broke!";
 // ********************
 //    ADMINISTRATION
 // ********************
+constexpr const char* GaveUserItem = "Gave {} a(n) **{}**.";
 constexpr const char* InvalidPrestigeLevel = "Invalid prestige level!";
 constexpr const char* MissingAchievement = "{} doesn't have that achievement!";
 constexpr const char* MissingStat = "{} doesn't have that stat!";
@@ -145,7 +147,7 @@ constexpr std::array<std::string_view, 3> WhoreSuccesses = {
 // ********************
 //       ECONOMY
 // ********************
-constexpr const char* SaucedUser = "You sauced **{}** {}.";
+constexpr const char* SaucedUser = "You sauced {} {}.";
 constexpr const char* UserBalance = "{} has **{}**.";
 constexpr const char* YourBalance = "You have **{}**.";
 // ********************

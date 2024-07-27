@@ -12,6 +12,7 @@ public:
 private:
     dpp::task<dpp::command_result> clearTextChannel(const dpp::channel_in& channelIn);
     dpp::command_result drawPot();
+    dpp::command_result giveItem(const dpp::user_in& userIn, const dpp::remainder<std::string>& itemIn);
     dpp::command_result removeAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name);
     dpp::command_result removeCrates(const dpp::user_in& userIn);
     dpp::command_result removeStat(const dpp::user_in& userIn, const dpp::remainder<std::string>& stat);
