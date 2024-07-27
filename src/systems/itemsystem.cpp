@@ -40,7 +40,7 @@ namespace ItemSystem
     {
         if (perk.price() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
-        if (dbUser.perks.contains(std::string(perk.name())))
+        if (dbUser.perks.contains(perk.name()))
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveThing, perk.name()));
         if (dbUser.perks.contains("Pacifist"))
             co_return dpp::command_result::from_error(Responses::HavePacifistPerk);
@@ -84,10 +84,10 @@ namespace ItemSystem
             co_return dpp::command_result::from_error(Responses::InCratesOnly);
         if (tool.price() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
-        if (std::ranges::contains(dbUser.tools, tool.name()))
+        if (dbUser.tools.contains(tool.name()))
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 
-        dbUser.tools.emplace_back(tool.name());
+        dbUser.tools.emplace(tool.name());
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.price(), cluster);
         co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::curr2str(tool.price())));
     }

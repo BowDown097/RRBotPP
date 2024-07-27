@@ -1,8 +1,9 @@
 #pragma once
 #include "dbobject.h"
+#include "utils/stringhash.h"
 #include <dpp/coro/task.h>
+#include <set>
 #include <unordered_map>
-#include <vector>
 
 namespace dpp { class channel; class cluster; class guild; class guild_member; class message_create_t; class user; }
 
@@ -55,22 +56,22 @@ struct DbUser : DbObject
     bool usingSlots{};
 
     // complex
-    std::unordered_map<std::string, std::string> achievements; // name, description
+    std::unordered_map<std::string, std::string, string_hash, std::equal_to<>> achievements; // name, description
     std::unordered_map<std::string, int> ammo; // name, count
     std::unordered_map<std::string, int> collectibles; // name, count
     std::unordered_map<std::string, int> consumables; // name, count
     std::unordered_map<std::string, int> crates; // name, count
-    std::vector<std::string> pendingGangInvites;
-    std::map<std::string, int64_t> perks; // name, duration
+    std::set<std::string> pendingGangInvites;
+    std::map<std::string, int64_t, std::less<>> perks; // name, duration
     std::unordered_map<std::string, std::string> stats; // name, value
-    std::vector<std::string> tools;
-    std::unordered_map<std::string, int> usedConsumables = { // name, uses
+    std::set<std::string, std::less<>> tools;
+    std::unordered_map<std::string, int, string_hash, std::equal_to<>> usedConsumables = { // name, uses
         { "Black Hat", 0 },
         { "Cocaine", 0 },
         { "Ski Mask", 0 },
         { "Viagra", 0 }
     };
-    std::vector<std::string> weapons;
+    std::set<std::string, std::less<>> weapons;
 
     DbUser() = default;
     explicit DbUser(bsoncxx::document::view doc);

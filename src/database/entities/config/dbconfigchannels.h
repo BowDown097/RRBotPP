@@ -1,14 +1,14 @@
 #pragma once
 #include "database/entities/dbobject.h"
-#include <vector>
+#include <set>
 
 struct DbConfigChannels : DbObject
 {
     int64_t guildId{};
     int64_t logsChannel{};
-    std::vector<int64_t> noFilterChannels;
+    std::set<int64_t> noFilterChannels;
     int64_t potChannel{};
-    std::vector<int64_t> whitelistedChannels;
+    std::set<int64_t> whitelistedChannels;
 
     DbConfigChannels() = default;
     explicit DbConfigChannels(bsoncxx::document::view doc);

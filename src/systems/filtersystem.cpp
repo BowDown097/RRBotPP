@@ -77,7 +77,7 @@ namespace FilterSystem
     dpp::task<void> doFilteredWordCheck(const dpp::message& message, dpp::cluster* cluster)
     {
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (channels.noFilterChannels.contains(message.channel_id))
             co_return;
         if (containsFilteredWord(message.guild_id, message.content))
             co_await cluster->co_message_delete(message.id, message.channel_id);
@@ -90,7 +90,7 @@ namespace FilterSystem
             co_return;
 
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (channels.noFilterChannels.contains(message.channel_id))
             co_return;
 
         static std::regex inviteRegex(R"(discord(?:\.com\/invite|app\.com\/invite|\.gg|\.me|\.io)\/([a-zA-Z0-9\-]+))");
@@ -116,7 +116,7 @@ namespace FilterSystem
             co_return;
 
         DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (std::ranges::contains(channels.noFilterChannels, (int64_t)message.channel_id))
+        if (channels.noFilterChannels.contains(message.channel_id))
             co_return;
 
         std::string content = RR::utility::toLower(message.content);

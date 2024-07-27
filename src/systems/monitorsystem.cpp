@@ -148,19 +148,23 @@ namespace MonitorSystem
         for (bsoncxx::document::view doc : cursor)
         {
             DbUser user(doc);
-            for (const auto& [name, duration] : user.perks)
+            for (auto it = user.perks.cbegin(); it != user.perks.cend();)
             {
-                if (duration > RR::utility::unixTimestamp() || name == "Pacifist")
+                if (it->second > RR::utility::unixTimestamp() || it->first == "Pacifist")
+                {
+                    ++it;
                     continue;
+                }
 
-                user.perks.erase(name);
-                if (name == "Multiperk" && user.perks.size() >= 2)
+                if (it->first == "Multiperk" && user.perks.size() >= 3)
                 {
                     std::string lastPerk = user.perks.crbegin()->first;
                     if (const Perk* perk = dynamic_cast<const Perk*>(ItemSystem::getItem(lastPerk)))
                         user.cash += perk->price();
                     user.perks.erase(lastPerk);
                 }
+
+                it = user.perks.erase(it);
             }
             MongoManager::updateUser(user);
         }

@@ -51,7 +51,7 @@ std::vector<const Item*> Crate::open(const DbUser& user) const
         }
     }
 
-    size_t dupeTools = std::erase_if(items, [&user](const Item* i) { return std::ranges::contains(user.tools, i->name()); });
+    size_t dupeTools = std::erase_if(items, [&user](const Item* i) { return user.tools.contains(i->name()); });
     for (int i = 0; i < dupeTools * 3; ++i)
         items.push_back(&RR::utility::randomElement(Constants::Consumables));
 

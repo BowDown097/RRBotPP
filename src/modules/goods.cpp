@@ -117,7 +117,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
         {
             if (item->name() != "Pacifist")
                 co_return dpp::command_result::from_error(Responses::CanOnlyDiscardPacifist);
-            if (!user.perks.erase("Pacifist"))
+            if (auto it = user.perks.erase(user.perks.find("Pacifist")); it == user.perks.end())
                 co_return dpp::command_result::from_error(std::format(Responses::DontHaveThing, "the Pacifist perk"));
 
             user.modCooldown(user.pacifistCooldown = Constants::PacifistCooldown, gm.value());
@@ -126,7 +126,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
         }
         else if (dynamic_cast<const Tool*>(item))
         {
-            if (!std::erase(user.tools, item->name()))
+            if (auto it = user.tools.erase(user.tools.find(item->name())); it == user.tools.end())
                 co_return dpp::command_result::from_error(std::format(Responses::DontHaveAThing, item->name()));
             co_await user.setCashWithoutAdjustment(gm.value(), user.cash + (item->price() * 0.9L), cluster);
             MongoManager::updateUser(user);
@@ -135,7 +135,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
         }
         else if (dynamic_cast<const Weapon*>(item))
         {
-            if (!std::erase(user.weapons, item->name()))
+            if (auto it = user.weapons.erase(user.weapons.find(item->name())); it == user.weapons.end())
                 co_return dpp::command_result::from_error(std::format(Responses::DontHaveAThing, item->name()));
             co_await user.setCashWithoutAdjustment(gm.value(), user.cash + 5000, cluster);
             MongoManager::updateUser(user);
@@ -332,12 +332,12 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
                 }
                 else if (const Tool* tool = dynamic_cast<const Tool*>(item))
                 {
-                    user.tools.emplace_back(tool->name());
+                    user.tools.emplace(tool->name());
                     description += std::format("\n**{}**", tool->name());
                 }
                 else if (const Weapon* weapon = dynamic_cast<const Weapon*>(item))
                 {
-                    user.weapons.emplace_back(weapon->name());
+                    user.weapons.emplace(weapon->name());
                     description += std::format("\n**{}**", weapon->name());
                 }
             }

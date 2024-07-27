@@ -320,13 +320,13 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
     if (RR::utility::random(100) < Constants::GenericCrimeToolOdds)
     {
         auto availableTools = Constants::Tools
-            | std::views::filter([&user](const Tool& t) { return !std::ranges::contains(user.tools, t.name()); })
+            | std::views::filter([&user](const Tool& t) { return !user.tools.contains(t.name()); })
             | std::views::transform([](const Tool& t) { return t.name(); });
 
         if (!std::ranges::empty(availableTools))
         {
-            std::string tool(RR::utility::randomElement(availableTools));
-            user.tools.push_back(tool);
+            std::string_view tool = RR::utility::randomElement(availableTools);
+            user.tools.emplace(tool);
             context->reply(std::format(Responses::GotTool, tool));
         }
     }

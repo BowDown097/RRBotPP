@@ -76,24 +76,18 @@ dpp::command_result Administration::giveItem(const dpp::user_in& userIn, const d
         }
         else if (const Perk* perk = dynamic_cast<const Perk*>(item))
         {
-            std::string perkName(perk->name());
-            if (dbUser.perks.contains(perkName))
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), perkName));
-            dbUser.perks.emplace(perkName, perk->duration());
+            if (auto res = dbUser.perks.emplace(perk->name(), perk->duration()); !res.second)
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), perk->name()));
         }
         else if (dynamic_cast<const Tool*>(item))
         {
-            std::string toolName(item->name());
-            if (std::ranges::contains(dbUser.tools, toolName))
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), toolName));
-            dbUser.tools.push_back(toolName);
+            if (auto res = dbUser.tools.emplace(item->name()); !res.second)
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), item->name()));
         }
         else if (dynamic_cast<const Weapon*>(item))
         {
-            std::string weaponName(item->name());
-            if (std::ranges::contains(dbUser.weapons, weaponName))
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), weaponName));
-            dbUser.weapons.push_back(weaponName);
+            if (auto res = dbUser.weapons.emplace(item->name()); !res.second)
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), item->name()));
         }
 
         MongoManager::updateUser(dbUser);

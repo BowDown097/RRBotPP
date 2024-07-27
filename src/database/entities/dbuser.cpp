@@ -65,9 +65,9 @@ DbUser::DbUser(bsoncxx::document::view doc)
     bsoncxx_elem_to_map(doc["stats"], stats, string);
     bsoncxx_elem_to_map(doc["usedConsumables"], usedConsumables, int32);
 
-    bsoncxx_elem_to_array(doc["pendingGangInvites"], pendingGangInvites, string);
-    bsoncxx_elem_to_array(doc["tools"], tools, string);
-    bsoncxx_elem_to_array(doc["weapons"], weapons, string);
+    bsoncxx_elem_to_set(doc["pendingGangInvites"], pendingGangInvites, string);
+    bsoncxx_elem_to_set(doc["tools"], tools, string);
+    bsoncxx_elem_to_set(doc["weapons"], weapons, string);
 }
 
 bsoncxx::document::value DbUser::toDocument() const

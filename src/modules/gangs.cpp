@@ -210,7 +210,7 @@ dpp::command_result Gangs::invite(const dpp::user_in& userIn)
     if (gang.members[context->msg.author.id] > 1)
         return dpp::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
 
-    target.pendingGangInvites.push_back(gang.name);
+    target.pendingGangInvites.insert(gang.name);
     MongoManager::updateUser(target);
 
     return dpp::command_result::from_success(std::format(Responses::InvitedUserToGang, user->get_mention()));
@@ -227,12 +227,12 @@ dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (!user.gang.empty())
         return dpp::command_result::from_error(Responses::AlreadyInGang);
-    if (!gang.isPublic && !std::ranges::contains(user.pendingGangInvites, gang.name))
+    if (!gang.isPublic && !user.pendingGangInvites.contains(gang.name))
         return dpp::command_result::from_error(std::format(Responses::GangIsPrivate, Constants::GangPositions[1]));
 
     gang.members[context->msg.author.id] = Constants::GangPositions.size() - 1;
     user.gang = gang.name;
-    std::erase(user.pendingGangInvites, gang.name);
+    user.pendingGangInvites.erase(gang.name);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);

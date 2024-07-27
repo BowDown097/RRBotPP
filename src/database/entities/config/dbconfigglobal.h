@@ -1,11 +1,11 @@
 #pragma once
 #include "database/entities/dbobject.h"
-#include <vector>
+#include <set>
 
 struct DbConfigGlobal : DbObject
 {
-    std::vector<int64_t> bannedUsers;
-    std::vector<std::string> disabledCommands;
+    std::set<int64_t> bannedUsers;
+    std::set<std::string> disabledCommands;
 
     DbConfigGlobal() = default;
     explicit DbConfigGlobal(bsoncxx::document::view doc);

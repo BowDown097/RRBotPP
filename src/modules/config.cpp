@@ -66,12 +66,8 @@ dpp::command_result Config::clearConfig()
 dpp::command_result Config::currentConfig()
 {
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
-    auto noFilterChannels = channels.noFilterChannels | std::views::transform([](int64_t id) {
-        return dpp::channel::get_mention(id);
-    });
-    auto whitelisted = channels.whitelistedChannels | std::views::transform([](int64_t id) {
-        return dpp::channel::get_mention(id);
-    });
+    auto noFilterChannels = channels.noFilterChannels | std::views::transform(dpp::utility::channel_mention);
+    auto whitelisted = channels.whitelistedChannels | std::views::transform(dpp::utility::channel_mention);
 
     std::string description = "***Channels***\n";
     description += std::format("Command Whitelisted Channels: {}\n", dpp::utility::join(whitelisted, ", "));
@@ -128,7 +124,7 @@ dpp::command_result Config::disableCommand(const std::string& cmd)
         return dpp::command_result::from_error(Responses::NonexistentCommand);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    misc.disabledCommands.push_back(commands[0].get().name());
+    misc.disabledCommands.insert(commands[0].get().name());
 
     MongoManager::updateMiscConfig(misc);
     return dpp::command_result::from_success(Responses::SetCommandDisabled);
@@ -142,7 +138,7 @@ dpp::command_result Config::disableFiltersInChannel(const dpp::channel_in& chann
 
     dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
-    channels.noFilterChannels.push_back(channel->id);
+    channels.noFilterChannels.insert(channel->id);
 
     MongoManager::updateChannelConfig(channels);
     return dpp::command_result::from_success(std::format(Responses::DisabledFilters, channel->get_mention()));
@@ -158,7 +154,7 @@ dpp::command_result Config::disableModule(const std::string& module)
         return dpp::command_result::from_error(Responses::NonexistentModule);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    misc.disabledModules.push_back(modules[0].get().name());
+    misc.disabledModules.insert(modules[0].get().name());
 
     MongoManager::updateMiscConfig(misc);
     return dpp::command_result::from_success(Responses::SetModuleDisabled);
@@ -191,12 +187,10 @@ dpp::command_result Config::filterTerm(const dpp::remainder<std::string>& term)
         return dpp::command_result::from_error(Responses::InvalidFilteredTerm);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    if (std::ranges::contains(misc.filteredTerms, termLower))
+    if (auto res = misc.filteredTerms.insert(termLower); !res.second)
         return dpp::command_result::from_error(Responses::TermAlreadyFiltered);
 
-    misc.filteredTerms.push_back(termLower);
     MongoManager::updateMiscConfig(misc);
-
     return dpp::command_result::from_success(std::format(Responses::FilteredTerm, termLower));
 }
 
@@ -281,7 +275,7 @@ dpp::command_result Config::unfilterTerm(const dpp::remainder<std::string>& term
 {
     std::string termLower = RR::utility::toLower(*term);
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    if (!std::erase(misc.filteredTerms, termLower))
+    if (!misc.filteredTerms.erase(termLower))
         return dpp::command_result::from_error(Responses::TermNotFiltered);
 
     MongoManager::updateMiscConfig(misc);
@@ -292,7 +286,7 @@ dpp::command_result Config::unwhitelistChannel(const dpp::channel_in& channelIn)
 {
     dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
-    if (!std::erase(channels.whitelistedChannels, channel->id))
+    if (!channels.whitelistedChannels.erase(channel->id))
         return dpp::command_result::from_error(Responses::ChannelNotWhitelisted);
 
     MongoManager::updateChannelConfig(channels);
@@ -303,7 +297,7 @@ dpp::command_result Config::whitelistChannel(const dpp::channel_in& channelIn)
 {
     dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
-    channels.whitelistedChannels.push_back(channel->id);
+    channels.whitelistedChannels.insert(channel->id);
     MongoManager::updateChannelConfig(channels);
     return dpp::command_result::from_success(std::format(Responses::ChannelWhitelisted, channel->get_mention()));
 }

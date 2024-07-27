@@ -4,8 +4,8 @@
 
 DbConfigGlobal::DbConfigGlobal(bsoncxx::document::view doc)
 {
-    bsoncxx_elem_to_array(doc["bannedUsers"], bannedUsers, int64);
-    bsoncxx_elem_to_array(doc["disabledCommands"], disabledCommands, string);
+    bsoncxx_elem_to_set(doc["bannedUsers"], bannedUsers, int64);
+    bsoncxx_elem_to_set(doc["disabledCommands"], disabledCommands, string);
 }
 
 bsoncxx::document::value DbConfigGlobal::toDocument() const

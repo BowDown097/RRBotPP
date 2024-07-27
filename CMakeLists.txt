@@ -54,6 +54,7 @@ add_executable(RRBot
     src/utils/ld.h src/utils/ld.cpp
     src/utils/random.h
     src/utils/regex.h
+    src/utils/stringhash.h
     src/utils/strings.h src/utils/strings.cpp
     src/utils/timestamp.h src/utils/timestamp.cpp
     src/utils/views_concat/concat.hpp
