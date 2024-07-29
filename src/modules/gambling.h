@@ -15,7 +15,7 @@ private:
     dpp::task<dpp::command_result> roll75(const cash_in& betIn);
     dpp::task<dpp::command_result> roll99(const cash_in& betIn);
 
-    dpp::task<dpp::command_result> genericGamble(long double bet, long double odds, long double mult,
+    dpp::task<dpp::command_result> genericGamble(long double bet, long double target, long double mult,
                                                  bool exactRoll = false);
     void statUpdate(class DbUser& user, bool success, long double gain);
 };

@@ -15,10 +15,10 @@
 
 Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
 {
-    register_command(&Gambling::roll55, "55x2", "Roll 55 or higher on a 100 sided die, get 2x what you put in.", "$55x2 [bet]");
-    register_command(&Gambling::roll6969, "6969", "Roll 69.69 on a 100 sided die, get 6969x what you put in.", "$6969 bet");
-    register_command(&Gambling::roll75, "75+", "Roll 75 or higher on a 100 sided die, get 3.6x what you put in.", "$75+ [bet]");
-    register_command(&Gambling::roll99, "99+", "Roll 99 or higher on a 100 sided die, get 90x what you put in.",  "$99+ [bet]");
+    register_command(&Gambling::roll55, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");
+    register_command(&Gambling::roll6969, "6969", "Roll 69.69, get 6969x what you put in.", "$6969 bet");
+    register_command(&Gambling::roll75, "75+", "Roll 75 or higher, get 3.6x what you put in.", "$75+ [bet]");
+    register_command(&Gambling::roll99, "99+", "Roll 99 or higher, get 90x what you put in.",  "$99+ [bet]");
     register_command(&Gambling::dice, "dice", "Play a simple game of Chuck-a-luck, AKA Birdcage. If you don't know how it works: The player bets on a number. Three dice are rolled. The number appearing once gives a 1:1 payout, twice a 2:1, and thrice a 10:1.", "$dice [bet] [number]");
     register_command(&Gambling::doubleGamble, "double", "Double your cash...?");
     register_command(&Gambling::pot, "pot", "View the pot or add money into it.", "$pot <bet>");
@@ -177,12 +177,16 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
     co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::cash2str(bet)));
 }
 
-dpp::task<dpp::command_result> Gambling::roll55(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 55, 1); }
-dpp::task<dpp::command_result> Gambling::roll6969(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 69.69L, 6968, true); }
-dpp::task<dpp::command_result> Gambling::roll75(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 75, 2.6L); }
-dpp::task<dpp::command_result> Gambling::roll99(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 99, 89); }
+dpp::task<dpp::command_result> Gambling::roll55(const cash_in& betIn)
+{ co_return co_await genericGamble(betIn.top_result(), 55, 1); }
+dpp::task<dpp::command_result> Gambling::roll6969(const cash_in& betIn)
+{ co_return co_await genericGamble(betIn.top_result(), 69.69L, 6968, true); }
+dpp::task<dpp::command_result> Gambling::roll75(const cash_in& betIn)
+{ co_return co_await genericGamble(betIn.top_result(), 75, 2.6L); }
+dpp::task<dpp::command_result> Gambling::roll99(const cash_in& betIn)
+{ co_return co_await genericGamble(betIn.top_result(), 99, 89); }
 
-dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long double odds, long double mult, bool exactRoll)
+dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long double target, long double mult, bool exactRoll)
 {
     if (bet < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
@@ -197,9 +201,9 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
 
     long double roll = RR::utility::round(RR::utility::random(1.0L, 100.0L), 2);
     if (!exactRoll && user.perks.contains("Speed Demon"))
-        odds *= 1.05L;
+        target *= 1.05L;
 
-    if (exactRoll ? roll == odds : roll >= odds)
+    if (exactRoll ? roll == target : roll >= target)
     {
         long double payout = bet * mult;
         long double totalCash = user.cash + payout;
@@ -207,9 +211,9 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
         std::string message = std::format(Responses::GenericGambleSuccess, roll,
                                           RR::utility::cash2str(payout), RR::utility::cash2str(totalCash));
 
-        if (odds >= 99)
+        if (target >= 99)
             user.unlockAchievement("Pretty Damn Lucky", context);
-        else if (odds == 69.69L)
+        else if (target == 69.69L)
             user.unlockAchievement("Luckiest Dude Alive", context);
 
         if (user.gamblingMultiplier > 1)
