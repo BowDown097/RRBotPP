@@ -69,7 +69,8 @@ namespace Constants
     constexpr double GenericCrimeToolOdds = 4;
     constexpr long double GenericCrimeWinMax = 690;
     constexpr long double GenericCrimeWinMin = 69;
-    constexpr double HackOdds = 10;
+    constexpr long double HackMaxPercent = 20;
+    constexpr double HackOdds = 20;
     constexpr double RapeOdds = 50;
     constexpr long double RapeMaxPercent = 9;
     constexpr long double RapeMinPercent = 5;

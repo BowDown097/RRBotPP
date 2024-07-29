@@ -31,7 +31,7 @@ namespace ItemSystem
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - crate.price(), cluster);
 
         if (notify)
-            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::curr2str(crate.price())));
+            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::cash2str(crate.price())));
         co_return dpp::command_result::from_success();
     }
 
@@ -73,8 +73,8 @@ namespace ItemSystem
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - perk.price(), cluster);
 
         co_return dpp::command_result::from_success(perk.name() == "Pacifist"
-            ? std::format(Responses::BoughtPacifistPerk, RR::utility::curr2str(perk.price()))
-            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::curr2str(perk.price())));
+            ? std::format(Responses::BoughtPacifistPerk, RR::utility::cash2str(perk.price()))
+            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::cash2str(perk.price())));
     }
 
     dpp::task<dpp::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
@@ -88,7 +88,7 @@ namespace ItemSystem
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.price(), cluster);
-        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::curr2str(tool.price())));
+        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::cash2str(tool.price())));
     }
 
     std::string getBestTool(std::span<const std::string> tools, std::string_view type)
@@ -129,7 +129,7 @@ namespace ItemSystem
         if (const Collectible* collectible = dynamic_cast<const Collectible*>(getItem(name)))
         {
             std::string worthDescription = collectible->price() > 0
-                ? RR::utility::curr2str(collectible->price())
+                ? RR::utility::cash2str(collectible->price())
                 : "some amount of money";
 
             dpp::embed embed = dpp::embed()

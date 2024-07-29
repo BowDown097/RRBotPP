@@ -111,7 +111,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
             MongoManager::updateUser(user);
 
             co_return dpp::command_result::from_success(std::format(Responses::ItemDiscarded,
-                item->name(), RR::utility::curr2str(price)));
+                item->name(), RR::utility::cash2str(price)));
         }
         else if (dynamic_cast<const Perk*>(item))
         {
@@ -131,7 +131,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
             co_await user.setCashWithoutAdjustment(gm.value(), user.cash + (item->price() * 0.9L), cluster);
             MongoManager::updateUser(user);
             co_return dpp::command_result::from_success(std::format(Responses::ItemDiscarded,
-                item->name(), RR::utility::curr2str(item->price() * 0.9L)));
+                item->name(), RR::utility::cash2str(item->price() * 0.9L)));
         }
         else if (dynamic_cast<const Weapon*>(item))
         {
@@ -140,7 +140,7 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
             co_await user.setCashWithoutAdjustment(gm.value(), user.cash + 5000, cluster);
             MongoManager::updateUser(user);
             co_return dpp::command_result::from_success(std::format(Responses::ItemDiscarded,
-                item->name(), RR::utility::curr2str(5000)));
+                item->name(), RR::utility::cash2str(5000)));
         }
     }
 
@@ -165,7 +165,7 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         else if (const Collectible* collectible = dynamic_cast<const Collectible*>(item))
         {
             std::string worthDesc = collectible->price() > 0
-                ? RR::utility::curr2str(collectible->price()) : "Some amount of money";
+                ? RR::utility::cash2str(collectible->price()) : "Some amount of money";
             embed.set_thumbnail(std::string(collectible->image()));
             embed.set_title(std::string(collectible->name()));
             embed.add_field("Description", std::string(collectible->description()), true);
@@ -186,9 +186,9 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         {
             embed.set_title(std::string(crate->name()));
             if (crate->price() > 0)
-                embed.add_field("Price", RR::utility::curr2str(crate->price()), true);
+                embed.add_field("Price", RR::utility::cash2str(crate->price()), true);
             if (crate->cash() > 0)
-                embed.add_field("Cash", RR::utility::curr2str(crate->cash()), true);
+                embed.add_field("Cash", RR::utility::cash2str(crate->cash()), true);
             if (crate->consumableCount() > 0)
                 embed.add_field("Consumables", dpp::utility::lexical_cast<std::string>(crate->consumableCount()), true);
             if (crate->toolCount() > 0)
@@ -199,7 +199,7 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
             embed.set_title(std::string(perk->name()));
             embed.set_description(std::string(perk->description()));
             embed.add_field("Type", "Perk", true);
-            embed.add_field("Price", RR::utility::curr2str(perk->price()), true);
+            embed.add_field("Price", RR::utility::cash2str(perk->price()), true);
             if (perk->duration() > 0)
                 embed.add_field("Duration", RR::utility::formatSeconds(perk->duration()), true);
         }
@@ -207,10 +207,10 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         {
             embed.set_title(std::string(tool->name()));
             embed.add_field("Type", "Tool", true);
-            embed.add_field("Price", RR::utility::curr2str(tool->price()), true);
+            embed.add_field("Price", RR::utility::cash2str(tool->price()), true);
             embed.add_field("Cash Range", tool->name().ends_with("Pickaxe")
-                ? RR::utility::curr2str(128 * tool->mult()) + " - " + RR::utility::curr2str(256 * tool->mult())
-                : RR::utility::curr2str(tool->genericMin()) + " - " + RR::utility::curr2str(tool->genericMax()),
+                ? RR::utility::cash2str(128 * tool->mult()) + " - " + RR::utility::cash2str(256 * tool->mult())
+                : RR::utility::cash2str(tool->genericMin()) + " - " + RR::utility::cash2str(tool->genericMax()),
                 true);
 
             if (tool->tier() >= Tool::Tier::Netherite)
@@ -312,7 +312,7 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
 
             std::string description;
             if (crate->cash() > 0)
-                description += std::format("\n**Cash** ({})", RR::utility::curr2str(crate->cash()));
+                description += std::format("\n**Cash** ({})", RR::utility::cash2str(crate->cash()));
 
             std::unordered_map<std::string, int> countableItemsMap;
             std::vector<const Item*> items = crate->open(user);
@@ -367,16 +367,16 @@ dpp::command_result Goods::shop()
         return std::format("**{}**: {}\nDuration: {}\nPrice: {}",
                            p.name(), p.description(),
                            RR::utility::formatSeconds(p.duration()),
-                           RR::utility::curr2str(p.price()));
+                           RR::utility::cash2str(p.price()));
     };
 
     auto crates = Constants::Crates
         | std::views::filter([](const Crate& c) { return c.name() != "Daily Crate"; })
-        | std::views::transform([](const Crate& c) { return std::format("**{}**: {}", c.name(), RR::utility::curr2str(c.price())); });
+        | std::views::transform([](const Crate& c) { return std::format("**{}**: {}", c.name(), RR::utility::cash2str(c.price())); });
     auto perks = Constants::Perks | std::views::transform(transformPerk);
     auto tools = Constants::Tools
         | std::views::filter([](const Tool& t) { return t.tier() < Tool::Tier::Netherite; })
-        | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::curr2str(t.price())); });
+        | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::cash2str(t.price())); });
     auto weapons = Constants::Weapons
         | std::views::transform([](const Weapon& w) { return std::format("**{}**: {}", w.name(), w.information()); });
 
@@ -469,7 +469,7 @@ dpp::task<std::string> Goods::genericUse(const std::string& con, DbUser& user, c
         user.consumables[con] = 0;
         user.usedConsumables[con] = 0;
         long double lostCash = user.cash / RR::utility::random(divMin, divMax);
-        std::string lostCashStr = RR::utility::curr2str(lostCash);
+        std::string lostCashStr = RR::utility::cash2str(lostCash);
 
         co_await user.setCashWithoutAdjustment(gm, user.cash - lostCash, cluster);
         co_return std::vformat(loseMsg, std::make_format_args(lostCashStr));

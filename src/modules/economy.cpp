@@ -38,8 +38,8 @@ dpp::command_result Economy::balance(const std::optional<dpp::user_in>& userOpt)
     }
 
     return dpp::command_result::from_success(user->id == context->msg.author.id
-        ? std::format(Responses::YourBalance, RR::utility::curr2str(dbUser.cash))
-        : std::format(Responses::UserBalance, user->get_mention(), RR::utility::curr2str(dbUser.cash)));
+        ? std::format(Responses::YourBalance, RR::utility::cash2str(dbUser.cash))
+        : std::format(Responses::UserBalance, user->get_mention(), RR::utility::cash2str(dbUser.cash)));
 }
 
 dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOpt)
@@ -86,7 +86,7 @@ dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& 
         .set_author(RR::utility::asEmbedAuthor(member.value(), user))
         .set_title("User Profile");
 
-    std::string essentials = "**Cash**: " + RR::utility::curr2str(dbUser.cash);
+    std::string essentials = "**Cash**: " + RR::utility::cash2str(dbUser.cash);
     if (!dbUser.gang.empty())
         essentials += "\n**Gang**: " + dbUser.gang;
     essentials += std::format("\n**Health**: {}", dbUser.health);
@@ -165,7 +165,7 @@ dpp::command_result Economy::ranks()
     std::string description;
     for (const auto& [level, cost] : ranks.costs)
         if (dpp::role* role = dpp::find_role(ranks.ids[level]))
-            description += std::format("**{}**: {}", role->name, RR::utility::curr2str(cost));
+            description += std::format("**{}**: {}", role->name, RR::utility::cash2str(cost));
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
@@ -180,7 +180,7 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "sauce", RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "sauce", RR::utility::cash2str(Constants::TransactionMin)));
 
     dpp::guild_member member = memberIn.top_result();
     dpp::user* user = member.get_user();
@@ -208,5 +208,5 @@ dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member_in& member
 
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
-    co_return dpp::command_result::from_success(std::format(Responses::SaucedUser, user->get_mention(), RR::utility::curr2str(amount)));
+    co_return dpp::command_result::from_success(std::format(Responses::SaucedUser, user->get_mention(), RR::utility::cash2str(amount)));
 }

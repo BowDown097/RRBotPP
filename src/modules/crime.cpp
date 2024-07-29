@@ -6,6 +6,7 @@
 #include "database/mongomanager.h"
 #include "dpp-command-handler/extensions/cache.h"
 #include "dpp-interactive/interactiveservice.h"
+#include "modules/investments.h"
 #include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/random.h"
@@ -18,6 +19,7 @@ Crime::Crime() : dpp::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways 
 {
     register_command(&Crime::bully, "bully", "Change the nickname of any victim you wish.", "$bully [user] [nickname]");
     register_command(&Crime::deal, "deal", "Deal some drugs.");
+    register_command(&Crime::hack, "hack", "Hack into someone's crypto wallet.", "$hack [user] [crypto] [amount]");
     register_command(&Crime::loot, "loot", "Loot some locations.");
     register_command(&Crime::rape, std::initializer_list<std::string> { "rape", "strugglesnuggle" }, "Get yourself some ass!", "$rape [user]");
     register_command(&Crime::rob, "rob", "Yoink money from a user.", "$rob [user] [amount]");
@@ -67,6 +69,81 @@ dpp::task<dpp::command_result> Crime::deal()
                                     user.dealCooldown = Constants::DealCooldown, true);
 }
 
+dpp::task<dpp::command_result> Crime::hack(const dpp::user_in& userIn, const std::string& crypto, long double amount)
+{
+    amount = RR::utility::round(amount, 4);
+    if (amount < Constants::InvestmentMinAmount)
+        co_return dpp::command_result::from_error(std::format(Responses::HackTooSmall, Constants::InvestmentMinAmount));
+
+    const dpp::user* user = userIn.top_result();
+    if (user->id == context->msg.author.id || user->is_bot())
+        co_return dpp::command_result::from_error(Responses::BadIdea);
+
+    std::string abbrev = Investments::resolveAbbreviation(crypto);
+    std::string abbrevUpper = RR::utility::toUpper(abbrev);
+    if (abbrev.empty())
+        co_return dpp::command_result::from_error(Responses::InvalidCrypto);
+
+    std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!authorMember)
+        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+
+    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    if (target.usingSlots)
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, user->get_mention()));
+    if (target.perks.contains("Pacifist"))
+        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "hack", user->get_mention()));
+
+    DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
+    long double* authorCrypto = author.getCrypto(abbrev);
+    long double* targetCrypto = target.getCrypto(abbrev);
+
+    long double hackMax = RR::utility::round(*targetCrypto / 100.0L * Constants::HackMaxPercent, 4);
+    if (*authorCrypto < amount)
+        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, abbrevUpper));
+    if (amount > hackMax)
+        co_return dpp::command_result::from_error(std::format(Responses::HackTooLarge, Constants::HackMaxPercent, user->get_mention(), abbrevUpper, RR::utility::roundAsStr(hackMax, 4)));
+
+    std::optional<long double> cryptoValue = co_await Investments::queryCryptoValue(abbrev, cluster);
+    if (!cryptoValue)
+        co_return dpp::command_result::from_error(Responses::GetCryptoValueFailed);
+
+    double odds = Constants::HackOdds;
+    if (author.usedConsumables["Black Hat"] > 0)
+        odds += 10 * author.usedConsumables["Black Hat"];
+    if (author.perks.contains("Speed Demon"))
+        odds *= 0.95;
+
+    std::string response;
+    std::string userMention = user->get_mention();
+
+    if (RR::utility::random(100) < odds)
+    {
+        *authorCrypto += amount;
+        *targetCrypto -= amount;
+        statUpdate(author, true, cryptoValue.value() * amount);
+        statUpdate(target, false, cryptoValue.value() * amount);
+
+        std::string amountRounded = RR::utility::roundAsStr(amount, 4);
+        response = std::vformat(RR::utility::randomElement(Responses::HackSuccesses),
+                                std::make_format_args(userMention, amountRounded, abbrevUpper));
+    }
+    else
+    {
+        *authorCrypto -= amount / 4.0L;
+        statUpdate(author, false, cryptoValue.value() * (amount / 4.0L));
+
+        std::string amountRounded = RR::utility::roundAsStr(amount / 4.0L, 4);
+        response = std::vformat(RR::utility::randomElement(Responses::HackFails),
+                                std::make_format_args(userMention, amountRounded, abbrevUpper));
+    }
+
+    author.modCooldown(author.hackCooldown = Constants::HackCooldown, authorMember.value());
+    MongoManager::updateUser(author);
+    MongoManager::updateUser(target);
+    co_return dpp::command_result::from_success(response);
+}
+
 dpp::task<dpp::command_result> Crime::loot()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -109,14 +186,14 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
     {
         long double repairs = target.cash / 100.0L * rapePercent;
         statUpdate(target, false, repairs);
-        context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::curr2str(repairs)));
+        context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::cash2str(repairs)));
         co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster);
     }
     else
     {
         long double repairs = author.cash / 100.0L * rapePercent;
         statUpdate(author, false, repairs);
-        context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::curr2str(repairs)));
+        context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::cash2str(repairs)));
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster);
     }
 
@@ -131,7 +208,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
-        co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::curr2str(Constants::RobMinCash)));
+        co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::cash2str(Constants::RobMinCash)));
 
     dpp::guild_member member = memberIn.top_result();
     dpp::user* user = member.get_user();
@@ -152,7 +229,7 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     if (amount > robMax)
     {
         co_return dpp::command_result::from_error(std::format(Responses::RobTooLarge, Constants::RobMaxPercent,
-            user->get_mention(), RR::utility::curr2str(robMax)));
+            user->get_mention(), RR::utility::cash2str(robMax)));
     }
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -169,6 +246,10 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
     if (author.perks.contains("Speed Demon"))
         odds *= 0.95;
 
+    std::string response;
+    std::string amountStr = RR::utility::cash2str(amount);
+    std::string userMention = user->get_mention();
+
     if (RR::utility::random(100) < odds)
     {
         co_await target.setCashWithoutAdjustment(member, target.cash - amount, cluster);
@@ -176,23 +257,23 @@ dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, 
         statUpdate(author, true, amount);
         statUpdate(target, false, amount);
 
-        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobSuccesses),
-                                   RR::utility::curr2str(author.cash)));
+        response = std::vformat(RR::utility::randomElement(Responses::RobSuccesses), std::make_format_args(userMention, amountStr));
+        response += "\nBalance: " + RR::utility::cash2str(author.cash);
     }
     else
     {
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster);
         statUpdate(author, false, amount);
 
-        context->reply(std::format("{}\nBalance: {}", RR::utility::randomElement(Responses::RobFails),
-                                   RR::utility::curr2str(author.cash)));
+        response = std::vformat(RR::utility::randomElement(Responses::RobFails), std::make_format_args(userMention, amountStr));
+        response += "\nBalance: " + RR::utility::cash2str(author.cash);
     }
 
     author.modCooldown(author.robCooldown = Constants::RobCooldown, authorMember.value());
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
 
-    co_return dpp::command_result::from_success();
+    co_return dpp::command_result::from_success(response);
 }
 
 std::string scrambledMatch(const RR::utility::svmatch& m)
@@ -297,7 +378,7 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         if (hasMehOutcome && outcomeNum == successOutcomes.size() - 1)
             moneyEarned /= 5;
 
-        std::string curr = RR::utility::curr2str(moneyEarned);
+        std::string curr = RR::utility::cash2str(moneyEarned);
         outcome = std::vformat(successOutcomes[outcomeNum], std::make_format_args(curr));
         totalCash = user.cash + moneyEarned;
         statUpdate(user, true, moneyEarned);
@@ -308,14 +389,14 @@ dpp::task<dpp::command_result> Crime::genericCrime(const std::span<const std::st
         if (lostCash > user.cash)
             lostCash = user.cash;
 
-        std::string curr = RR::utility::curr2str(lostCash);
+        std::string curr = RR::utility::cash2str(lostCash);
         outcome = std::vformat(RR::utility::randomElement(failOutcomes), std::make_format_args(curr));
         totalCash = user.cash - lostCash;
         statUpdate(user, false, lostCash);
     }
 
     co_await user.setCash(member.value(), totalCash, cluster, context,
-                          std::format("{}\nBalance: {}", outcome, RR::utility::curr2str(totalCash)));
+                          std::format("{}\nBalance: {}", outcome, RR::utility::cash2str(totalCash)));
 
     if (RR::utility::random(100) < Constants::GenericCrimeToolOdds)
     {
@@ -353,9 +434,9 @@ dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_
 
         std::string response(successResponse);
         response += std::format(" Here's {}.\nBalance: {}",
-                                RR::utility::curr2str(rewardCash), RR::utility::curr2str(totalCash));
+                                RR::utility::cash2str(rewardCash), RR::utility::cash2str(totalCash));
         if (prestigeCash > 0)
-            response += std::format("\n*(+{} from Prestige)*", RR::utility::curr2str(prestigeCash));
+            response += std::format("\n*(+{} from Prestige)*", RR::utility::cash2str(prestigeCash));
 
         co_await user.setCashWithoutAdjustment(member, totalCash, cluster);
         msg.embeds.front().set_description(response);
@@ -370,7 +451,7 @@ dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_
 
 void Crime::statUpdate(DbUser& user, bool success, long double gain)
 {
-    std::string gainStr = RR::utility::curr2str(gain);
+    std::string gainStr = RR::utility::cash2str(gain);
     if (success)
     {
         user.mergeStats(std::unordered_map<std::string, std::string> {
@@ -384,7 +465,7 @@ void Crime::statUpdate(DbUser& user, bool success, long double gain)
         user.mergeStats(std::unordered_map<std::string, std::string> {
             { "Crimes Failed", "1" },
             { "Money Lost to Crimes", gainStr },
-            { "Net Gain/Loss from Crimes", RR::utility::curr2str(-gain) }
+            { "Net Gain/Loss from Crimes", RR::utility::cash2str(-gain) }
         });
     }
 }

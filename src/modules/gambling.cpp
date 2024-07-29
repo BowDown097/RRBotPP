@@ -28,7 +28,7 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
 {
     long double bet = betIn.top_result();
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
     if (number < 1 || number > 6)
         co_return dpp::command_result::from_error(Responses::InvalidDice);
 
@@ -53,19 +53,19 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
         break;
     case 2:
         payout = bet;
-        description += std::format(Responses::Dice2Matches, RR::utility::curr2str(bet * 2));
+        description += std::format(Responses::Dice2Matches, RR::utility::cash2str(bet * 2));
         break;
     case 3:
         payout = bet * 9;
-        description += std::format(Responses::Dice3Matches, RR::utility::curr2str(bet * 10));
+        description += std::format(Responses::Dice3Matches, RR::utility::cash2str(bet * 10));
         break;
     default:
-        description += std::format(Responses::DiceNoMatches, RR::utility::curr2str(bet));
+        description += std::format(Responses::DiceNoMatches, RR::utility::cash2str(bet));
         break;
     }
 
     long double totalCash = user.cash + payout;
-    description += "\nBalance: " + RR::utility::curr2str(totalCash);
+    description += "\nBalance: " + RR::utility::cash2str(totalCash);
 
     if (matches == 3)
         user.unlockAchievement("OH BABY A TRIPLE", context);
@@ -73,7 +73,7 @@ dpp::task<dpp::command_result> Gambling::dice(const cash_in& betIn, int number)
     if (user.gamblingMultiplier > 1)
     {
         long double multiplierCash = payout * user.gamblingMultiplier - payout;
-        description += std::format("\n*(+{} from gambling multiplier)*", RR::utility::curr2str(multiplierCash));
+        description += std::format("\n*(+{} from gambling multiplier)*", RR::utility::cash2str(multiplierCash));
         totalCash += multiplierCash;
     }
 
@@ -123,16 +123,16 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
         dpp::embed embed = dpp::embed()
             .set_color(dpp::colors::red)
             .set_title("Pot")
-            .add_field("Total Value", RR::utility::curr2str(pot.value))
+            .add_field("Total Value", RR::utility::cash2str(pot.value))
             .add_field("Draws At", dpp::utility::timestamp(pot.endTime));
 
         std::string memberInfo;
         for (const auto& [userId, bet] : pot.members)
         {
             if (dpp::user* user = dpp::find_user(userId))
-                memberInfo += std::format("**{}**: {} ({:.2f}%)\n", user->get_mention(), RR::utility::curr2str(bet), pot.getMemberOdds(userId));
+                memberInfo += std::format("**{}**: {} ({:.2f}%)\n", user->get_mention(), RR::utility::cash2str(bet), pot.getMemberOdds(userId));
             else
-                memberInfo += std::format("**???**: {} ({:.2f}%)\n", RR::utility::curr2str(bet), pot.getMemberOdds(userId));
+                memberInfo += std::format("**???**: {} ({:.2f}%)\n", RR::utility::cash2str(bet), pot.getMemberOdds(userId));
         }
 
         if (!memberInfo.empty())
@@ -145,7 +145,7 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
 
     long double bet = betIn->top_result();
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
 
     std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
@@ -174,7 +174,7 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<cash_in>& betIn
     MongoManager::updatePot(pot);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::curr2str(bet)));
+    co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::cash2str(bet)));
 }
 
 dpp::task<dpp::command_result> Gambling::roll55(const cash_in& betIn) { co_return co_await genericGamble(betIn.top_result(), 55, 1); }
@@ -185,7 +185,7 @@ dpp::task<dpp::command_result> Gambling::roll99(const cash_in& betIn) { co_retur
 dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long double odds, long double mult, bool exactRoll)
 {
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
 
     std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
@@ -205,7 +205,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
         long double totalCash = user.cash + payout;
         statUpdate(user, true, payout);
         std::string message = std::format(Responses::GenericGambleSuccess, roll,
-                                          RR::utility::curr2str(payout), RR::utility::curr2str(totalCash));
+                                          RR::utility::cash2str(payout), RR::utility::cash2str(totalCash));
 
         if (odds >= 99)
             user.unlockAchievement("Pretty Damn Lucky", context);
@@ -215,7 +215,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
         if (user.gamblingMultiplier > 1)
         {
             long double multiplierCash = payout * user.gamblingMultiplier - payout;
-            message += std::format("\n*(+{} from gambling multiplier)*", RR::utility::curr2str(multiplierCash));
+            message += std::format("\n*(+{} from gambling multiplier)*", RR::utility::cash2str(multiplierCash));
             totalCash += multiplierCash;
         }
 
@@ -229,7 +229,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
             user.unlockAchievement("I Just Feel Bad", context);
 
         std::string message = std::format(Responses::GenericGambleFail, roll,
-                                          RR::utility::curr2str(bet), RR::utility::curr2str(totalCash));
+                                          RR::utility::cash2str(bet), RR::utility::cash2str(totalCash));
         co_await user.setCashWithoutAdjustment(member.value(), totalCash, cluster, context, message);
     }
 
@@ -239,7 +239,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
 
 void Gambling::statUpdate(DbUser& user, bool success, long double gain)
 {
-    std::string gainStr = RR::utility::curr2str(gain);
+    std::string gainStr = RR::utility::cash2str(gain);
     if (success)
     {
         user.mergeStats(std::unordered_map<std::string, std::string> {
@@ -253,7 +253,7 @@ void Gambling::statUpdate(DbUser& user, bool success, long double gain)
         user.mergeStats(std::unordered_map<std::string, std::string> {
             { "Gambles Lost", "1" },
             { "Money Lost to Gambling", gainStr },
-            { "Net Gain/Loss from Gambling", RR::utility::curr2str(-gain) }
+            { "Net Gain/Loss from Gambling", RR::utility::cash2str(-gain) }
         });
     }
 }

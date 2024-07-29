@@ -203,7 +203,7 @@ namespace MonitorSystem
                     {
                         cluster->message_create(dpp::message(channels.potChannel, std::format(Responses::PotDrawn,
                             dpp::user::get_mention(luckyGuy), Constants::PotFee,
-                            RR::utility::curr2str(winnings), pot.getMemberOdds(luckyGuy))));
+                            RR::utility::cash2str(winnings), pot.getMemberOdds(luckyGuy))));
                     }
 
                     MongoManager::updateUser(luckyUser);

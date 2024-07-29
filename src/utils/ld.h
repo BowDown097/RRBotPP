@@ -11,10 +11,10 @@ namespace RR
         long double get_long_double(const bsoncxx::document::element& element);
         bsoncxx::decimal128 put_long_double(long double value);
 
-        std::string curr2str(long double value);
-        std::optional<long double> str2curr(std::string_view value);
+        std::string cash2str(long double value);
+        std::optional<long double> str2cash(std::string_view value);
 
         long double round(long double value, int digits);
-
+        std::string roundAsStr(long double value, int digits);
     }
 }

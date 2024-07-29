@@ -42,7 +42,7 @@ constexpr const char* RemovedCrates = "Removed {}'s crates.";
 constexpr const char* RemovedStat = "Removed the stat from {}.";
 constexpr const char* ResetCooldowns = "Reset {}'s cooldowns.";
 constexpr const char* SetCash = "Set {}'s cash to **{}**.";
-constexpr const char* SetCrypto = "Set {}'s {} to **{:.4f}**.";
+constexpr const char* SetCrypto = "Set {}'s {} to **{}**.";
 constexpr const char* SetPrestige = "Set {}'s prestige level to **{}**.";
 constexpr const char* SetStat = "Set {}'s stat for \"{}\" to **{}**.";
 // ********************
@@ -87,6 +87,8 @@ constexpr const char* UnfilteredTerm = "Removed \"{}\" from the filter system.";
 // ********************
 constexpr const char* Bullied = "You BULLIED {} to **{}**!";
 constexpr const char* GotTool = "Well I'll be damned! You also got yourself a(n) {}! Check out ``$module tasks`` to see how you can use it.";
+constexpr const char* HackTooLarge = "You can only hack {}% of {}'s {}, that being **{}**.";
+constexpr const char* HackTooSmall = "You must hack {} or more.";
 constexpr const char* HardBoiledEgg = "This egg is hard boiled, not scrambled. https://cdn.discordapp.com/attachments/661812833771847703/926190266904346725/video0.mov";
 constexpr const char* NicknameTooLong = "This nickname is longer than the maximum length (32 characters).";
 constexpr const char* RapeFailed = "You got COUNTER-RAPED by {}! YOU paid **{}** in asshole repairs.";
@@ -109,6 +111,14 @@ constexpr std::array<std::string_view, 3> DealSuccesses = {
     "You continue to capitalize off of some 17 year old's amphetamine addiction, yielding you **{}**.",
     "You sold grass to some elementary schoolers and passed it off as weed. They didn't have a lot of course, only **{}**, but money's money."
 };
+constexpr std::array<std::string_view, 2> HackFails = {
+    "{} actually secured their shit properly, got your info, and sent it off to the feds. You got raided and lost **{} {}** in the process.",
+    "Luck was on {}'s side and that hacker dude on Instagram scammed your ass! You only had to pay a 25% down payment, but still sucks. There goes **{} {}**. "
+};
+constexpr std::array<std::string_view, 2> HackSuccesses = {
+    "{} pushed his private keys to GitHub LMFAO! You sniped that shit and got **{} {}**.",
+    "You did an ol' SIM swap on {}'s phone and yoinked **{} {}** right off their Coinbase. Easy claps!"
+};
 constexpr std::array<std::string_view, 2> LootFails = {
     "There happened to be a cop coming out of the donut shop next door. You had to pay **{}** in fines.",
     "The manager gave no fucks and beat the SHIT out of you. You lost **{}** paying for face stitches."
@@ -119,8 +129,8 @@ constexpr std::array<std::string_view, 3> LootSuccesses = {
     "You stole from a gas station because you're a fucking idiot. You earned **{}**, basically nothing."
 };
 constexpr std::array<std::string_view, 2> RobFails = {
-    "You got the bag, but they noticed and shanked you when you were on your way out. You lost all the resources in the process.",
-    "The dude happened to be a cop and threw your ass straight into jail. You lost all the resources in the process."
+    "You carefully took out {}'s wallet, but they noticed and shanked you when you were on your way out. You lost **{}** of your own in the process.",
+    "{} happened to be a cop and threw your ass straight into jail! You lost **{}** of your own in the process."
 };
 constexpr std::array<std::string_view, 2> RobSuccesses = {
     "You beat the shit out of {} and took **{}** from their ass!",
@@ -345,9 +355,9 @@ constexpr const char* YouHaveNothing = "You've got nothing!";
 // ********************
 //     INVESTMENTS
 // ********************
-constexpr const char* InvestmentSuccess = "You invested in **{:.4f}** {}, currently valued at **{}**.";
+constexpr const char* InvestmentSuccess = "You invested in **{} {}**, currently valued at **{}**.";
 constexpr const char* InvestmentTooLow = "The cash amount converts to less than {} of {}, which is too low.\nYou'll need to invest at least **{}**.";
-constexpr const char* WithdrawSuccess = "You withdrew **{:.4f}** {}, currently valued at **{}**.\nA {}% withdrawal fee was taken from this amount, leaving you **{}** richer.";
+constexpr const char* WithdrawSuccess = "You withdrew **{} {}**, currently valued at **{}**.\nA {}% withdrawal fee was taken from this amount, leaving you **{}** richer.";
 // ********************
 //      MODERATION
 // ********************

@@ -1,5 +1,6 @@
 #include "ld.h"
 #include "dpp-command-handler/utils/lexical_cast.h"
+#include "utils/strings.h"
 #include <bsoncxx/document/element.hpp>
 #include <bsoncxx/types.hpp>
 #include <cmath>
@@ -22,7 +23,7 @@ namespace RR
             return bsoncxx::decimal128(dpp::utility::lexical_cast<std::string>(value));
         }
 
-        std::string curr2str(long double value)
+        std::string cash2str(long double value)
         {
             std::ostringstream ss;
             ss.imbue(std::locale(""));
@@ -30,7 +31,7 @@ namespace RR
             return ss.str();
         }
 
-        std::optional<long double> str2curr(std::string_view value)
+        std::optional<long double> str2cash(std::string_view value)
         {
             if (size_t ind = value.find('$'); ind != std::string_view::npos)
             {
@@ -59,7 +60,7 @@ namespace RR
         {
             constexpr int digits10 = std::numeric_limits<long double>::digits10;
             if (digits > digits10)
-                throw std::out_of_range("Rounding beyond max of " + std::to_string(digits10) + " digits for long double");
+                throw std::out_of_range(std::format("Rounding beyond max of {} digits for long double", digits10));
 
             if (std::abs(value) < std::pow(10, digits10 + 1))
             {
@@ -68,6 +69,13 @@ namespace RR
             }
 
             return value;
+        }
+
+        std::string roundAsStr(long double value, int digits)
+        {
+            std::string formatString = std::format("{{:.{}f}}", digits);
+            std::string result = std::vformat(formatString, std::make_format_args(value));
+            return trimZeros(result);
         }
     }
 }

@@ -173,11 +173,12 @@ dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_i
 
     MongoManager::updateUser(dbUser);
     co_return dpp::command_result::from_success(std::format(Responses::SetCash,
-        user->get_mention(), RR::utility::curr2str(amount)));
+        user->get_mention(), RR::utility::cash2str(amount)));
 }
 
 dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const std::string& crypto, long double amount)
 {
+    amount = RR::utility::round(amount, 4);
     dpp::user* user = userIn.top_result();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
@@ -190,7 +191,8 @@ dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const 
     *dbUser.getCrypto(abbrev) = amount;
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::SetCrypto, user->get_mention(), RR::utility::toUpper(crypto), amount));
+    return dpp::command_result::from_success(std::format(Responses::SetCrypto,
+        user->get_mention(), RR::utility::toUpper(crypto), RR::utility::roundAsStr(amount, 4)));
 }
 
 dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int level)

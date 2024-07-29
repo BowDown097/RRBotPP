@@ -52,7 +52,7 @@ dpp::task<dpp::command_result> Gangs::buyVault()
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success(std::format(Responses::VaultUnlocked, RR::utility::curr2str(Constants::GangVaultCost)));
+    co_return dpp::command_result::from_success(std::format(Responses::VaultUnlocked, RR::utility::cash2str(Constants::GangVaultCost)));
 }
 
 dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::string>& name)
@@ -87,14 +87,14 @@ dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::strin
 
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success(std::format(Responses::GangCreated,
-        *name, RR::utility::curr2str(Constants::GangCreationCost)));
+        *name, RR::utility::cash2str(Constants::GangCreationCost)));
 }
 
 dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::curr2str(amount)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::cash2str(amount)));
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)
@@ -117,7 +117,7 @@ dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success(std::format(Responses::DepositedIntoVault,
-        RR::utility::curr2str(finalAmount), Constants::VaultTaxPercent));
+        RR::utility::cash2str(finalAmount), Constants::VaultTaxPercent));
 }
 
 dpp::command_result Gangs::disband()
@@ -180,7 +180,7 @@ dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>
     }
 
     if (gang.vaultBalance >= 0.01L)
-        embed.add_field("Vault Balance", RR::utility::curr2str(gang.vaultBalance));
+        embed.add_field("Vault Balance", RR::utility::cash2str(gang.vaultBalance));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();
@@ -425,14 +425,14 @@ dpp::command_result Gangs::vaultBalance()
     if (gang.vaultBalance < 0.01L)
         return dpp::command_result::from_error(Responses::GangIsBroke);
 
-    return dpp::command_result::from_success(std::format(Responses::GangVaultBalance, RR::utility::curr2str(gang.vaultBalance)));
+    return dpp::command_result::from_success(std::format(Responses::GangVaultBalance, RR::utility::cash2str(gang.vaultBalance)));
 }
 
 dpp::task<dpp::command_result> Gangs::withdrawVault(const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::curr2str(Constants::TransactionMin)));
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::cash2str(Constants::TransactionMin)));
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)
@@ -454,5 +454,5 @@ dpp::task<dpp::command_result> Gangs::withdrawVault(const cash_in& amountIn)
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::WithdrewFromVault, RR::utility::curr2str(amount)));
+    co_return dpp::command_result::from_success(std::format(Responses::WithdrewFromVault, RR::utility::cash2str(amount)));
 }

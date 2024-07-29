@@ -12,17 +12,17 @@
 
 Investments::Investments() : dpp::module<Investments>("Investments", "Invest in our selection of coins, Bit or Shit. The prices here are updated in REAL TIME with REAL WORLD values. Experience the fast, entrepreneural life without going broke, having your house repossessed, and having your girlfriend leave you. Wait, you probably don't have either of those.")
 {
-    register_command(&Investments::invest, "invest", "Invest in a cryptocurrency. Currently accepted currencies are BTC, ETH, LTC, and XRP. Here, the amount you put in should be cash, not crypto.", "$invest [crypto] [cash amount]");
+    register_command(&Investments::invest, "invest", "Invest in a cryptocurrency. Currently accepted currencies are BTC, ETH, LTC, and XRP.", "$invest [crypto] [cash amount]");
     register_command(&Investments::investments, "investments", "Check your investments, or someone else's, and their value.", "$investments <user>");
     register_command(&Investments::prices, std::initializer_list<std::string> { "prices", "values" }, "Check the values of the currently avaiable cryptocurrencies.");
-    register_command(&Investments::withdraw, "withdraw", "Withdraw a specified cryptocurrency to cash, with a 2% withdrawal fee. Here, the amount you put in should be crypto, not cash. See $invest's info for currently accepted currencies.", "$withdraw [crypto] [amount]");
+    register_command(&Investments::withdraw, "withdraw", "Withdraw a specified cryptocurrency to cash, with a 2% withdrawal fee. See $invest's info for currently accepted currencies.", "$withdraw [crypto] [amount]");
 }
 
-dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, const cash_in& amountIn)
+dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, const cash_in& cashAmountIn)
 {
-    long double amount = amountIn.top_result();
-    if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "invest", RR::utility::curr2str(Constants::TransactionMin)));
+    long double cashAmount = cashAmountIn.top_result();
+    if (cashAmount < Constants::TransactionMin)
+        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "invest", RR::utility::cash2str(Constants::TransactionMin)));
 
     std::string abbrev = resolveAbbreviation(crypto);
     std::string abbrevUpper = RR::utility::toUpper(abbrev);
@@ -34,31 +34,31 @@ dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, co
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
-    if (user.cash < amount)
+    if (user.cash < cashAmount)
         co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     std::optional<long double> cryptoValue = co_await queryCryptoValue(abbrev, cluster);
     if (!cryptoValue)
         co_return dpp::command_result::from_error(Responses::GetCryptoValueFailed);
 
-    long double cryptoAmount = amount / cryptoValue.value();
+    long double cryptoAmount = RR::utility::round(cashAmount / cryptoValue.value(), 4);
     if (cryptoAmount < Constants::InvestmentMinAmount)
     {
         co_return dpp::command_result::from_error(std::format(Responses::InvestmentTooLow,
             Constants::InvestmentMinAmount, abbrevUpper,
-            RR::utility::curr2str(cryptoValue.value() * Constants::InvestmentMinAmount)));
+            RR::utility::cash2str(cryptoValue.value() * Constants::InvestmentMinAmount)));
     }
 
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - amount, cluster);
-    *user.getCrypto(abbrev) += RR::utility::round(cryptoAmount, 4);
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - cashAmount, cluster);
+    *user.getCrypto(abbrev) += cryptoAmount;
     user.mergeStats({
-        { "Money Put Into " + abbrevUpper, RR::utility::curr2str(amount) },
+        { "Money Put Into " + abbrevUpper, RR::utility::cash2str(cashAmount) },
         { abbrevUpper + " Purchased", dpp::utility::lexical_cast<std::string>(cryptoAmount) }
     });
 
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success(std::format(Responses::InvestmentSuccess,
-        cryptoAmount, abbrevUpper, RR::utility::curr2str(amount)));
+        RR::utility::roundAsStr(cryptoAmount, 4), abbrevUpper, RR::utility::cash2str(cashAmount)));
 }
 
 dpp::task<dpp::command_result> Investments::investments(const std::optional<dpp::guild_member_in>& memberOpt)
@@ -81,25 +81,37 @@ dpp::task<dpp::command_result> Investments::investments(const std::optional<dpp:
     {
         std::optional<long double> btcValue = co_await queryCryptoValue("BTC", cluster);
         if (btcValue)
-            investsDisplay += std::format("**BTC**: {:.4f} ({})\n", dbUser.btc, RR::utility::curr2str(btcValue.value() * dbUser.btc));
+        {
+            investsDisplay += std::format("**BTC**: {} ({})\n",
+                RR::utility::roundAsStr(dbUser.btc, 4), RR::utility::cash2str(btcValue.value() * dbUser.btc));
+        }
     }
     if (dbUser.eth >= 0.01L)
     {
         std::optional<long double> ethValue = co_await queryCryptoValue("ETH", cluster);
         if (ethValue)
-            investsDisplay += std::format("**ETH**: {:.4f} ({})\n", dbUser.eth, RR::utility::curr2str(ethValue.value() * dbUser.eth));
+        {
+            investsDisplay += std::format("**ETH**: {} ({})\n",
+                RR::utility::roundAsStr(dbUser.eth, 4), RR::utility::cash2str(ethValue.value() * dbUser.eth));
+        }
     }
     if (dbUser.ltc >= 0.01L)
     {
         std::optional<long double> ltcValue = co_await queryCryptoValue("LTC", cluster);
         if (ltcValue)
-            investsDisplay += std::format("**LTC**: {:.4f} ({})\n", dbUser.ltc, RR::utility::curr2str(ltcValue.value() * dbUser.ltc));
+        {
+            investsDisplay += std::format("**LTC**: {} ({})\n",
+                RR::utility::roundAsStr(dbUser.ltc, 4), RR::utility::cash2str(ltcValue.value() * dbUser.ltc));
+        }
     }
     if (dbUser.xrp >= 0.01L)
     {
         std::optional<long double> xrpValue = co_await queryCryptoValue("XRP", cluster);
         if (xrpValue)
-            investsDisplay += std::format("**XRP**: {:.4f} ({})\n", dbUser.xrp, RR::utility::curr2str(xrpValue.value() * dbUser.xrp));
+        {
+            investsDisplay += std::format("**XRP**: {} ({})\n",
+                RR::utility::roundAsStr(dbUser.xrp, 4), RR::utility::cash2str(xrpValue.value() * dbUser.xrp));
+        }
     }
 
     if (!investsDisplay.empty())
@@ -135,18 +147,19 @@ dpp::task<dpp::command_result> Investments::prices()
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Cryptocurrency Values")
-        .add_field("Bitcoin (BTC)", RR::utility::curr2str(btc.value()))
-        .add_field("Ethereum (ETH)", RR::utility::curr2str(eth.value()))
-        .add_field("Litecoin (LTC)", RR::utility::curr2str(ltc.value()))
-        .add_field("XRP", RR::utility::curr2str(xrp.value()));
+        .add_field("Bitcoin (BTC)", RR::utility::cash2str(btc.value()))
+        .add_field("Ethereum (ETH)", RR::utility::cash2str(eth.value()))
+        .add_field("Litecoin (LTC)", RR::utility::cash2str(ltc.value()))
+        .add_field("XRP", RR::utility::cash2str(xrp.value()));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     co_return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Investments::withdraw(const std::string& crypto, long double amount)
+dpp::task<dpp::command_result> Investments::withdraw(const std::string& crypto, long double cryptoAmount)
 {
-    if (amount < Constants::InvestmentMinAmount)
+    cryptoAmount = RR::utility::round(cryptoAmount, 4);
+    if (cryptoAmount < Constants::InvestmentMinAmount)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", Constants::InvestmentMinAmount));
 
     std::string abbrev = resolveAbbreviation(crypto);
@@ -159,25 +172,27 @@ dpp::task<dpp::command_result> Investments::withdraw(const std::string& crypto, 
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
-    const long double* cryptoBal = user.getCrypto(abbrev);
-    if (*cryptoBal < RR::utility::round(amount, 4))
+    long double* cryptoBal = user.getCrypto(abbrev);
+    if (*cryptoBal < cryptoAmount)
         co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, abbrevUpper));
 
     std::optional<long double> cryptoValue = co_await queryCryptoValue(abbrev, cluster);
     if (!cryptoValue)
         co_return dpp::command_result::from_error(Responses::GetCryptoValueFailed);
 
-    long double totalValue = cryptoValue.value() * amount;
-    long double finalValue = totalValue / 100.0L * (100.0L - Constants::InvestmentFeePercent);
+    long double totalCashValue = cryptoValue.value() * cryptoAmount;
+    long double finalCashValue = totalCashValue / 100.0L * (100.0L - Constants::InvestmentFeePercent);
+    std::string totalCashValueStr = RR::utility::cash2str(totalCashValue);
+    std::string finalCashValueStr = RR::utility::cash2str(finalCashValue);
 
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash + finalValue, cluster);
-    *user.getCrypto(abbrev) -= RR::utility::round(amount, 4);
-    user.mergeStat("Money Gained from " + abbrevUpper, RR::utility::curr2str(finalValue));
+    co_await user.setCashWithoutAdjustment(gm.value(), user.cash + finalCashValue, cluster);
+    *cryptoBal -= cryptoAmount;
+    user.mergeStat("Money Gained from " + abbrevUpper, finalCashValueStr);
 
     MongoManager::updateUser(user);
     co_return dpp::command_result::from_success(std::format(Responses::WithdrawSuccess,
-        amount, abbrevUpper, RR::utility::curr2str(totalValue),
-        Constants::InvestmentFeePercent, RR::utility::curr2str(finalValue)));
+        RR::utility::roundAsStr(cryptoAmount, 4), abbrevUpper, totalCashValueStr,
+        Constants::InvestmentFeePercent, finalCashValueStr));
 }
 
 dpp::task<std::optional<long double>> Investments::queryCryptoValue(std::string_view crypto, dpp::cluster* cluster)
