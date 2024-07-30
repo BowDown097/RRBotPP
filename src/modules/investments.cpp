@@ -27,7 +27,7 @@ dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, co
     std::string abbrev = resolveAbbreviation(crypto);
     std::string abbrevUpper = RR::utility::toUpper(abbrev);
     if (abbrev.empty())
-        co_return dpp::command_result::from_error(Responses::InvalidCrypto);
+        co_return dpp::command_result::from_error(Responses::InvalidCurrency);
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)
@@ -165,7 +165,7 @@ dpp::task<dpp::command_result> Investments::withdraw(const std::string& crypto, 
     std::string abbrev = resolveAbbreviation(crypto);
     std::string abbrevUpper = RR::utility::toUpper(abbrev);
     if (abbrev.empty())
-        co_return dpp::command_result::from_error(Responses::InvalidCrypto);
+        co_return dpp::command_result::from_error(Responses::InvalidCurrency);
 
     std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!gm)

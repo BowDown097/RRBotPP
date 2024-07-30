@@ -82,7 +82,7 @@ dpp::task<dpp::command_result> Crime::hack(const dpp::user_in& userIn, const std
     std::string abbrev = Investments::resolveAbbreviation(crypto);
     std::string abbrevUpper = RR::utility::toUpper(abbrev);
     if (abbrev.empty())
-        co_return dpp::command_result::from_error(Responses::InvalidCrypto);
+        co_return dpp::command_result::from_error(Responses::InvalidCurrency);
 
     std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)

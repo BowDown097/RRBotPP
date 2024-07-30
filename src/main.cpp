@@ -89,7 +89,8 @@ int main()
     modules = std::make_unique<dpp::module_service>(cluster.get(), config);
     modules->register_modules<Administration, BotOwner, Config>();
     modules->register_module<Crime>(interactive.get());
-    modules->register_modules<Economy, Fun, Gambling, Gangs, General>();
+    modules->register_module<Economy>(interactive.get());
+    modules->register_modules<Fun, Gambling, Gangs, General>();
     modules->register_module<Goods>(interactive.get());
     modules->register_modules<Investments, Moderation>();
 

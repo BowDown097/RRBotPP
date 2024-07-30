@@ -185,7 +185,7 @@ dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const 
 
     std::string abbrev = Investments::resolveAbbreviation(crypto);
     if (abbrev.empty())
-        return dpp::command_result::from_error(Responses::InvalidCrypto);
+        return dpp::command_result::from_error(Responses::InvalidCurrency);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     *dbUser.getCrypto(abbrev) = amount;

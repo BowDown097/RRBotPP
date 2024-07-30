@@ -5,6 +5,9 @@
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
 #include "dpp-command-handler/extensions/cache.h"
+#include "dpp-interactive/interactiveservice.h"
+#include "investments.h"
+#include "paginators/leaderboardpaginator.h"
 #include "utils/dpp.h"
 #include "utils/ld.h"
 #include "utils/timestamp.h"
@@ -17,6 +20,7 @@ Economy::Economy() : dpp::module<Economy>("Economy", "This is the hub for checki
 {
     register_command(&Economy::balance, std::initializer_list<std::string> { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
     register_command(&Economy::cooldowns, std::initializer_list<std::string> { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");
+    register_command(&Economy::leaderboard, std::initializer_list<std::string> { "leaderboard", "lb" }, "Check the leaderboard for cash or for a specific currency.", "$leaderboard <currency>");
     register_command(&Economy::profile, "profile", "View a bunch of economy-related info on yourself or another user.", "$profile <user>");
     register_command(&Economy::ranks, "ranks", "View all the ranks and their costs.");
     register_command(&Economy::sauce, std::initializer_list<std::string> { "sauce", "give", "transfer" }, "Sauce someone some cash.");
@@ -65,6 +69,30 @@ dpp::command_result Economy::cooldowns(const std::optional<dpp::user_in>& userOp
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dpp::command_result::from_success();
+}
+
+dpp::task<dpp::command_result> Economy::leaderboard(const std::optional<std::string>& currencyIn)
+{
+    std::string currency = currencyIn.value_or("cash");
+    std::string cryptoAbbrev = Investments::resolveAbbreviation(currency);
+
+    bool currencyIsCash = dpp::utility::iequals(currency, "cash");
+    if (!currencyIsCash && cryptoAbbrev.empty())
+        co_return dpp::command_result::from_error(Responses::InvalidCurrency);
+
+    long double cryptoValue;
+    if (currencyIsCash)
+        cryptoValue = 1.0L;
+    else if (std::optional<long double> cvo = co_await Investments::queryCryptoValue(cryptoAbbrev, cluster))
+        cryptoValue = cvo.value();
+    else
+        co_return dpp::command_result::from_error(Responses::GetCryptoValueFailed);
+
+    auto paginator = std::make_unique<LeaderboardPaginator>(currencyIsCash ? "cash" : cryptoAbbrev, cryptoValue, context->msg.guild_id);
+    paginator->with_default_buttons().add_user(context->msg.author.id);
+
+    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    co_return dpp::command_result::from_success();
 }
 
 dpp::command_result Economy::profile(const std::optional<dpp::guild_member_in>& memberOpt)
