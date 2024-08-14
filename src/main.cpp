@@ -90,7 +90,9 @@ int main()
     modules->register_modules<Administration, BotOwner, Config>();
     modules->register_module<Crime>(interactive.get());
     modules->register_module<Economy>(interactive.get());
-    modules->register_modules<Fun, Gambling, Gangs, General>();
+    modules->register_module<Fun>();
+    modules->register_module<Gambling>(interactive.get());
+    modules->register_modules<Gangs, General>();
     modules->register_module<Goods>(interactive.get());
     modules->register_modules<Investments, Moderation>();
 

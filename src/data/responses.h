@@ -23,10 +23,12 @@ constexpr const char* NonexistentCommand = "You have specified a nonexistent com
 constexpr const char* NonexistentModule = "You have specified a nonexistent module!";
 constexpr const char* NotEnoughOfThing = "You don't have that much {}!";
 constexpr const char* UserAlreadyHasThing = "{} already has a(n) {}!";
+constexpr const char* UserHasNotEnoughOfThing = "{} doesn't have that much {}!";
 constexpr const char* UserIsBot = "Nope.";
 constexpr const char* UserIsBroke = "{} is broke!";
 constexpr const char* UserIsGambling = "{} is using the slot machine! Let them finish!";
 constexpr const char* YouAreBroke = "You're broke!";
+constexpr const char* YouAreGambling = "You appear to be using the slot machine. You can't do any betting until it is finished.";
 // ********************
 //    ADMINISTRATION
 // ********************
@@ -257,6 +259,10 @@ constexpr std::array<std::pair<std::string_view, std::string_view>, 45> Waifus =
 //       GAMBLING
 // ********************
 constexpr const char* AddedIntoPot = "Added **{}** into the pot.";
+constexpr const char* BetDescription = "{} is betting **{}** against {}.\n"
+                                       "Their number is **{}**.\n"
+                                       "{}, if you want to accept this bet, respond with a number between 1 and 100 in the next 30 seconds.";
+constexpr const char* BetResult = "{} was the closest to my number, **{}**! They're taking home a fine **{}**.";
 constexpr const char* Dice1Match = "Good stuff! 1 match. You got paid out your bet.";
 constexpr const char* Dice2Matches = "DOUBLES! Now we're cooking with gas. You got paid out DOUBLE your bet (**{}**).";
 constexpr const char* Dice3Matches = "WOOOAAHHH! Good shit, man! That's a fine set of TRIPLES you just rolled. You got paid out TEN TIMES your bet (**{}**).";
@@ -265,8 +271,10 @@ constexpr const char* DiceTitle = "Let's see your roll...";
 constexpr const char* Doubled = "I have doubled your cash.";
 constexpr const char* GenericGambleFail = "Well damn, you rolled a {}, which wasn't enough. You lost **{}**.\nBalance: {}";
 constexpr const char* GenericGambleSuccess = "Good shit my guy! You rolled a {:.2f} and got yourself **{}**!\nBalance: {}";
-constexpr const char* InvalidDice = "Your number needs to be between 1 and 6.";
+constexpr const char* InputNotInRange = "Your number needs to be between {} and {}.";
 constexpr const char* PotDrawn = "The pot has been drawn, and our LUCKY WINNER is {}!!! After a fee of {:.1f}%, they have won {} with a {:.1f}% chance of winning the pot!";
+constexpr const char* UserDidntRespond = "{} didn't respond in time.";
+constexpr const char* UserPickedSameNumber = "This fucking goober, {}, responded with the same number. Now you have to do this all over again.";
 // ********************
 //        GANGS
 // ********************
