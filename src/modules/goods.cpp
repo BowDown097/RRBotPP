@@ -104,14 +104,14 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
             if (!collectible->discardable())
                 co_return dpp::command_result::from_error(Responses::CantBeDiscarded);
 
-            long double price = item->price() > 0 ? item->price() : RR::utility::random(100.0L, 1500.0L);
-            co_await user.setCashWithoutAdjustment(gm.value(), user.cash + price, cluster);
+            long double worth = item->worth() > 0 ? item->worth() : RR::utility::random(100.0L, 1500.0L);
+            co_await user.setCashWithoutAdjustment(gm.value(), user.cash + worth, cluster);
 
             user.collectibles[itemName]--;
             MongoManager::updateUser(user);
 
             co_return dpp::command_result::from_success(std::format(Responses::ItemDiscarded,
-                item->name(), RR::utility::cash2str(price)));
+                item->name(), RR::utility::cash2str(worth)));
         }
         else if (dynamic_cast<const Perk*>(item))
         {
@@ -128,10 +128,10 @@ dpp::task<dpp::command_result> Goods::discard(const dpp::remainder<std::string>&
         {
             if (auto it = user.tools.erase(user.tools.find(item->name())); it == user.tools.end())
                 co_return dpp::command_result::from_error(std::format(Responses::DontHaveAThing, item->name()));
-            co_await user.setCashWithoutAdjustment(gm.value(), user.cash + (item->price() * 0.9L), cluster);
+            co_await user.setCashWithoutAdjustment(gm.value(), user.cash + (item->worth() * 0.9L), cluster);
             MongoManager::updateUser(user);
             co_return dpp::command_result::from_success(std::format(Responses::ItemDiscarded,
-                item->name(), RR::utility::cash2str(item->price() * 0.9L)));
+                item->name(), RR::utility::cash2str(item->worth() * 0.9L)));
         }
         else if (dynamic_cast<const Weapon*>(item))
         {
@@ -164,8 +164,8 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         }
         else if (const Collectible* collectible = dynamic_cast<const Collectible*>(item))
         {
-            std::string worthDesc = collectible->price() > 0
-                ? RR::utility::cash2str(collectible->price()) : "Some amount of money";
+            std::string worthDesc = collectible->worth() > 0
+                ? RR::utility::cash2str(collectible->worth()) : "Some amount of money";
             embed.set_thumbnail(std::string(collectible->image()));
             embed.set_title(std::string(collectible->name()));
             embed.add_field("Description", std::string(collectible->description()), true);
@@ -185,8 +185,8 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         else if (const Crate* crate = dynamic_cast<const Crate*>(item))
         {
             embed.set_title(std::string(crate->name()));
-            if (crate->price() > 0)
-                embed.add_field("Price", RR::utility::cash2str(crate->price()), true);
+            if (crate->worth() > 0)
+                embed.add_field("Worth", RR::utility::cash2str(crate->worth()), true);
             if (crate->cash() > 0)
                 embed.add_field("Cash", RR::utility::cash2str(crate->cash()), true);
             if (crate->consumableCount() > 0)
@@ -199,7 +199,7 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
             embed.set_title(std::string(perk->name()));
             embed.set_description(std::string(perk->description()));
             embed.add_field("Type", "Perk", true);
-            embed.add_field("Price", RR::utility::cash2str(perk->price()), true);
+            embed.add_field("Worth", RR::utility::cash2str(perk->worth()), true);
             if (perk->duration() > 0)
                 embed.add_field("Duration", RR::utility::formatSeconds(perk->duration()), true);
         }
@@ -207,7 +207,7 @@ dpp::command_result Goods::itemInfo(const dpp::remainder<std::string>& itemIn)
         {
             embed.set_title(std::string(tool->name()));
             embed.add_field("Type", "Tool", true);
-            embed.add_field("Price", RR::utility::cash2str(tool->price()), true);
+            embed.add_field("Worth", RR::utility::cash2str(tool->worth()), true);
             embed.add_field("Cash Range", tool->name().ends_with("Pickaxe")
                 ? RR::utility::cash2str(128 * tool->mult()) + " - " + RR::utility::cash2str(256 * tool->mult())
                 : RR::utility::cash2str(tool->genericMin()) + " - " + RR::utility::cash2str(tool->genericMax()),
@@ -302,40 +302,37 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
                 co_return dpp::command_result::from_error(std::format(Responses::DontHaveAThing, crate->name()));
 
             user.crates[crateName]--;
+
+            std::string description = "You got:";
+            long double totalCash{};
             if (crate->cash() > 0)
             {
-                std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-                if (!gm)
-                    co_return dpp::command_result::from_error(Responses::GetUserFailed);
-                co_await user.setCashWithoutAdjustment(gm.value(), user.cash + crate->cash(), cluster);
+                description += std::format("\n**Cash** ({})", RR::utility::cash2str(crate->cash()));
+                totalCash += crate->cash();
             }
 
-            std::string description;
-            if (crate->cash() > 0)
-                description += std::format("\n**Cash** ({})", RR::utility::cash2str(crate->cash()));
-
             std::unordered_map<std::string, int> countableItemsMap;
-            std::vector<const Item*> items = crate->open(user);
-            for (const Item* item : items)
+            CrateDrop drop = crate->open(user);
+            for (const Item* dropItem : drop.items)
             {
-                if (const Ammo* ammo = dynamic_cast<const Ammo*>(item))
+                if (const Ammo* ammo = dynamic_cast<const Ammo*>(dropItem))
                 {
                     std::string ammoName(ammo->name());
                     user.ammo[ammoName]++;
                     countableItemsMap[ammoName]++;
                 }
-                else if (const Consumable* con = dynamic_cast<const Consumable*>(item))
+                else if (const Consumable* con = dynamic_cast<const Consumable*>(dropItem))
                 {
                     std::string conName(con->name());
                     user.consumables[conName]++;
                     countableItemsMap[conName]++;
                 }
-                else if (const Tool* tool = dynamic_cast<const Tool*>(item))
+                else if (const Tool* tool = dynamic_cast<const Tool*>(dropItem))
                 {
                     user.tools.emplace(tool->name());
                     description += std::format("\n**{}**", tool->name());
                 }
-                else if (const Weapon* weapon = dynamic_cast<const Weapon*>(item))
+                else if (const Weapon* weapon = dynamic_cast<const Weapon*>(dropItem))
                 {
                     user.weapons.emplace(weapon->name());
                     description += std::format("\n**{}**", weapon->name());
@@ -345,10 +342,24 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
             for (const auto& [name, count] : countableItemsMap)
                 description += std::format("\n**{}** ({}x)", name, count);
 
+            if (drop.refund > 0)
+            {
+                description += std::format("\n*+{} refund from duplicate tools or weapons*", RR::utility::cash2str(drop.refund));
+                totalCash += drop.refund;
+            }
+
+            if (totalCash > 0)
+            {
+                std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+                if (!gm)
+                    co_return dpp::command_result::from_error(Responses::GetUserFailed);
+                co_await user.setCashWithoutAdjustment(gm.value(), user.cash + totalCash, cluster);
+            }
+
             dpp::embed embed = dpp::embed()
                 .set_color(dpp::colors::red)
                 .set_title(crateName)
-                .set_description("You got:" + description);
+                .set_description(description);
 
             MongoManager::updateUser(user);
             context->reply(dpp::message(context->msg.channel_id, embed));
@@ -364,19 +375,19 @@ dpp::task<dpp::command_result> Goods::open(const dpp::remainder<std::string>& cr
 dpp::command_result Goods::shop()
 {
     auto transformPerk = [](const Perk& p) {
-        return std::format("**{}**: {}\nDuration: {}\nPrice: {}",
+        return std::format("**{}**: {}\nDuration: {}\nWorth: {}",
                            p.name(), p.description(),
                            RR::utility::formatSeconds(p.duration()),
-                           RR::utility::cash2str(p.price()));
+                           RR::utility::cash2str(p.worth()));
     };
 
     auto crates = Constants::Crates
         | std::views::filter([](const Crate& c) { return c.name() != "Daily Crate"; })
-        | std::views::transform([](const Crate& c) { return std::format("**{}**: {}", c.name(), RR::utility::cash2str(c.price())); });
+        | std::views::transform([](const Crate& c) { return std::format("**{}**: {}", c.name(), RR::utility::cash2str(c.worth())); });
     auto perks = Constants::Perks | std::views::transform(transformPerk);
     auto tools = Constants::Tools
         | std::views::filter([](const Tool& t) { return t.tier() < Tool::Tier::Netherite; })
-        | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::cash2str(t.price())); });
+        | std::views::transform([](const Tool& t) { return std::format("**{}**: {}", t.name(), RR::utility::cash2str(t.worth())); });
     auto weapons = Constants::Weapons
         | std::views::transform([](const Weapon& w) { return std::format("**{}**: {}", w.name(), w.information()); });
 

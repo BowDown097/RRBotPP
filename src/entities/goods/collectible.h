@@ -4,9 +4,9 @@
 class Collectible : public Item
 {
 public:
-    consteval Collectible(std::string_view name, long double price, std::string_view description, std::string_view image,
+    consteval Collectible(std::string_view name, long double worth, std::string_view description, std::string_view image,
                           bool discardable = true)
-        : Item(name, price), m_description(description), m_discardable(discardable), m_image(image) {}
+        : Item(name, worth), m_description(description), m_discardable(discardable), m_image(image) {}
 
     constexpr std::string_view description() const { return m_description; }
     constexpr bool discardable() const { return m_discardable; }

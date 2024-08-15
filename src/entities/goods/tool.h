@@ -6,9 +6,9 @@ class Tool : public Item
 public:
     enum class Tier { Wood, Stone, Iron, Diamond, Netherite, Special };
 
-    consteval Tool(std::string_view name, long double price, Tier tier, long double genericMin = 0,
+    consteval Tool(std::string_view name, long double worth, Tier tier, long double genericMin = 0,
                    long double genericMax = 0, long double mult = 1)
-        : Item(name, price), m_genericMin(genericMin), m_genericMax(genericMax), m_mult(mult), m_tier(tier) {}
+        : Item(name, worth), m_genericMin(genericMin), m_genericMax(genericMax), m_mult(mult), m_tier(tier) {}
 
     friend constexpr auto operator<=>(Tier lhs, Tier rhs) noexcept
     { return static_cast<int>(lhs) <=> static_cast<int>(rhs); }

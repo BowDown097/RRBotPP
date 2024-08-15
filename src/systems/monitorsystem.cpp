@@ -160,7 +160,7 @@ namespace MonitorSystem
                 {
                     std::string lastPerk = user.perks.crbegin()->first;
                     if (const Perk* perk = dynamic_cast<const Perk*>(ItemSystem::getItem(lastPerk)))
-                        user.cash += perk->price();
+                        user.cash += perk->worth();
                     user.perks.erase(lastPerk);
                 }
 

@@ -22,23 +22,23 @@ namespace ItemSystem
                                             dpp::cluster* cluster, bool notify)
     {
         std::string crateName(crate.name());
-        if (crate.price() > dbUser.cash)
+        if (crate.worth() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.crates[crateName] >= 10)
             co_return dpp::command_result::from_error(std::format(Responses::ReachedMaxCrates, crate.name()));
 
         dbUser.crates[crateName]++;
-        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - crate.price(), cluster);
+        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - crate.worth(), cluster);
 
         if (notify)
-            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::cash2str(crate.price())));
+            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::cash2str(crate.worth())));
         co_return dpp::command_result::from_success();
     }
 
     dpp::task<dpp::command_result> buyPerk(const Perk& perk, const dpp::guild_member& member,
                                            DbUser& dbUser, dpp::cluster* cluster)
     {
-        if (perk.price() > dbUser.cash)
+        if (perk.worth() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.perks.contains(perk.name()))
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveThing, perk.name()));
@@ -60,7 +60,7 @@ namespace ItemSystem
 
             for (auto it = dbUser.perks.cbegin(); it != dbUser.perks.cend(); it = dbUser.perks.erase(it))
                 if (const Perk* perk = dynamic_cast<const Perk*>(getItem(it->first)))
-                    dbUser.cash += perk->price();
+                    dbUser.cash += perk->worth();
         }
         else if (perk.name() == "Speed Demon")
         {
@@ -70,11 +70,11 @@ namespace ItemSystem
         }
 
         dbUser.perks.emplace(perk.name(), RR::utility::unixTimestamp(perk.duration()));
-        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - perk.price(), cluster);
+        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - perk.worth(), cluster);
 
         co_return dpp::command_result::from_success(perk.name() == "Pacifist"
-            ? std::format(Responses::BoughtPacifistPerk, RR::utility::cash2str(perk.price()))
-            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::cash2str(perk.price())));
+            ? std::format(Responses::BoughtPacifistPerk, RR::utility::cash2str(perk.worth()))
+            : std::format(Responses::BoughtPerk, perk.name(), RR::utility::cash2str(perk.worth())));
     }
 
     dpp::task<dpp::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
@@ -82,13 +82,13 @@ namespace ItemSystem
     {
         if (tool.tier() >= Tool::Tier::Netherite)
             co_return dpp::command_result::from_error(Responses::InCratesOnly);
-        if (tool.price() > dbUser.cash)
+        if (tool.worth() > dbUser.cash)
             co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (auto it = dbUser.tools.emplace(tool.name()); !it.second)
             co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 
-        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.price(), cluster);
-        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::cash2str(tool.price())));
+        co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.worth(), cluster);
+        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::cash2str(tool.worth())));
     }
 
     std::string getBestTool(std::span<const std::string> tools, std::string_view type)
@@ -96,7 +96,7 @@ namespace ItemSystem
         auto toolsOfType = tools | std::views::filter([type](const std::string& t) { return t.ends_with(type); });
         auto it = std::ranges::max_element(toolsOfType, std::ranges::less(), [](const std::string& t) {
             if (const Item* i = getItem(t))
-                return i->price();
+                return i->worth();
             return 0.0L;
         });
         return it != std::ranges::end(toolsOfType) ? *it : std::string();
@@ -128,8 +128,8 @@ namespace ItemSystem
     {
         if (const Collectible* collectible = dynamic_cast<const Collectible*>(getItem(name)))
         {
-            std::string worthDescription = collectible->price() > 0
-                ? RR::utility::cash2str(collectible->price())
+            std::string worthDescription = collectible->worth() > 0
+                ? RR::utility::cash2str(collectible->worth())
                 : "some amount of money";
 
             dpp::embed embed = dpp::embed()
