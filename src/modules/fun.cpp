@@ -77,13 +77,13 @@ dpp::command_result Fun::gay(const std::optional<dpp::user_in>& userOpt)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 
     int gay = !user->is_bot() ? RR::utility::random(101) : 0;
-    const char* title = Responses::Gay1;
+    const char* title = Responses::Gay4;
     if (gay <= 10)
-        title = Responses::Gay2;
+        title = Responses::Gay1;
     else if (gay < 50)
-        title = Responses::Gay3;
+        title = Responses::Gay2;
     else if (gay < 90)
-        title = Responses::Gay4;
+        title = Responses::Gay3;
 
     std::string description = user->id == context->msg.author.id
         ? std::format(Responses::YouAreThisGay, gay) : std::format(Responses::UserIsThisGay, user->get_mention(), gay);
