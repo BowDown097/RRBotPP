@@ -70,9 +70,9 @@ dpp::command_result Fun::flip()
     return dpp::command_result::from_success();
 }
 
-dpp::command_result Fun::gay(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result Fun::gay(const std::optional<RR::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 
@@ -124,9 +124,9 @@ dpp::command_result Fun::magicConch(const dpp::remainder<std::string>&)
     return dpp::command_result::from_success();
 }
 
-dpp::command_result Fun::penis(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result Fun::penis(const std::optional<RR::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
 

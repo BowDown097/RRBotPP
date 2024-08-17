@@ -1,14 +1,14 @@
 #pragma once
 #include "dpp-command-handler/modules/module.h"
-#include "dpp-command-handler/readers/guildmembertypereader.h"
 #include "readers/cashtypereader.h"
+#include "readers/rrguildmembertypereader.h"
 
 class Gambling : public dpp::module<Gambling>
 {
 public:
     Gambling();
 private:
-    dpp::task<dpp::command_result> bet(const dpp::guild_member_in& memberIn, const cash_in& betIn, int number);
+    dpp::task<dpp::command_result> bet(const RR::guild_member_in& memberIn, const cash_in& betIn, int number);
     dpp::task<dpp::command_result> dice(const cash_in& betIn, int number);
     dpp::task<dpp::command_result> doubleGamble();
     dpp::task<dpp::command_result> pot(const std::optional<cash_in>& betIn);

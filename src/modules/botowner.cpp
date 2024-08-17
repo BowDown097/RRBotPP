@@ -16,9 +16,9 @@ BotOwner::BotOwner() : dpp::module<BotOwner>("BotOwner", "Commands for bot owner
     register_command(&BotOwner::unblacklist, "unblacklist", "Unban a user from using the bot." "$unblacklist [user]");
 }
 
-dpp::command_result BotOwner::blacklist(const dpp::user_in& userIn)
+dpp::command_result BotOwner::blacklist(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -57,9 +57,9 @@ dpp::command_result BotOwner::enableCommandGlobal(const std::string& cmd)
     return dpp::command_result::from_success(Responses::SetCommandEnabled);
 }
 
-dpp::command_result BotOwner::resetUser(const dpp::user_in& userIn)
+dpp::command_result BotOwner::resetUser(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -67,9 +67,9 @@ dpp::command_result BotOwner::resetUser(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::ResetUser, user->get_mention()));
 }
 
-dpp::command_result BotOwner::unblacklist(const dpp::user_in& userIn)
+dpp::command_result BotOwner::unblacklist(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 

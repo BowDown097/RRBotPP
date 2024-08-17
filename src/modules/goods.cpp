@@ -246,10 +246,10 @@ inline void createItemsPage(std::vector<dpp::interaction_page>& pages, std::stri
         .set_description(dpp::utility::join(range, '\n')));
 }
 
-dpp::command_result Goods::items(const std::optional<dpp::user_in>& userIn)
+dpp::command_result Goods::items(const std::optional<RR::guild_member_in>& memberOpt)
 {
     DbUser dbUser = MongoManager::fetchUser(
-        userIn ? userIn->top_result()->id : context->msg.author.id,
+        memberOpt ? memberOpt->top_result().user_id : context->msg.author.id,
         context->msg.guild_id);
 
     auto applicableCollectibles = dbUser.collectibles
@@ -278,8 +278,8 @@ dpp::command_result Goods::items(const std::optional<dpp::user_in>& userIn)
 
     if (pages.empty())
     {
-        return dpp::command_result::from_error(userIn
-            ? std::format(Responses::UserHasNothing, userIn->top_result()->get_mention())
+        return dpp::command_result::from_error(memberOpt
+            ? std::format(Responses::UserHasNothing, memberOpt->top_result().get_mention())
             : Responses::YouHaveNothing);
     }
 

@@ -28,7 +28,7 @@ Crime::Crime() : dpp::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways 
     register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
 }
 
-dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn,
+dpp::task<dpp::command_result> Crime::bully(const RR::guild_member_in& memberIn,
                                             const dpp::remainder<std::string>& nickname)
 {
     if (nickname->size() > 32)
@@ -36,8 +36,6 @@ dpp::task<dpp::command_result> Crime::bully(const dpp::guild_member_in& memberIn
 
     dpp::guild_member member = memberIn.top_result();
     dpp::user* user = member.get_user();
-    if (!user)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -69,13 +67,13 @@ dpp::task<dpp::command_result> Crime::deal()
                                     user.dealCooldown = Constants::DealCooldown, true);
 }
 
-dpp::task<dpp::command_result> Crime::hack(const dpp::user_in& userIn, const std::string& crypto, long double amount)
+dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, const std::string& crypto, long double amount)
 {
     amount = RR::utility::round(amount, 4);
     if (amount < Constants::InvestmentMinAmount)
         co_return dpp::command_result::from_error(std::format(Responses::HackTooSmall, Constants::InvestmentMinAmount));
 
-    const dpp::user* user = userIn.top_result();
+    const dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id || user->is_bot())
         co_return dpp::command_result::from_error(Responses::BadIdea);
 
@@ -151,12 +149,10 @@ dpp::task<dpp::command_result> Crime::loot()
                                     user.lootCooldown = Constants::LootCooldown, true);
 }
 
-dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
+dpp::task<dpp::command_result> Crime::rape(const RR::guild_member_in& memberIn)
 {
-    dpp::guild_member member = memberIn.top_result();
+    const dpp::guild_member& member = memberIn.top_result();
     dpp::user* user = member.get_user();
-    if (!user)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -204,16 +200,14 @@ dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member_in& memberIn)
     co_return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member_in& memberIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Crime::rob(const RR::guild_member_in& memberIn, const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
         co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::cash2str(Constants::RobMinCash)));
 
-    dpp::guild_member member = memberIn.top_result();
+    const dpp::guild_member& member = memberIn.top_result();
     dpp::user* user = member.get_user();
-    if (!user)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())

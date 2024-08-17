@@ -31,9 +31,9 @@ Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test yo
 // for a committed retard to essentially lock someone out of the bot.
 // $slots is also probably the heaviest command in the entire bot,
 // which is the other reason why i introduced the restriction.
-dpp::task<dpp::command_result> Gambling::bet(const dpp::guild_member_in& memberIn, const cash_in& betIn, int number)
+dpp::task<dpp::command_result> Gambling::bet(const RR::guild_member_in& memberIn, const cash_in& betIn, int number)
 {
-    dpp::guild_member targetMember = memberIn.top_result();
+    const dpp::guild_member& targetMember = memberIn.top_result();
     if (targetMember.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
 

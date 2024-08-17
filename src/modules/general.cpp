@@ -22,9 +22,9 @@ General::General() : dpp::module<General>("General", "The name really explains i
     register_command(&General::userInfo, std::initializer_list<std::string> { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
 }
 
-dpp::command_result General::achievements(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result General::achievements(const std::optional<RR::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
@@ -180,9 +180,9 @@ dpp::task<dpp::command_result> General::serverInfo()
     co_return dpp::command_result::from_success();
 }
 
-dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
+dpp::command_result General::stats(const std::optional<RR::guild_member_in>& memberOpt)
 {
-    const dpp::user* user = userOpt ? userOpt->top_result() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
@@ -205,7 +205,7 @@ dpp::command_result General::stats(const std::optional<dpp::user_in>& userOpt)
     return dpp::command_result::from_success();
 }
 
-dpp::command_result General::userInfo(const std::optional<dpp::guild_member_in>& memberOpt)
+dpp::command_result General::userInfo(const std::optional<RR::guild_member_in>& memberOpt)
 {
     std::optional<dpp::guild_member> member = memberOpt
         ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);

@@ -170,6 +170,7 @@ constexpr const char* BadArgument = "Couldn't understand your input of \"{}\".\n
                                     "This error info might help: ``{}``\n"
                                     "Or maybe the command usage will: ``{}``";
 constexpr const char* ErrorOccurred = "An error occurred while running the command. You should probably report this! Here's some info: ``{}``";
+constexpr const char* GuildMemberAmbiguous = "Your user input is ambiguous. Run the command again, but this time with the user being one of these {} results:\n{}";
 // ********************
 //         FUN
 // ********************

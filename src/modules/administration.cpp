@@ -48,9 +48,9 @@ dpp::command_result Administration::drawPot()
     return dpp::command_result::from_success(Responses::PotDrawing);
 }
 
-dpp::command_result Administration::giveItem(const dpp::user_in& userIn, const dpp::remainder<std::string>& itemIn)
+dpp::command_result Administration::giveItem(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& itemIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -97,9 +97,9 @@ dpp::command_result Administration::giveItem(const dpp::user_in& userIn, const d
     return dpp::command_result::from_error(Responses::NotAnItem);
 }
 
-dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name)
+dpp::command_result Administration::removeAchievement(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& name)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -111,9 +111,9 @@ dpp::command_result Administration::removeAchievement(const dpp::user_in& userIn
     return dpp::command_result::from_success(std::format(Responses::RemovedAchievement, user->get_mention()));
 }
 
-dpp::command_result Administration::removeCrates(const dpp::user_in& userIn)
+dpp::command_result Administration::removeCrates(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -124,9 +124,9 @@ dpp::command_result Administration::removeCrates(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::RemovedCrates, user->get_mention()));
 }
 
-dpp::command_result Administration::removeStat(const dpp::user_in& userIn, const dpp::remainder<std::string>& stat)
+dpp::command_result Administration::removeStat(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& stat)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -138,9 +138,9 @@ dpp::command_result Administration::removeStat(const dpp::user_in& userIn, const
     return dpp::command_result::from_success(std::format(Responses::RemovedStat, user->get_mention()));
 }
 
-dpp::command_result Administration::resetCooldowns(const dpp::user_in& userIn)
+dpp::command_result Administration::resetCooldowns(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -155,16 +155,14 @@ dpp::command_result Administration::resetCooldowns(const dpp::user_in& userIn)
     return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, user->get_mention()));
 }
 
-dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_in& memberIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Administration::setCash(const RR::guild_member_in& memberIn, const cash_in& amountIn)
 {
     long double amount = amountIn.top_result();
     if (amount < 0)
         co_return dpp::command_result::from_error(Responses::NegativeCash);
 
-    dpp::guild_member member = memberIn.top_result();
+    const dpp::guild_member& member = memberIn.top_result();
     dpp::user* user = member.get_user();
-    if (!user)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -176,10 +174,9 @@ dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member_i
         user->get_mention(), RR::utility::cash2str(amount)));
 }
 
-dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const std::string& crypto, long double amount)
+dpp::command_result Administration::setCrypto(const RR::guild_member_in& memberIn, const std::string& crypto, long double amount)
 {
-    amount = RR::utility::round(amount, 4);
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -188,19 +185,19 @@ dpp::command_result Administration::setCrypto(const dpp::user_in& userIn, const 
         return dpp::command_result::from_error(Responses::InvalidCurrency);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
-    *dbUser.getCrypto(abbrev) = amount;
+    *dbUser.getCrypto(abbrev) = amount = RR::utility::round(amount, 4);
 
     MongoManager::updateUser(dbUser);
     return dpp::command_result::from_success(std::format(Responses::SetCrypto,
         user->get_mention(), RR::utility::toUpper(crypto), RR::utility::roundAsStr(amount, 4)));
 }
 
-dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int level)
+dpp::command_result Administration::setPrestige(const RR::guild_member_in& memberIn, int level)
 {
     if (level < 0 || level > Constants::MaxPrestige)
         return dpp::command_result::from_error(Responses::InvalidPrestigeLevel);
 
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -211,10 +208,10 @@ dpp::command_result Administration::setPrestige(const dpp::user_in& userIn, int 
     return dpp::command_result::from_success(std::format(Responses::SetPrestige, user->get_mention(), level));
 }
 
-dpp::command_result Administration::setStat(const dpp::user_in& userIn, const std::string& stat,
+dpp::command_result Administration::setStat(const RR::guild_member_in& memberIn, const std::string& stat,
                                             const dpp::remainder<std::string>& value)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
@@ -225,9 +222,9 @@ dpp::command_result Administration::setStat(const dpp::user_in& userIn, const st
     return dpp::command_result::from_success(std::format(Responses::SetStat, user->get_mention(), stat, *value));
 }
 
-dpp::command_result Administration::unlockAchievement(const dpp::user_in& userIn, const dpp::remainder<std::string>& name)
+dpp::command_result Administration::unlockAchievement(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& name)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 

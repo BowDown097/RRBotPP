@@ -48,6 +48,7 @@ add_executable(RRBot
     src/modules/moderation.h src/modules/moderation.cpp
     src/paginators/leaderboardpaginator.h src/paginators/leaderboardpaginator.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
+    src/readers/rrguildmembertypereader.h src/readers/rrguildmembertypereader.cpp
     src/systems/filtersystem.h src/systems/filtersystem.cpp
     src/systems/itemsystem.h src/systems/itemsystem.cpp
     src/systems/monitorsystem.h src/systems/monitorsystem.cpp

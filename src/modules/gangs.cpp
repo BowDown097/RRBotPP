@@ -186,9 +186,9 @@ dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>
     return dpp::command_result::from_success();
 }
 
-dpp::command_result Gangs::invite(const dpp::user_in& userIn)
+dpp::command_result Gangs::invite(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -240,9 +240,9 @@ dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
     return dpp::command_result::from_success(std::format(Responses::JoinedGang, gang.name));
 }
 
-dpp::command_result Gangs::kickGangMember(const dpp::user_in& userIn)
+dpp::command_result Gangs::kickGangMember(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -327,9 +327,9 @@ dpp::task<dpp::command_result> Gangs::renameGang(const dpp::remainder<std::strin
     co_return dpp::command_result::from_success(std::format(Responses::RenamedGang, *name));
 }
 
-dpp::command_result Gangs::setPosition(const dpp::user_in& userIn, const dpp::remainder<std::string>& position)
+dpp::command_result Gangs::setPosition(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& position)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())
@@ -385,9 +385,9 @@ dpp::command_result Gangs::togglePublic()
     return dpp::command_result::from_success(std::format(Responses::GangPublicityToggled, gang.isPublic ? "now"sv : "no longer"sv));
 }
 
-dpp::command_result Gangs::transferLeadership(const dpp::user_in& userIn)
+dpp::command_result Gangs::transferLeadership(const RR::guild_member_in& memberIn)
 {
-    dpp::user* user = userIn.top_result();
+    dpp::user* user = memberIn.top_result().get_user();
     if (user->id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
     if (user->is_bot())

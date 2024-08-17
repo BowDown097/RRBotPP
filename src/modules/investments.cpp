@@ -61,7 +61,7 @@ dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, co
         RR::utility::roundAsStr(cryptoAmount, 4), abbrevUpper, RR::utility::cash2str(cashAmount)));
 }
 
-dpp::task<dpp::command_result> Investments::investments(const std::optional<dpp::guild_member_in>& memberOpt)
+dpp::task<dpp::command_result> Investments::investments(const std::optional<RR::guild_member_in>& memberOpt)
 {
     std::optional<dpp::guild_member> member = memberOpt
         ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);

@@ -41,8 +41,7 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
             co_return;
 
         std::optional<dpp::command_error> error = result.error();
-        using CE = dpp::command_error;
-        if (result.success() || error == CE::unsuccessful || error == CE::unmet_precondition)
+        if (result.success() || error == dpp::command_error::unsuccessful || error == dpp::command_error::unmet_precondition)
             event.reply(result.message());
     }
     catch (const dpp::bad_argument_count& ex)
@@ -54,6 +53,12 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
     }
     catch (const dpp::bad_command_argument& ex)
     {
+        if (ex.error() == dpp::command_error::multiple_matches)
+        {
+            event.reply(ex.message());
+            co_return;
+        }
+
         std::vector<std::reference_wrapper<const dpp::command_info>> cmds = modules->search_command(ex.command());
         event.reply(!cmds.empty()
             ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front().get().remarks())
