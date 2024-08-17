@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include "entities/achievement.h"
 #include "entities/goods/ammo.h"
 #include "entities/goods/crate.h"
@@ -60,6 +59,7 @@ namespace Constants
     constexpr long ShootCooldown = 14400;
     constexpr long SlaveryCooldown = 3600;
     constexpr long WhoreCooldown = 3600;
+
     // ********************
     //        CRIME
     // ********************
@@ -113,6 +113,10 @@ namespace Constants
     constexpr int ChillMaxSeconds = 21600;
     constexpr int ChillMinSeconds = 10;
     // ********************
+    //      PRESTIGE
+    // ********************
+    constexpr int MaxPrestige = 10;
+    // ********************
     //        TASKS
     // ********************
     constexpr std::array<std::pair<const char*, long double>, 3> Fish = {{
@@ -131,6 +135,7 @@ namespace Constants
     constexpr int GenericTaskDiamondMin = 161;
     constexpr int GenericTaskNetheriteMax = 257;
     constexpr int GenericTaskNetheriteMin = 209;
+
     // ********************
     //        ITEMS
     // ********************
@@ -202,10 +207,6 @@ namespace Constants
         Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold Crate", "Diamond Crate" }),
         Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond Crate" })
     };
-    // ********************
-    //      PRESTIGE
-    // ********************
-    constexpr int MaxPrestige = 10;
     // ********************
     //      SCAVENGE
     // ********************
