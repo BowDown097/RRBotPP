@@ -189,11 +189,12 @@ dpp::command_result Economy::profile(const std::optional<RR::guild_member_in>& m
 dpp::command_result Economy::ranks()
 {
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);
+    DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
 
     std::string description;
     for (const auto& [level, cost] : ranks.costs)
         if (dpp::role* role = dpp::find_role(ranks.ids[level]))
-            description += std::format("**{}**: {}", role->name, RR::utility::cash2str(cost));
+            description += std::format("**{}**: {}", role->name, RR::utility::cash2str(cost * (1 + 0.5L * user.prestige)));
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)

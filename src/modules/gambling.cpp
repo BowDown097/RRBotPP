@@ -18,7 +18,7 @@ Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test yo
 {
     register_command(&Gambling::bet, "bet", "Pick a number between 1 and 100 and place a bet on it against another user. The user and I will also pick a number between 1 and 100. Whoever is closest to the number I pick wins!", "$bet [user] [bet] [number]");
     register_command(&Gambling::roll55, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");
-    register_command(&Gambling::roll6969, "6969", "Roll 69.69, get 6969x what you put in.", "$6969 bet");
+    register_command(&Gambling::roll6969, "6969", "Roll 69.69, get 6969x what you put in.", "$6969 [bet]");
     register_command(&Gambling::roll75, "75+", "Roll 75 or higher, get 3.6x what you put in.", "$75+ [bet]");
     register_command(&Gambling::roll99, "99+", "Roll 99 or higher, get 90x what you put in.",  "$99+ [bet]");
     register_command(&Gambling::dice, "dice", "Play a simple game of Chuck-a-luck, AKA Birdcage. If you don't know how it works: The player bets on a number. Three dice are rolled. The number appearing once gives a 1:1 payout, twice a 2:1, and thrice a 10:1.", "$dice [bet] [number]");
