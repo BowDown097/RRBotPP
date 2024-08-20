@@ -21,6 +21,7 @@ constexpr const char* GetUserFailed = "Failed to get user info.";
 constexpr const char* InvalidCurrency = "That is not a currently accepted currency!";
 constexpr const char* NonexistentCommand = "You have specified a nonexistent command!";
 constexpr const char* NonexistentModule = "You have specified a nonexistent module!";
+constexpr const char* NoRanksConfigured = "No ranks are configured.";
 constexpr const char* NotEnoughOfThing = "You don't have that much {}!";
 constexpr const char* UserAlreadyHasThing = "{} already has a(n) {}!";
 constexpr const char* UserHasNotEnoughOfThing = "{} doesn't have that much {}!";
@@ -391,4 +392,12 @@ constexpr const char* UnbanFailed = "There is no banned user with that ID!";
 constexpr const char* UnmutedUser = "Unmuted {}.";
 constexpr const char* UserAlreadyMuted = "{} is already muted!";
 constexpr const char* UserNotMuted = "{} is not muted!";
+// ********************
+//       PRESTIGE
+// ********************
+constexpr const char* MaxPrestigeReached = "You have already reached the maximum prestige of {}.";
+constexpr const char* NoPrestige = "You haven't prestiged yet!";
+constexpr const char* PrestigeCancelled = "Prestige cancelled.";
+constexpr const char* PrestigePrompt = "Are you SURE you want to prestige? If you don't know already,\nyou will **GET**:\n- +1.2x cash multiplier\n- +1.5x rank costs\n- A shiny, cool new badge on $prestigeinfo\n\nand you will **LOSE**:\n- All money, including in crypto investments\n- All cooldowns\n- All items\n**Respond with \"YES\" if you are sure that you want to prestige. You have {} seconds.**";
+constexpr const char* PrestigeSuccess = "Congratulations, homie! You're now Prestige {}. Check $prestigeinfo for your new prestige perks. Hope you said your goodbyes to all of your stuff, cause it's gone!";
 }

@@ -65,12 +65,7 @@ struct DbUser : DbObject
     std::map<std::string, int64_t, std::less<>> perks; // name, duration
     std::unordered_map<std::string, std::string> stats; // name, value
     std::set<std::string, std::less<>> tools;
-    std::unordered_map<std::string, int, string_hash, std::equal_to<>> usedConsumables = { // name, uses
-        { "Black Hat", 0 },
-        { "Cocaine", 0 },
-        { "Ski Mask", 0 },
-        { "Viagra", 0 }
-    };
+    std::unordered_map<std::string, int, string_hash, std::equal_to<>> usedConsumables;
     std::set<std::string, std::less<>> weapons;
 
     DbUser() = default;
@@ -81,6 +76,7 @@ struct DbUser : DbObject
     long double* getCrypto(std::string_view abbrev);
 
     std::unordered_map<std::string, int64_t&> constructCooldownMap();
+    std::unordered_map<std::string, int64_t&> constructEndTimeMap();
     void mergeStat(const std::string& stat, const std::string& value);
     void mergeStats(const std::unordered_map<std::string, std::string>& statsToMerge);
     void modCooldown(int64_t& duration, const dpp::guild_member& member, bool speedDemon = true,
@@ -91,5 +87,5 @@ struct DbUser : DbObject
     dpp::task<void> setCashWithoutAdjustment(const dpp::guild_member& member, long double amount,
                                              dpp::cluster* cluster, const dpp::message_create_t* context = nullptr,
                                              const std::string& message = "");
-    void unlockAchievement(const std::string& name, const dpp::message_create_t* context, const dpp::user* user = nullptr);
+    void unlockAchievement(std::string_view name, const dpp::message_create_t* context, const dpp::user* user = nullptr);
 };

@@ -116,10 +116,23 @@ namespace Constants
     //      PRESTIGE
     // ********************
     constexpr int MaxPrestige = 10;
+    constexpr std::array PrestigeImages = {
+        "https://static.wikia.nocookie.net/callofduty/images/e/e8/Prestige_1_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219030716",
+        "https://static.wikia.nocookie.net/callofduty/images/a/a4/Prestige_2_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219031107",
+        "https://static.wikia.nocookie.net/callofduty/images/b/b3/Prestige_3_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219031611",
+        "https://static.wikia.nocookie.net/callofduty/images/2/2f/Prestige_4_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219032157",
+        "https://static.wikia.nocookie.net/callofduty/images/c/c5/Prestige_5_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219054424",
+        "https://static.wikia.nocookie.net/callofduty/images/6/6c/Prestige_6_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219060041",
+        "https://static.wikia.nocookie.net/callofduty/images/0/00/Prestige_7_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219075022",
+        "https://static.wikia.nocookie.net/callofduty/images/d/d8/Prestige_8_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219075347",
+        "https://static.wikia.nocookie.net/callofduty/images/8/83/Prestige_9_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219075718",
+        "https://static.wikia.nocookie.net/callofduty/images/3/37/Prestige_10_emblem_MW2.png/revision/latest/scale-to-width-down/64?cb=20121219075719"
+    };
+    constexpr long PrestigeTimeout = 20;
     // ********************
     //        TASKS
     // ********************
-    constexpr std::array<std::pair<const char*, long double>, 3> Fish = {{
+    constexpr std::array<std::pair<std::string_view, long double>, 3> Fish = {{
         { "carp", 24 },
         { "trout", 27 },
         { "goldfish", 30 }

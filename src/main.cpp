@@ -15,6 +15,7 @@
 #include "modules/goods.h"
 #include "modules/investments.h"
 #include "modules/moderation.h"
+#include "modules/prestige.h"
 #include "systems/filtersystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
@@ -100,6 +101,7 @@ int main()
     modules->register_modules<Gangs, General>();
     modules->register_module<Goods>(interactive.get());
     modules->register_modules<Investments, Moderation>();
+    modules->register_module<Prestige>(interactive.get());
 
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);

@@ -183,6 +183,16 @@ std::unordered_map<std::string, int64_t&> DbUser::constructCooldownMap()
     };
 }
 
+std::unordered_map<std::string, int64_t&> DbUser::constructEndTimeMap()
+{
+    return {
+        { "Black Hat", blackHatEndTime },
+        { "Cocaine", cocaineEndTime },
+        { "Ski Mask", skiMaskEndTime },
+        { "Viagra", viagraEndTime }
+    };
+}
+
 long double* DbUser::getCrypto(std::string_view abbrev)
 {
     if (abbrev == "btc")
@@ -297,12 +307,12 @@ dpp::task<void> DbUser::setCashWithoutAdjustment(const dpp::guild_member& member
     }
 }
 
-void DbUser::unlockAchievement(const std::string& name, const dpp::message_create_t* context, const dpp::user* user)
+void DbUser::unlockAchievement(std::string_view name, const dpp::message_create_t* context, const dpp::user* user)
 {
-    if (std::ranges::any_of(this->achievements, [&name](const auto& p) { return dpp::utility::iequals(p.first, name); }))
+    if (std::ranges::any_of(this->achievements, [name](const auto& p) { return dpp::utility::iequals(p.first, name); }))
         return;
 
-    const Achievement* ach = std::ranges::find_if(Constants::DefaultAchievements, [&name](const Achievement& a) {
+    const Achievement* ach = std::ranges::find_if(Constants::DefaultAchievements, [name](const Achievement& a) {
         return dpp::utility::iequals(a.name(), name);
     });
 
