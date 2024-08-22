@@ -16,6 +16,8 @@
 #include "modules/investments.h"
 #include "modules/moderation.h"
 #include "modules/prestige.h"
+#include "readers/cashtypereader.h"
+#include "readers/rrguildmembertypereader.h"
 #include "systems/filtersystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
@@ -93,6 +95,9 @@ int main()
 
     dpp::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
     modules = std::make_unique<dpp::module_service>(cluster.get(), config);
+    modules->register_type_reader<RR::cash_in>();
+    modules->register_type_reader<RR::guild_member_in>();
+
     modules->register_modules<Administration, BotOwner, Config>();
     modules->register_module<Crime>(interactive.get());
     modules->register_module<Economy>(interactive.get());

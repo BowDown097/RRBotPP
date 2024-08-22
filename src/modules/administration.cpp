@@ -29,9 +29,8 @@ Administration::Administration() : dpp::module<Administration>("Administration",
     register_command(&Administration::unlockAchievement, "unlockachievement", "Unlock an achievement for a user.", "$unlockachievement [user] [achievement]");
 }
 
-dpp::task<dpp::command_result> Administration::clearTextChannel(const dpp::channel_in& channelIn)
+dpp::task<dpp::command_result> Administration::clearTextChannel(dpp::channel* channel)
 {
-    dpp::channel* channel = channelIn.top_result();
     co_await cluster->co_channel_delete(channel->id);
     co_await cluster->co_channel_create(*channel);
     co_return dpp::command_result::from_success();
@@ -48,10 +47,9 @@ dpp::command_result Administration::drawPot()
     return dpp::command_result::from_success(Responses::PotDrawing);
 }
 
-dpp::command_result Administration::giveItem(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& itemIn)
+dpp::command_result Administration::giveItem(const dpp::guild_member& member, const dpp::remainder<std::string>& itemIn)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     if (const Item* item = ItemSystem::getItem(*itemIn))
@@ -77,74 +75,70 @@ dpp::command_result Administration::giveItem(const RR::guild_member_in& memberIn
         else if (const Perk* perk = dynamic_cast<const Perk*>(item))
         {
             if (auto res = dbUser.perks.emplace(perk->name(), perk->duration()); !res.second)
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), perk->name()));
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, member.get_mention(), perk->name()));
         }
         else if (dynamic_cast<const Tool*>(item))
         {
             if (auto res = dbUser.tools.emplace(item->name()); !res.second)
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), item->name()));
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, member.get_mention(), item->name()));
         }
         else if (dynamic_cast<const Weapon*>(item))
         {
             if (auto res = dbUser.weapons.emplace(item->name()); !res.second)
-                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, user->get_mention(), item->name()));
+                return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasThing, member.get_mention(), item->name()));
         }
 
         MongoManager::updateUser(dbUser);
-        return dpp::command_result::from_success(std::format(Responses::GaveUserItem, user->get_mention(), item->name()));
+        return dpp::command_result::from_success(std::format(Responses::GaveUserItem, member.get_mention(), item->name()));
     }
 
     return dpp::command_result::from_error(Responses::NotAnItem);
 }
 
-dpp::command_result Administration::removeAchievement(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& name)
+dpp::command_result Administration::removeAchievement(const dpp::guild_member& member, const dpp::remainder<std::string>& name)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (!std::erase_if(dbUser.achievements, [&name](auto& p) { return dpp::utility::iequals(p.first, *name); }))
-        return dpp::command_result::from_error(std::format(Responses::MissingAchievement, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::MissingAchievement, member.get_mention()));
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::RemovedAchievement, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedAchievement, member.get_mention()));
 }
 
-dpp::command_result Administration::removeCrates(const RR::guild_member_in& memberIn)
+dpp::command_result Administration::removeCrates(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     dbUser.crates.clear();
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::RemovedCrates, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedCrates, member.get_mention()));
 }
 
-dpp::command_result Administration::removeStat(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& stat)
+dpp::command_result Administration::removeStat(const dpp::guild_member& member, const dpp::remainder<std::string>& stat)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (!std::erase_if(dbUser.stats, [&stat](auto& p) { return dpp::utility::iequals(p.first, *stat); }))
-        return dpp::command_result::from_error(std::format(Responses::MissingStat, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::MissingStat, member.get_mention()));
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::RemovedStat, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::RemovedStat, member.get_mention()));
 }
 
-dpp::command_result Administration::resetCooldowns(const RR::guild_member_in& memberIn)
+dpp::command_result Administration::resetCooldowns(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     dbUser.bullyCooldown = dbUser.chopCooldown = dbUser.cocaineRecoveryTime = dbUser.dailyCooldown =
     dbUser.dealCooldown = dbUser.digCooldown = dbUser.farmCooldown = dbUser.fishCooldown =
     dbUser.hackCooldown = dbUser.huntCooldown = dbUser.lootCooldown = dbUser.mineCooldown =
@@ -152,83 +146,74 @@ dpp::command_result Administration::resetCooldowns(const RR::guild_member_in& me
     dbUser.scavengeCooldown = dbUser.shootCooldown = dbUser.slaveryCooldown = dbUser.whoreCooldown = 0;
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::ResetCooldowns, member.get_mention()));
 }
 
-dpp::task<dpp::command_result> Administration::setCash(const RR::guild_member_in& memberIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Administration::setCash(const dpp::guild_member& member, long double amount)
 {
-    long double amount = amountIn.top_result();
     if (amount < 0)
         co_return dpp::command_result::from_error(Responses::NegativeCash);
-
-    const dpp::guild_member& member = memberIn.top_result();
-    dpp::user* user = member.get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     co_await dbUser.setCashWithoutAdjustment(member, amount, cluster);
 
     MongoManager::updateUser(dbUser);
     co_return dpp::command_result::from_success(std::format(Responses::SetCash,
-        user->get_mention(), RR::utility::cash2str(amount)));
+        member.get_mention(), RR::utility::cash2str(amount)));
 }
 
-dpp::command_result Administration::setCrypto(const RR::guild_member_in& memberIn, const std::string& crypto, long double amount)
+dpp::command_result Administration::setCrypto(const dpp::guild_member& member, const std::string& crypto, long double amount)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     std::string abbrev = Investments::resolveAbbreviation(crypto);
     if (abbrev.empty())
         return dpp::command_result::from_error(Responses::InvalidCurrency);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     *dbUser.getCrypto(abbrev) = amount = RR::utility::round(amount, 4);
 
     MongoManager::updateUser(dbUser);
     return dpp::command_result::from_success(std::format(Responses::SetCrypto,
-        user->get_mention(), RR::utility::toUpper(crypto), RR::utility::roundAsStr(amount, 4)));
+        member.get_mention(), RR::utility::toUpper(crypto), RR::utility::roundAsStr(amount, 4)));
 }
 
-dpp::command_result Administration::setPrestige(const RR::guild_member_in& memberIn, int level)
+dpp::command_result Administration::setPrestige(const dpp::guild_member& member, int level)
 {
     if (level < 0 || level > Constants::MaxPrestige)
         return dpp::command_result::from_error(Responses::InvalidPrestigeLevel);
-
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     dbUser.prestige = level;
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::SetPrestige, user->get_mention(), level));
+    return dpp::command_result::from_success(std::format(Responses::SetPrestige, member.get_mention(), level));
 }
 
-dpp::command_result Administration::setStat(const RR::guild_member_in& memberIn, const std::string& stat,
+dpp::command_result Administration::setStat(const dpp::guild_member& member, const std::string& stat,
                                             const dpp::remainder<std::string>& value)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     dbUser.stats[stat] = *value;
 
     MongoManager::updateUser(dbUser);
-    return dpp::command_result::from_success(std::format(Responses::SetStat, user->get_mention(), stat, *value));
+    return dpp::command_result::from_success(std::format(Responses::SetStat, member.get_mention(), stat, *value));
 }
 
-dpp::command_result Administration::unlockAchievement(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& name)
+dpp::command_result Administration::unlockAchievement(const dpp::guild_member& member, const dpp::remainder<std::string>& name)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     dbUser.unlockAchievement(*name, context);
 
     MongoManager::updateUser(dbUser);

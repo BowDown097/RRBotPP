@@ -1,6 +1,5 @@
 #pragma once
 #include "dpp-command-handler/modules/module.h"
-#include "readers/rrguildmembertypereader.h"
 
 class Consumable;
 class DbUser;
@@ -16,7 +15,7 @@ private:
     dpp::task<dpp::command_result> daily();
     dpp::task<dpp::command_result> discard(const dpp::remainder<std::string>& itemIn);
     dpp::command_result itemInfo(const dpp::remainder<std::string>& itemIn);
-    dpp::command_result items(const std::optional<RR::guild_member_in>& memberOpt);
+    dpp::command_result items(const std::optional<dpp::guild_member>& memberOpt);
     dpp::task<dpp::command_result> open(const dpp::remainder<std::string>& crateIn);
     dpp::command_result shop();
 

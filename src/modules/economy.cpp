@@ -26,9 +26,9 @@ Economy::Economy() : dpp::module<Economy>("Economy", "This is the hub for checki
     register_command(&Economy::sauce, std::initializer_list<std::string> { "sauce", "give", "transfer" }, "Sauce someone some cash.");
 }
 
-dpp::command_result Economy::balance(const std::optional<RR::guild_member_in>& memberOpt)
+dpp::command_result Economy::balance(const std::optional<dpp::guild_member>& memberOpt)
 {
-    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
@@ -46,9 +46,9 @@ dpp::command_result Economy::balance(const std::optional<RR::guild_member_in>& m
         : std::format(Responses::UserBalance, user->get_mention(), RR::utility::cash2str(dbUser.cash)));
 }
 
-dpp::command_result Economy::cooldowns(const std::optional<RR::guild_member_in>& memberOpt)
+dpp::command_result Economy::cooldowns(const std::optional<dpp::guild_member>& memberOpt)
 {
-    const dpp::user* user = memberOpt ? memberOpt->top_result().get_user() : &context->msg.author;
+    const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
@@ -95,23 +95,21 @@ dpp::task<dpp::command_result> Economy::leaderboard(const std::optional<std::str
     co_return dpp::command_result::from_success();
 }
 
-dpp::command_result Economy::profile(const std::optional<RR::guild_member_in>& memberOpt)
+dpp::command_result Economy::profile(std::optional<dpp::guild_member> memberOpt)
 {
-    std::optional<dpp::guild_member> member = memberOpt
-        ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!member)
+    if (!(memberOpt || (memberOpt = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id))))
         return dpp::command_result::from_error(Responses::GetUserFailed);
 
-    dpp::user* user = member->get_user();
+    dpp::user* user = memberOpt->get_user();
     if (!user)
         return dpp::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(memberOpt->user_id, context->msg.guild_id);
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
-        .set_author(RR::utility::asEmbedAuthor(member.value(), user))
+        .set_author(RR::utility::asEmbedAuthor(memberOpt.value(), user))
         .set_title("User Profile");
 
     std::string essentials = "**Cash**: " + RR::utility::cash2str(dbUser.cash);
@@ -164,10 +162,10 @@ dpp::command_result Economy::profile(const std::optional<RR::guild_member_in>& m
     }
 
     std::string counts = std::format("**Achievements**: {}", dbUser.achievements.size());
-    long cooldowns = std::ranges::count_if(dbUser.constructCooldownMap(), [](const std::pair<std::string, int64_t&>& p) {
+    long onCooldown = std::ranges::count_if(dbUser.constructCooldownMap(), [](const std::pair<std::string, int64_t&>& p) {
         return p.second - RR::utility::unixTimestamp() > 0;
     });
-    counts += std::format("\n**Commands On Cooldown**: {}", cooldowns);
+    counts += std::format("\n**Commands On Cooldown**: {}", onCooldown);
     embed.add_field("Counts", counts);
 
     std::string misc;
@@ -205,24 +203,20 @@ dpp::command_result Economy::ranks()
     return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Economy::sauce(const RR::guild_member_in& memberIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Economy::sauce(const dpp::guild_member& member, long double amount)
 {
-    long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "sauce", RR::utility::cash2str(Constants::TransactionMin)));
-
-    const dpp::guild_member& member = memberIn.top_result();
-    dpp::user* user = member.get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.cash < amount)
         co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (target.usingSlots)
         co_return dpp::command_result::from_error(Responses::UserIsGambling);
 
@@ -235,5 +229,5 @@ dpp::task<dpp::command_result> Economy::sauce(const RR::guild_member_in& memberI
 
     MongoManager::updateUser(author);
     MongoManager::updateUser(target);
-    co_return dpp::command_result::from_success(std::format(Responses::SaucedUser, user->get_mention(), RR::utility::cash2str(amount)));
+    co_return dpp::command_result::from_success(std::format(Responses::SaucedUser, member.get_mention(), RR::utility::cash2str(amount)));
 }

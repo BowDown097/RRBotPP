@@ -1,22 +1,20 @@
 #pragma once
 #include "dpp-command-handler/modules/module.h"
 #include "dpp-interactive/interactiveresult.h"
-#include "readers/cashtypereader.h"
-#include "readers/rrguildmembertypereader.h"
 
-namespace dpp { class message; }
+namespace dpp { class guild_member; class message; }
 
 class Crime : public dpp::module<Crime>
 {
 public:
     Crime();
 private:
-    dpp::task<dpp::command_result> bully(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& nickname);
+    dpp::task<dpp::command_result> bully(dpp::guild_member member, const dpp::remainder<std::string>& nickname);
     dpp::task<dpp::command_result> deal();
-    dpp::task<dpp::command_result> hack(const RR::guild_member_in& memberIn, const std::string& crypto, long double amount);
+    dpp::task<dpp::command_result> hack(const dpp::guild_member& member, const std::string& crypto, long double amount);
     dpp::task<dpp::command_result> loot();
-    dpp::task<dpp::command_result> rape(const RR::guild_member_in& memberIn);
-    dpp::task<dpp::command_result> rob(const RR::guild_member_in& memberIn, const cash_in& amountIn);
+    dpp::task<dpp::command_result> rape(const dpp::guild_member& member);
+    dpp::task<dpp::command_result> rob(const dpp::guild_member& member, long double amount);
     dpp::task<dpp::command_result> scavenge();
     dpp::task<dpp::command_result> slavery();
     dpp::task<dpp::command_result> whore();

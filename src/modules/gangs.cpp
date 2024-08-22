@@ -90,9 +90,8 @@ dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::strin
         *name, RR::utility::cash2str(Constants::GangCreationCost)));
 }
 
-dpp::task<dpp::command_result> Gangs::deposit(const cash_in& amountIn)
+dpp::task<dpp::command_result> Gangs::deposit(long double amount)
 {
-    long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::cash2str(amount)));
 
@@ -186,21 +185,20 @@ dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>
     return dpp::command_result::from_success();
 }
 
-dpp::command_result Gangs::invite(const RR::guild_member_in& memberIn)
+dpp::command_result Gangs::invite(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
         return dpp::command_result::from_error(Responses::NotInGang);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (!target.gang.empty())
-        return dpp::command_result::from_error(std::format(Responses::UserAlreadyInGang, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::UserAlreadyInGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.isPublic)
@@ -213,7 +211,7 @@ dpp::command_result Gangs::invite(const RR::guild_member_in& memberIn)
     target.pendingGangInvites.insert(gang.name);
     MongoManager::updateUser(target);
 
-    return dpp::command_result::from_success(std::format(Responses::InvitedUserToGang, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::InvitedUserToGang, member.get_mention()));
 }
 
 dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
@@ -240,35 +238,34 @@ dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
     return dpp::command_result::from_success(std::format(Responses::JoinedGang, gang.name));
 }
 
-dpp::command_result Gangs::kickGangMember(const RR::guild_member_in& memberIn)
+dpp::command_result Gangs::kickGangMember(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
         return dpp::command_result::from_error(Responses::NotInGang);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (author.gang != target.gang)
-        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.members[context->msg.author.id] > 1)
         return dpp::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
-    if (gang.members[context->msg.author.id] > gang.members[user->id])
-        return dpp::command_result::from_error(std::format(Responses::UserHasHigherGangPosition, user->get_mention()));
+    if (gang.members[context->msg.author.id] > gang.members[member.user_id])
+        return dpp::command_result::from_error(std::format(Responses::UserHasHigherGangPosition, member.get_mention()));
 
-    gang.members.erase(user->id);
+    gang.members.erase(member.user_id);
     target.gang.clear();
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(target);
 
-    return dpp::command_result::from_success(std::format(Responses::KickedUserFromGang, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::KickedUserFromGang, member.get_mention()));
 }
 
 dpp::command_result Gangs::leaveGang()
@@ -327,12 +324,11 @@ dpp::task<dpp::command_result> Gangs::renameGang(const dpp::remainder<std::strin
     co_return dpp::command_result::from_success(std::format(Responses::RenamedGang, *name));
 }
 
-dpp::command_result Gangs::setPosition(const RR::guild_member_in& memberIn, const dpp::remainder<std::string>& position)
+dpp::command_result Gangs::setPosition(const dpp::guild_member& member, const dpp::remainder<std::string>& position)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     auto posMatch = [&position](std::string_view p) { return dpp::utility::iequals(*position, p); };
@@ -345,22 +341,22 @@ dpp::command_result Gangs::setPosition(const RR::guild_member_in& memberIn, cons
         if (author.gang.empty())
             return dpp::command_result::from_error(Responses::NotInGang);
 
-        DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+        DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
         if (author.gang != target.gang)
-            return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, user->get_mention()));
+            return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
         DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
         if (gang.leader != context->msg.author.id)
             return dpp::command_result::from_error(Responses::NotGangLeader);
 
         long posDistance = std::distance(Constants::GangPositions.begin(), it);
-        if (gang.members[user->id] == posDistance)
-            return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasPosition, user->get_mention(), *it));
+        if (gang.members[member.user_id] == posDistance)
+            return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasPosition, member.get_mention(), *it));
 
-        gang.members[user->id] = posDistance;
+        gang.members[member.user_id] = posDistance;
         MongoManager::updateGang(gang);
 
-        return dpp::command_result::from_success(std::format(Responses::ChangedUserPosition, user->get_mention(), *it));
+        return dpp::command_result::from_success(std::format(Responses::ChangedUserPosition, member.get_mention(), *it));
     }
     else
     {
@@ -385,32 +381,31 @@ dpp::command_result Gangs::togglePublic()
     return dpp::command_result::from_success(std::format(Responses::GangPublicityToggled, gang.isPublic ? "now"sv : "no longer"sv));
 }
 
-dpp::command_result Gangs::transferLeadership(const RR::guild_member_in& memberIn)
+dpp::command_result Gangs::transferLeadership(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
         return dpp::command_result::from_error(Responses::NotInGang);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (author.gang != target.gang)
-        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, user->get_mention()));
+        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.leader != context->msg.author.id)
         return dpp::command_result::from_error(Responses::NotGangLeader);
 
-    gang.leader = user->id;
+    gang.leader = member.user_id;
     gang.members[context->msg.author.id] = Constants::GangPositions.size() - 1;
-    gang.members[user->id] = 0;
+    gang.members[member.user_id] = 0;
 
     MongoManager::updateGang(gang);
-    return dpp::command_result::from_error(std::format(Responses::TransferredLeadership, user->get_mention()));
+    return dpp::command_result::from_error(std::format(Responses::TransferredLeadership, member.get_mention()));
 }
 
 dpp::command_result Gangs::vaultBalance()
@@ -428,9 +423,8 @@ dpp::command_result Gangs::vaultBalance()
     return dpp::command_result::from_success(std::format(Responses::GangVaultBalance, RR::utility::cash2str(gang.vaultBalance)));
 }
 
-dpp::task<dpp::command_result> Gangs::withdrawVault(const cash_in& amountIn)
+dpp::task<dpp::command_result> Gangs::withdrawVault(long double amount)
 {
-    long double amount = amountIn.top_result();
     if (amount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::cash2str(Constants::TransactionMin)));
 

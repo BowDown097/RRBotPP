@@ -6,7 +6,7 @@
 #include "database/mongomanager.h"
 #include "dpp-command-handler/extensions/cache.h"
 #include "dpp-interactive/interactiveservice.h"
-#include "modules/investments.h"
+#include "investments.h"
 #include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/random.h"
@@ -28,26 +28,23 @@ Crime::Crime() : dpp::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways 
     register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
 }
 
-dpp::task<dpp::command_result> Crime::bully(const RR::guild_member_in& memberIn,
-                                            const dpp::remainder<std::string>& nickname)
+dpp::task<dpp::command_result> Crime::bully(dpp::guild_member member, const dpp::remainder<std::string>& nickname)
 {
     if (nickname->size() > 32)
         co_return dpp::command_result::from_error(Responses::NicknameTooLong);
 
-    dpp::guild_member member = memberIn.top_result();
-    dpp::user* user = member.get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (target.perks.contains("Pacifist"))
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "bully", user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "bully", member.get_mention()));
 
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     if (roles.memberIsStaff(member))
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsStaff, "bully", member.get_mention()));
 
     std::string nicknameValue = *nickname;
     member.set_nickname(nicknameValue);
@@ -57,7 +54,7 @@ dpp::task<dpp::command_result> Crime::bully(const RR::guild_member_in& memberIn,
     author.modCooldown(author.bullyCooldown = Constants::BullyCooldown, member);
     MongoManager::updateUser(author);
 
-    co_return dpp::command_result::from_success(std::format(Responses::Bullied, user->get_mention(), RR::utility::sanitize(nicknameValue)));
+    co_return dpp::command_result::from_success(std::format(Responses::Bullied, member.get_mention(), RR::utility::sanitize(nicknameValue)));
 }
 
 dpp::task<dpp::command_result> Crime::deal()
@@ -67,14 +64,15 @@ dpp::task<dpp::command_result> Crime::deal()
                                     user.dealCooldown = Constants::DealCooldown, true);
 }
 
-dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, const std::string& crypto, long double amount)
+dpp::task<dpp::command_result> Crime::hack(const dpp::guild_member& member, const std::string& crypto, long double amount)
 {
     amount = RR::utility::round(amount, 4);
     if (amount < Constants::InvestmentMinAmount)
         co_return dpp::command_result::from_error(std::format(Responses::HackTooSmall, Constants::InvestmentMinAmount));
 
-    const dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id || user->is_bot())
+    if (member.user_id == context->msg.author.id)
+        co_return dpp::command_result::from_error(Responses::BadIdea);
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::BadIdea);
 
     std::string abbrev = Investments::resolveAbbreviation(crypto);
@@ -86,11 +84,11 @@ dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, 
     if (!authorMember)
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (target.usingSlots)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
     if (target.perks.contains("Pacifist"))
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "hack", user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "hack", member.get_mention()));
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     long double* authorCrypto = author.getCrypto(abbrev);
@@ -100,7 +98,7 @@ dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, 
     if (*authorCrypto < amount)
         co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, abbrevUpper));
     if (amount > hackMax)
-        co_return dpp::command_result::from_error(std::format(Responses::HackTooLarge, Constants::HackMaxPercent, user->get_mention(), abbrevUpper, RR::utility::roundAsStr(hackMax, 4)));
+        co_return dpp::command_result::from_error(std::format(Responses::HackTooLarge, Constants::HackMaxPercent, member.get_mention(), abbrevUpper, RR::utility::roundAsStr(hackMax, 4)));
 
     std::optional<long double> cryptoValue = co_await Investments::queryCryptoValue(abbrev, cluster);
     if (!cryptoValue)
@@ -113,7 +111,7 @@ dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, 
         odds *= 0.95;
 
     std::string response;
-    std::string userMention = user->get_mention();
+    std::string mention = member.get_mention();
 
     if (RR::utility::random(100) < odds)
     {
@@ -124,7 +122,7 @@ dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, 
 
         std::string amountRounded = RR::utility::roundAsStr(amount, 4);
         response = std::vformat(RR::utility::randomElement(Responses::HackSuccesses),
-                                std::make_format_args(userMention, amountRounded, abbrevUpper));
+                                std::make_format_args(mention, amountRounded, abbrevUpper));
     }
     else
     {
@@ -133,7 +131,7 @@ dpp::task<dpp::command_result> Crime::hack(const RR::guild_member_in& memberIn, 
 
         std::string amountRounded = RR::utility::roundAsStr(amount / 4.0L, 4);
         response = std::vformat(RR::utility::randomElement(Responses::HackFails),
-                                std::make_format_args(userMention, amountRounded, abbrevUpper));
+                                std::make_format_args(mention, amountRounded, abbrevUpper));
     }
 
     author.modCooldown(author.hackCooldown = Constants::HackCooldown, authorMember.value());
@@ -149,22 +147,20 @@ dpp::task<dpp::command_result> Crime::loot()
                                     user.lootCooldown = Constants::LootCooldown, true);
 }
 
-dpp::task<dpp::command_result> Crime::rape(const RR::guild_member_in& memberIn)
+dpp::task<dpp::command_result> Crime::rape(const dpp::guild_member& member)
 {
-    const dpp::guild_member& member = memberIn.top_result();
-    dpp::user* user = member.get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (target.usingSlots)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
     if (target.perks.contains("Pacifist"))
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "rape", user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "rape", member.get_mention()));
     if (target.cash < 0.01L)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsBroke, user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsBroke, member.get_mention()));
 
     std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)
@@ -182,14 +178,14 @@ dpp::task<dpp::command_result> Crime::rape(const RR::guild_member_in& memberIn)
     {
         long double repairs = target.cash / 100.0L * rapePercent;
         statUpdate(target, false, repairs);
-        context->reply(std::format(Responses::RapeSuccess, user->get_mention(), RR::utility::cash2str(repairs)));
+        context->reply(std::format(Responses::RapeSuccess, member.get_mention(), RR::utility::cash2str(repairs)));
         co_await target.setCashWithoutAdjustment(member, target.cash - repairs, cluster);
     }
     else
     {
         long double repairs = author.cash / 100.0L * rapePercent;
         statUpdate(author, false, repairs);
-        context->reply(std::format(Responses::RapeFailed, user->get_mention(), RR::utility::cash2str(repairs)));
+        context->reply(std::format(Responses::RapeFailed, member.get_mention(), RR::utility::cash2str(repairs)));
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - repairs, cluster);
     }
 
@@ -200,30 +196,26 @@ dpp::task<dpp::command_result> Crime::rape(const RR::guild_member_in& memberIn)
     co_return dpp::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Crime::rob(const RR::guild_member_in& memberIn, const cash_in& amountIn)
+dpp::task<dpp::command_result> Crime::rob(const dpp::guild_member& member, long double amount)
 {
-    long double amount = amountIn.top_result();
     if (amount < Constants::RobMinCash)
         co_return dpp::command_result::from_error(std::format(Responses::RobTooSmall, RR::utility::cash2str(Constants::RobMinCash)));
-
-    const dpp::guild_member& member = memberIn.top_result();
-    dpp::user* user = member.get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser target = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (target.usingSlots)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
     if (target.perks.contains("Pacifist"))
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "rape", user->get_mention()));
+        co_return dpp::command_result::from_error(std::format(Responses::UserHasPacifist, "rape", member.get_mention()));
 
     long double robMax = target.cash / 100.0L * Constants::RobMaxPercent;
     if (amount > robMax)
     {
         co_return dpp::command_result::from_error(std::format(Responses::RobTooLarge, Constants::RobMaxPercent,
-            user->get_mention(), RR::utility::cash2str(robMax)));
+            member.get_mention(), RR::utility::cash2str(robMax)));
     }
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
@@ -242,7 +234,7 @@ dpp::task<dpp::command_result> Crime::rob(const RR::guild_member_in& memberIn, c
 
     std::string response;
     std::string amountStr = RR::utility::cash2str(amount);
-    std::string userMention = user->get_mention();
+    std::string mention = member.get_mention();
 
     if (RR::utility::random(100) < odds)
     {
@@ -251,7 +243,7 @@ dpp::task<dpp::command_result> Crime::rob(const RR::guild_member_in& memberIn, c
         statUpdate(author, true, amount);
         statUpdate(target, false, amount);
 
-        response = std::vformat(RR::utility::randomElement(Responses::RobSuccesses), std::make_format_args(userMention, amountStr));
+        response = std::vformat(RR::utility::randomElement(Responses::RobSuccesses), std::make_format_args(mention, amountStr));
         response += "\nBalance: " + RR::utility::cash2str(author.cash);
     }
     else
@@ -259,7 +251,7 @@ dpp::task<dpp::command_result> Crime::rob(const RR::guild_member_in& memberIn, c
         co_await author.setCashWithoutAdjustment(authorMember.value(), author.cash - amount, cluster);
         statUpdate(author, false, amount);
 
-        response = std::vformat(RR::utility::randomElement(Responses::RobFails), std::make_format_args(userMention, amountStr));
+        response = std::vformat(RR::utility::randomElement(Responses::RobFails), std::make_format_args(mention, amountStr));
         response += "\nBalance: " + RR::utility::cash2str(author.cash);
     }
 

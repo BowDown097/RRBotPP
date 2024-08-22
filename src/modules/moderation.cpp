@@ -26,14 +26,11 @@ Moderation::Moderation() : dpp::module<Moderation>("Moderation", "This is like G
     register_command(&Moderation::unmute, std::initializer_list<std::string> { "unmute", "1985", "untimeout" }, "Unmute any member.", "$unmute [user]");
 }
 
-dpp::task<dpp::command_result> Moderation::ban(const RR::guild_member_in& memberIn,
+dpp::task<dpp::command_result> Moderation::ban(const dpp::guild_member& member,
                                                const std::optional<std::string>& duration,
                                                const std::optional<dpp::remainder<std::string>>& reason)
 {
-    const dpp::guild_member& member = memberIn.top_result();
-    if (member.user_id == context->msg.author.id)
-        co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (const dpp::user* user = member.get_user(); user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbConfigRoles roles = MongoManager::fetchRoleConfig(member.guild_id);
@@ -137,13 +134,12 @@ dpp::task<dpp::command_result> Moderation::hackban(uint64_t userId, const std::o
     co_return dpp::command_result::from_success(response + '.');
 }
 
-dpp::task<dpp::command_result> Moderation::kick(const RR::guild_member_in& memberIn,
+dpp::task<dpp::command_result> Moderation::kick(const dpp::guild_member& member,
                                                 const std::optional<dpp::remainder<std::string>>& reason)
 {
-    const dpp::guild_member& member = memberIn.top_result();
     if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
-    if (const dpp::user* user = member.get_user(); user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbConfigRoles roles = MongoManager::fetchRoleConfig(member.guild_id);
@@ -166,10 +162,9 @@ dpp::task<dpp::command_result> Moderation::kick(const RR::guild_member_in& membe
     co_return dpp::command_result::from_success(response);
 }
 
-dpp::task<dpp::command_result> Moderation::mute(const RR::guild_member_in& memberIn, const std::string& duration,
+dpp::task<dpp::command_result> Moderation::mute(const dpp::guild_member& member, const std::string& duration,
                                                 const std::optional<dpp::remainder<std::string>>& reason)
 {
-    const dpp::guild_member& member = memberIn.top_result();
     if (member.user_id == context->msg.author.id)
         co_return dpp::command_result::from_error(Responses::BadIdea);
     if (member.is_communication_disabled())
@@ -290,15 +285,13 @@ dpp::task<dpp::command_result> Moderation::purgeRange(uint64_t from, uint64_t to
     co_return dpp::command_result::from_success(response);
 }
 
-dpp::task<dpp::command_result> Moderation::purgeUser(const RR::guild_member_in& memberIn, const std::optional<int>& limitIn)
+dpp::task<dpp::command_result> Moderation::purgeUser(const dpp::guild_member& member, const std::optional<int>& limitIn)
 {
     dpp::confirmation_callback_t getConf = co_await cluster->co_messages_get(context->msg.channel_id, 0, 0, 0, 100);
     if (getConf.is_error())
         co_return dpp::command_result::from_error(std::format(Responses::ActionFailed, "Purge", getConf.get_error().human_readable));
 
-    dpp::snowflake userId = memberIn.top_result().user_id;
-    long ts14DaysAgo = RR::utility::unixTimestamp(-RR::utility::secondsInDays(14));
-    auto filter = [ts14DaysAgo, userId](const std::pair<dpp::snowflake, dpp::message>& pair) {
+    auto filter = [ts14DaysAgo = RR::utility::unixTimestamp(-RR::utility::secondsInDays(14)), userId = member.user_id](const std::pair<dpp::snowflake, dpp::message>& pair) {
         return pair.second.author.id == userId && pair.second.sent > ts14DaysAgo;
     };
 
@@ -355,9 +348,8 @@ dpp::task<dpp::command_result> Moderation::unchill()
     co_return dpp::command_result::from_error(Responses::GetChannelFailed);
 }
 
-dpp::task<dpp::command_result> Moderation::unmute(const RR::guild_member_in& memberIn)
+dpp::task<dpp::command_result> Moderation::unmute(const dpp::guild_member& member)
 {
-    const dpp::guild_member& member = memberIn.top_result();
     if (!member.is_communication_disabled())
         co_return dpp::command_result::from_error(std::format(Responses::UserNotMuted, member.get_mention()));
 

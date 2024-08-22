@@ -18,9 +18,8 @@ Investments::Investments() : dpp::module<Investments>("Investments", "Invest in 
     register_command(&Investments::withdraw, "withdraw", "Withdraw a specified cryptocurrency to cash, with a 2% withdrawal fee. See $invest's info for currently accepted currencies.", "$withdraw [crypto] [amount]");
 }
 
-dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, const cash_in& cashAmountIn)
+dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, long double cashAmount)
 {
-    long double cashAmount = cashAmountIn.top_result();
     if (cashAmount < Constants::TransactionMin)
         co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "invest", RR::utility::cash2str(Constants::TransactionMin)));
 
@@ -61,20 +60,14 @@ dpp::task<dpp::command_result> Investments::invest(const std::string& crypto, co
         RR::utility::roundAsStr(cryptoAmount, 4), abbrevUpper, RR::utility::cash2str(cashAmount)));
 }
 
-dpp::task<dpp::command_result> Investments::investments(const std::optional<RR::guild_member_in>& memberOpt)
+dpp::task<dpp::command_result> Investments::investments(std::optional<dpp::guild_member> memberOpt)
 {
-    std::optional<dpp::guild_member> member = memberOpt
-        ? memberOpt->top_result() : dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!member)
+    if (!(memberOpt || (memberOpt = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id))))
         co_return dpp::command_result::from_error(Responses::GetUserFailed);
-
-    dpp::user* user = member->get_user();
-    if (!user)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
-    if (user->is_bot())
+    if (dpp::user* user = memberOpt->get_user(); user->is_bot())
         co_return dpp::command_result::from_error(Responses::UserIsBot);
 
-    DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(memberOpt->user_id, context->msg.guild_id);
 
     std::string investsDisplay;
     if (dbUser.btc >= 0.01L)

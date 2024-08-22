@@ -246,11 +246,9 @@ inline void createItemsPage(std::vector<dpp::interaction_page>& pages, std::stri
         .set_description(dpp::utility::join(range, '\n')));
 }
 
-dpp::command_result Goods::items(const std::optional<RR::guild_member_in>& memberOpt)
+dpp::command_result Goods::items(const std::optional<dpp::guild_member>& memberOpt)
 {
-    DbUser dbUser = MongoManager::fetchUser(
-        memberOpt ? memberOpt->top_result().user_id : context->msg.author.id,
-        context->msg.guild_id);
+    DbUser dbUser = MongoManager::fetchUser(memberOpt ? memberOpt->user_id : context->msg.author.id, context->msg.guild_id);
 
     auto applicableCollectibles = dbUser.collectibles
         | std::views::filter([](const auto& col) { return col.second > 0; })
@@ -279,7 +277,7 @@ dpp::command_result Goods::items(const std::optional<RR::guild_member_in>& membe
     if (pages.empty())
     {
         return dpp::command_result::from_error(memberOpt
-            ? std::format(Responses::UserHasNothing, memberOpt->top_result().get_mention())
+            ? std::format(Responses::UserHasNothing, memberOpt->get_mention())
             : Responses::YouHaveNothing);
     }
 

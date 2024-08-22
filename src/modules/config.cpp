@@ -41,11 +41,8 @@ Config::Config() : dpp::module<Config>("Config", "This is where all the BORING a
     register_command(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
 }
 
-dpp::command_result Config::addRank(int level, const cash_in& costIn, const dpp::role_in& roleIn)
+dpp::command_result Config::addRank(int level, long double cost, dpp::role* role)
 {
-    long double cost = costIn.top_result();
-    dpp::role* role = roleIn.top_result();
-
     DbConfigRanks ranks = MongoManager::fetchRankConfig(context->msg.guild_id);
     ranks.costs.emplace(level, cost);
     ranks.ids.emplace(level, role->id);
@@ -130,13 +127,12 @@ dpp::command_result Config::disableCommand(const std::string& cmd)
     return dpp::command_result::from_success(Responses::SetCommandDisabled);
 }
 
-dpp::command_result Config::disableFiltersInChannel(const dpp::channel_in& channelIn)
+dpp::command_result Config::disableFiltersInChannel(dpp::channel* channel)
 {
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
     if (!misc.inviteFilterEnabled && !misc.scamFilterEnabled && misc.filteredTerms.empty())
         return dpp::command_result::from_error(Responses::NoFiltersToDisable);
 
-    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.noFilterChannels.insert(channel->id);
 
@@ -194,45 +190,40 @@ dpp::command_result Config::filterTerm(const dpp::remainder<std::string>& term)
     return dpp::command_result::from_success(std::format(Responses::FilteredTerm, termLower));
 }
 
-dpp::command_result Config::setAdminRole(const dpp::role_in& roleIn)
+dpp::command_result Config::setAdminRole(dpp::role* role)
 {
-    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.staffLvl2Role = role->id;
     MongoManager::updateRoleConfig(roles);
     return dpp::command_result::from_success(std::format(Responses::SetAdminRole, role->get_mention()));
 }
 
-dpp::command_result Config::setDjRole(const dpp::role_in& roleIn)
+dpp::command_result Config::setDjRole(dpp::role* role)
 {
-    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.djRole = role->id;
     MongoManager::updateRoleConfig(roles);
     return dpp::command_result::from_success(std::format(Responses::SetDjRole, role->get_mention()));
 }
 
-dpp::command_result Config::setLogsChannel(const dpp::channel_in& channelIn)
+dpp::command_result Config::setLogsChannel(dpp::channel* channel)
 {
-    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.logsChannel = channel->id;
     MongoManager::updateChannelConfig(channels);
     return dpp::command_result::from_success(std::format(Responses::SetLogsChannel, channel->get_mention()));
 }
 
-dpp::command_result Config::setModRole(const dpp::role_in& roleIn)
+dpp::command_result Config::setModRole(dpp::role* role)
 {
-    dpp::role* role = roleIn.top_result();
     DbConfigRoles roles = MongoManager::fetchRoleConfig(context->msg.guild_id);
     roles.staffLvl1Role = role->id;
     MongoManager::updateRoleConfig(roles);
     return dpp::command_result::from_success(std::format(Responses::SetModRole, role->get_mention()));
 }
 
-dpp::command_result Config::setPotChannel(const dpp::channel_in& channelIn)
+dpp::command_result Config::setPotChannel(dpp::channel* channel)
 {
-    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.potChannel = channel->id;
     MongoManager::updateChannelConfig(channels);
@@ -282,9 +273,8 @@ dpp::command_result Config::unfilterTerm(const dpp::remainder<std::string>& term
     return dpp::command_result::from_success(std::format(Responses::UnfilteredTerm, termLower));
 }
 
-dpp::command_result Config::unwhitelistChannel(const dpp::channel_in& channelIn)
+dpp::command_result Config::unwhitelistChannel(dpp::channel* channel)
 {
-    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     if (!channels.whitelistedChannels.erase(channel->id))
         return dpp::command_result::from_error(Responses::ChannelNotWhitelisted);
@@ -293,9 +283,8 @@ dpp::command_result Config::unwhitelistChannel(const dpp::channel_in& channelIn)
     return dpp::command_result::from_success(std::format(Responses::ChannelUnwhitelisted, channel->get_mention()));
 }
 
-dpp::command_result Config::whitelistChannel(const dpp::channel_in& channelIn)
+dpp::command_result Config::whitelistChannel(dpp::channel* channel)
 {
-    dpp::channel* channel = channelIn.top_result();
     DbConfigChannels channels = MongoManager::fetchChannelConfig(context->msg.guild_id);
     channels.whitelistedChannels.insert(channel->id);
     MongoManager::updateChannelConfig(channels);

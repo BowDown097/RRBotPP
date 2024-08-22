@@ -16,19 +16,18 @@ BotOwner::BotOwner() : dpp::module<BotOwner>("BotOwner", "Commands for bot owner
     register_command(&BotOwner::unblacklist, "unblacklist", "Unban a user from using the bot." "$unblacklist [user]");
 }
 
-dpp::command_result BotOwner::blacklist(const RR::guild_member_in& memberIn)
+dpp::command_result BotOwner::blacklist(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->id == context->msg.author.id)
+    if (member.user_id == context->msg.author.id)
         return dpp::command_result::from_error(Responses::BadIdea);
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbConfigGlobal globalConfig = MongoManager::fetchGlobalConfig();
-    globalConfig.bannedUsers.insert(user->id);
+    globalConfig.bannedUsers.insert(member.user_id);
 
     MongoManager::updateGlobalConfig(globalConfig);
-    return dpp::command_result::from_success(std::format(Responses::SetUserBlacklisted, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetUserBlacklisted, member.get_mention()));
 }
 
 dpp::command_result BotOwner::disableCommandGlobal(const std::string& cmd)
@@ -57,26 +56,24 @@ dpp::command_result BotOwner::enableCommandGlobal(const std::string& cmd)
     return dpp::command_result::from_success(Responses::SetCommandEnabled);
 }
 
-dpp::command_result BotOwner::resetUser(const RR::guild_member_in& memberIn)
+dpp::command_result BotOwner::resetUser(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
-    MongoManager::deleteUser(user->id, context->msg.guild_id);
-    return dpp::command_result::from_success(std::format(Responses::ResetUser, user->get_mention()));
+    MongoManager::deleteUser(member.user_id, context->msg.guild_id);
+    return dpp::command_result::from_success(std::format(Responses::ResetUser, member.get_mention()));
 }
 
-dpp::command_result BotOwner::unblacklist(const RR::guild_member_in& memberIn)
+dpp::command_result BotOwner::unblacklist(const dpp::guild_member& member)
 {
-    dpp::user* user = memberIn.top_result().get_user();
-    if (user->is_bot())
+    if (dpp::user* user = member.get_user(); user->is_bot())
         return dpp::command_result::from_error(Responses::UserIsBot);
 
     DbConfigGlobal globalConfig = MongoManager::fetchGlobalConfig();
-    if (!globalConfig.bannedUsers.erase(user->id))
-        return dpp::command_result::from_error(std::format(Responses::UserNotBlacklisted, user->get_mention()));
+    if (!globalConfig.bannedUsers.erase(member.user_id))
+        return dpp::command_result::from_error(std::format(Responses::UserNotBlacklisted, member.get_mention()));
 
     MongoManager::updateGlobalConfig(globalConfig);
-    return dpp::command_result::from_success(std::format(Responses::SetUserUnblacklisted, user->get_mention()));
+    return dpp::command_result::from_success(std::format(Responses::SetUserUnblacklisted, member.get_mention()));
 }
