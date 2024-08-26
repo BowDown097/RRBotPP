@@ -2,8 +2,8 @@
 #include "data/constants.h"
 #include "database/entities/config/dbconfigranks.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/utils/lexical_cast.h"
-#include "dpp-command-handler/utils/strings.h"
+#include "dppcmd/utils/lexical_cast.h"
+#include "dppcmd/utils/strings.h"
 #include "utils/ld.h"
 #include "utils/timestamp.h"
 #include <bsoncxx/builder/stream/array.hpp>
@@ -225,11 +225,11 @@ void DbUser::mergeStats(const std::unordered_map<std::string, std::string>& stat
 
             try
             {
-                long double toAdd = dpp::utility::lexical_cast<long double>(value);
-                long double oldValue = dpp::utility::lexical_cast<long double>(value);
+                long double toAdd = dppcmd::utility::lexical_cast<long double>(value);
+                long double oldValue = dppcmd::utility::lexical_cast<long double>(value);
                 stats[name] = RR::utility::roundAsStr(oldValue + toAdd, 4);
             }
-            catch (const dpp::utility::bad_lexical_cast&) {}
+            catch (const dppcmd::utility::bad_lexical_cast&) {}
         }
         else
         {
@@ -309,11 +309,11 @@ dpp::task<void> DbUser::setCashWithoutAdjustment(const dpp::guild_member& member
 
 void DbUser::unlockAchievement(std::string_view name, const dpp::message_create_t* context, const dpp::user* user)
 {
-    if (std::ranges::any_of(this->achievements, [name](const auto& p) { return dpp::utility::iequals(p.first, name); }))
+    if (std::ranges::any_of(this->achievements, [name](const auto& p) { return dppcmd::utility::iequals(p.first, name); }))
         return;
 
     const Achievement* ach = std::ranges::find_if(Constants::DefaultAchievements, [name](const Achievement& a) {
-        return dpp::utility::iequals(a.name(), name);
+        return dppcmd::utility::iequals(a.name(), name);
     });
 
     if (!ach)

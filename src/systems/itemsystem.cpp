@@ -2,7 +2,7 @@
 #include "data/constants.h"
 #include "data/responses.h"
 #include "database/entities/dbuser.h"
-#include "dpp-command-handler/utils/strings.h"
+#include "dppcmd/utils/strings.h"
 #include "entities/goods/crate.h"
 #include "entities/goods/perk.h"
 #include "entities/goods/tool.h"
@@ -18,43 +18,43 @@
 
 namespace ItemSystem
 {
-    dpp::task<dpp::command_result> buyCrate(const Crate& crate, const dpp::guild_member& member, DbUser& dbUser,
-                                            dpp::cluster* cluster, bool notify)
+    dpp::task<dppcmd::command_result> buyCrate(const Crate& crate, const dpp::guild_member& member, DbUser& dbUser,
+                                               dpp::cluster* cluster, bool notify)
     {
         std::string crateName(crate.name());
         if (crate.worth() > dbUser.cash)
-            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+            co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.crates[crateName] >= 10)
-            co_return dpp::command_result::from_error(std::format(Responses::ReachedMaxCrates, crate.name()));
+            co_return dppcmd::command_result::from_error(std::format(Responses::ReachedMaxCrates, crate.name()));
 
         dbUser.crates[crateName]++;
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - crate.worth(), cluster);
 
         if (notify)
-            co_return dpp::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::cash2str(crate.worth())));
-        co_return dpp::command_result::from_success();
+            co_return dppcmd::command_result::from_success(std::format(Responses::BoughtCrate, crate.name(), RR::utility::cash2str(crate.worth())));
+        co_return dppcmd::command_result::from_success();
     }
 
-    dpp::task<dpp::command_result> buyPerk(const Perk& perk, const dpp::guild_member& member,
+    dpp::task<dppcmd::command_result> buyPerk(const Perk& perk, const dpp::guild_member& member,
                                            DbUser& dbUser, dpp::cluster* cluster)
     {
         if (perk.worth() > dbUser.cash)
-            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+            co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (dbUser.perks.contains(perk.name()))
-            co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveThing, perk.name()));
+            co_return dppcmd::command_result::from_error(std::format(Responses::AlreadyHaveThing, perk.name()));
         if (dbUser.perks.contains("Pacifist"))
-            co_return dpp::command_result::from_error(Responses::HavePacifistPerk);
+            co_return dppcmd::command_result::from_error(Responses::HavePacifistPerk);
         if (!dbUser.perks.contains("Multiperk") && dbUser.perks.size() == 1 && perk.name() != "Pacifist" && perk.name() != "Multiperk")
-            co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, "perk"));
+            co_return dppcmd::command_result::from_error(std::format(Responses::AlreadyHaveAThing, "perk"));
         if (dbUser.perks.contains("Multiperk") && dbUser.perks.size() == 3 && perk.name() != "Pacifist" && perk.name() != "Multiperk")
-            co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveThing, "2 perks"));
+            co_return dppcmd::command_result::from_error(std::format(Responses::AlreadyHaveThing, "2 perks"));
 
         if (perk.name() == "Pacifist")
         {
             if (dbUser.pacifistCooldown > 0)
             {
                 if (long cooldownSecs = dbUser.pacifistCooldown - RR::utility::unixTimestamp())
-                    co_return dpp::command_result::from_error(std::format(Responses::BoughtPacifistRecently, RR::utility::formatSeconds(cooldownSecs)));
+                    co_return dppcmd::command_result::from_error(std::format(Responses::BoughtPacifistRecently, RR::utility::formatSeconds(cooldownSecs)));
                 dbUser.pacifistCooldown = 0;
             }
 
@@ -72,23 +72,23 @@ namespace ItemSystem
         dbUser.perks.emplace(perk.name(), RR::utility::unixTimestamp(perk.duration()));
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - perk.worth(), cluster);
 
-        co_return dpp::command_result::from_success(perk.name() == "Pacifist"
+        co_return dppcmd::command_result::from_success(perk.name() == "Pacifist"
             ? std::format(Responses::BoughtPacifistPerk, RR::utility::cash2str(perk.worth()))
             : std::format(Responses::BoughtPerk, perk.name(), RR::utility::cash2str(perk.worth())));
     }
 
-    dpp::task<dpp::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
-                                           DbUser& dbUser, dpp::cluster* cluster)
+    dpp::task<dppcmd::command_result> buyTool(const Tool& tool, const dpp::guild_member& member,
+                                              DbUser& dbUser, dpp::cluster* cluster)
     {
         if (tool.tier() >= Tool::Tier::Netherite)
-            co_return dpp::command_result::from_error(Responses::InCratesOnly);
+            co_return dppcmd::command_result::from_error(Responses::InCratesOnly);
         if (tool.worth() > dbUser.cash)
-            co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+            co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
         if (auto it = dbUser.tools.emplace(tool.name()); !it.second)
-            co_return dpp::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
+            co_return dppcmd::command_result::from_error(std::format(Responses::AlreadyHaveAThing, tool.name()));
 
         co_await dbUser.setCashWithoutAdjustment(member, dbUser.cash - tool.worth(), cluster);
-        co_return dpp::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::cash2str(tool.worth())));
+        co_return dppcmd::command_result::from_success(std::format(Responses::BoughtTool, tool.name(), RR::utility::cash2str(tool.worth())));
     }
 
     std::string getBestTool(std::span<const std::string> tools, std::string_view type)
@@ -117,7 +117,7 @@ namespace ItemSystem
             ITEMS_CASTED(Constants::Weapons)
         );
 
-        auto it = std::ranges::find_if(allItems, [name](const Item* i) { return dpp::utility::iequals(i->name(), name); });
+        auto it = std::ranges::find_if(allItems, [name](const Item* i) { return dppcmd::utility::iequals(i->name(), name); });
         if (it != allItems.end())
             return *it;
         else

@@ -4,8 +4,8 @@
 #include "database/entities/dbgang.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/extensions/cache.h"
-#include "dpp-command-handler/utils/strings.h"
+#include "dppcmd/extensions/cache.h"
+#include "dppcmd/utils/strings.h"
 #include "utils/ld.h"
 #include <bsoncxx/builder/stream/document.hpp>
 #include <dpp/colors.h>
@@ -14,7 +14,7 @@
 #include <mongocxx/collection.hpp>
 #include <regex>
 
-Gangs::Gangs() : dpp::module<Gangs>("Gangs", "All about that gang shit.")
+Gangs::Gangs() : dppcmd::module<Gangs>("Gangs", "All about that gang shit.")
 {
     register_command(&Gangs::buyVault, "buyvault", "Buy a vault for your gang.");
     register_command(&Gangs::createGang, "creategang", "Create a gang.", "$creategang [name]");
@@ -33,50 +33,51 @@ Gangs::Gangs() : dpp::module<Gangs>("Gangs", "All about that gang shit.")
     register_command(&Gangs::withdrawVault, std::initializer_list<std::string> { "withdrawvault", "wv" }, "Withdraw money from your gang's vault.", "$withdrawvault 10000");
 }
 
-dpp::task<dpp::command_result> Gangs::buyVault()
+dpp::task<dppcmd::command_result> Gangs::buyVault()
 {
-    std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!gm)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
-    DbUser user = MongoManager::fetchUser(gm->user_id, gm->guild_id);
+    DbUser user = MongoManager::fetchUser(member->user_id, member->guild_id);
     if (user.gang.empty())
-        co_return dpp::command_result::from_error(Responses::NotInGang);
+        co_return dppcmd::command_result::from_error(Responses::NotInGang);
 
-    DbGang gang = MongoManager::fetchGang(user.gang, gm->guild_id, false);
+    DbGang gang = MongoManager::fetchGang(user.gang, member->guild_id, false);
     if (gang.vaultUnlocked)
-        co_return dpp::command_result::from_error(Responses::GangHasVault);
+        co_return dppcmd::command_result::from_error(Responses::GangHasVault);
 
     gang.vaultUnlocked = true;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangVaultCost, cluster);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash - Constants::GangVaultCost, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success(std::format(Responses::VaultUnlocked, RR::utility::cash2str(Constants::GangVaultCost)));
+    co_return dppcmd::command_result::from_success(std::format(Responses::VaultUnlocked, RR::utility::cash2str(Constants::GangVaultCost)));
 }
 
-dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::string>& name)
+dpp::task<dppcmd::command_result> Gangs::createGang(const dppcmd::remainder<std::string>& name)
 {
     if (name->size() <= 2 || name->size() > 32 || !std::regex_match(*name, std::regex("^[a-zA-Z0-9\x20]*$")))
-        co_return dpp::command_result::from_error(Responses::InvalidGangName);
+        co_return dppcmd::command_result::from_error(Responses::InvalidGangName);
 
     mongocxx::cursor cursor = MongoManager::gangs().find(bsoncxx::builder::stream::document()
         << "guildId" << (int64_t)context->msg.guild_id << bsoncxx::builder::stream::finalize);
-    if (std::any_of(cursor.begin(), cursor.end(), [&name](const bsoncxx::document::view& doc) { return dpp::utility::iequals(doc["name"].get_string(), *name); }))
-        co_return dpp::command_result::from_error(Responses::GangAlreadyExists);
+    auto nameMatches = [&name](const bsoncxx::document::view& doc) { return dppcmd::utility::iequals(doc["name"].get_string(), *name); };
+    if (std::any_of(cursor.begin(), cursor.end(), nameMatches))
+        co_return dppcmd::command_result::from_error(Responses::GangAlreadyExists);
     if (std::distance(cursor.begin(), cursor.end()) >= Constants::MaxGangsPerGuild)
-        co_return dpp::command_result::from_error(std::format(Responses::ReachedMaxGangs, Constants::MaxGangsPerGuild));
+        co_return dppcmd::command_result::from_error(std::format(Responses::ReachedMaxGangs, Constants::MaxGangsPerGuild));
 
-    std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!gm)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
-    DbUser user = MongoManager::fetchUser(gm->user_id, gm->guild_id);
+    DbUser user = MongoManager::fetchUser(member->user_id, member->guild_id);
     if (!user.gang.empty())
-        co_return dpp::command_result::from_error(Responses::AlreadyInGang);
+        co_return dppcmd::command_result::from_error(Responses::AlreadyInGang);
 
     user.gang = *name;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - Constants::GangCreationCost, cluster);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash - Constants::GangCreationCost, cluster);
 
     DbGang newGang;
     newGang.guildId = context->msg.guild_id;
@@ -86,48 +87,48 @@ dpp::task<dpp::command_result> Gangs::createGang(const dpp::remainder<std::strin
     MongoManager::gangs().insert_one(newGang.toDocument());
 
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success(std::format(Responses::GangCreated,
+    co_return dppcmd::command_result::from_success(std::format(Responses::GangCreated,
         *name, RR::utility::cash2str(Constants::GangCreationCost)));
 }
 
-dpp::task<dpp::command_result> Gangs::deposit(long double amount)
+dpp::task<dppcmd::command_result> Gangs::deposit(long double amount)
 {
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::cash2str(amount)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "deposit", RR::utility::cash2str(amount)));
 
-    std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!gm)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
-    DbUser user = MongoManager::fetchUser(gm->user_id, gm->guild_id);
+    DbUser user = MongoManager::fetchUser(member->user_id, member->guild_id);
     if (user.gang.empty())
-        co_return dpp::command_result::from_error(Responses::NotInGang);
+        co_return dppcmd::command_result::from_error(Responses::NotInGang);
     if (user.cash < amount)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
-    DbGang gang = MongoManager::fetchGang(user.gang, gm->guild_id, false);
+    DbGang gang = MongoManager::fetchGang(user.gang, member->guild_id, false);
     if (!gang.vaultUnlocked)
-        co_return dpp::command_result::from_error(Responses::GangHasNoVault);
+        co_return dppcmd::command_result::from_error(Responses::GangHasNoVault);
 
     long double finalAmount = amount / 100.0L * (100.0L - Constants::VaultTaxPercent);
     gang.vaultBalance += finalAmount;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash - finalAmount, cluster);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash - finalAmount, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success(std::format(Responses::DepositedIntoVault,
+    co_return dppcmd::command_result::from_success(std::format(Responses::DepositedIntoVault,
         RR::utility::cash2str(finalAmount), Constants::VaultTaxPercent));
 }
 
-dpp::command_result Gangs::disband()
+dppcmd::command_result Gangs::disband()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (gang.leader != context->msg.author.id)
-        return dpp::command_result::from_error(Responses::NotGangLeader);
+        return dppcmd::command_result::from_error(Responses::NotGangLeader);
 
     MongoManager::deleteGang(gang.name, gang.guildId, false);
     user.gang.clear();
@@ -143,17 +144,17 @@ dpp::command_result Gangs::disband()
     }
 
     MongoManager::updateUser(user);
-    return dpp::command_result::from_success(Responses::DisbandedGang);
+    return dppcmd::command_result::from_success(Responses::DisbandedGang);
 }
 
-dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>& nameIn)
+dppcmd::command_result Gangs::gang(const std::optional<dppcmd::remainder<std::string>>& nameIn)
 {
     std::string name;
     if (!nameIn.has_value())
     {
         DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
         if (user.gang.empty())
-            return dpp::command_result::from_error(Responses::NotInGang);
+            return dppcmd::command_result::from_error(Responses::NotInGang);
         name = user.gang;
     }
     else
@@ -163,7 +164,7 @@ dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>
 
     DbGang gang = MongoManager::fetchGang(name, context->msg.guild_id, nameIn.has_value());
     if (gang.name.empty())
-        return dpp::command_result::from_error(Responses::GangNotFound);
+        return dppcmd::command_result::from_error(Responses::GangNotFound);
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
@@ -175,58 +176,58 @@ dpp::command_result Gangs::gang(const std::optional<dpp::remainder<std::string>>
         auto posMembers = gang.members
             | std::views::filter([pos](const auto& pair) { return Constants::GangPositions[pair.second] == pos; })
             | std::views::transform([](const auto& pair) { return dpp::user::get_mention(pair.first); });
-        embed.add_field(std::string(pos) + 's', dpp::utility::join(posMembers, '\n'));
+        embed.add_field(std::string(pos) + 's', dppcmd::utility::join(posMembers, '\n'));
     }
 
     if (gang.vaultBalance >= 0.01L)
         embed.add_field("Vault Balance", RR::utility::cash2str(gang.vaultBalance));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result Gangs::invite(const dpp::guild_member& member)
+dppcmd::command_result Gangs::invite(const dpp::guild_member& member)
 {
     if (member.user_id == context->msg.author.id)
-        return dpp::command_result::from_error(Responses::BadIdea);
+        return dppcmd::command_result::from_error(Responses::BadIdea);
     if (dpp::user* user = member.get_user(); user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (!target.gang.empty())
-        return dpp::command_result::from_error(std::format(Responses::UserAlreadyInGang, member.get_mention()));
+        return dppcmd::command_result::from_error(std::format(Responses::UserAlreadyInGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.isPublic)
-        return dpp::command_result::from_error(Responses::InviteGangIsPublic);
+        return dppcmd::command_result::from_error(Responses::InviteGangIsPublic);
     if (gang.members.size() >= Constants::GangMaxMembers)
-        return dpp::command_result::from_error(std::format(Responses::YourGangAtMaxMembers, Constants::GangMaxMembers));
+        return dppcmd::command_result::from_error(std::format(Responses::YourGangAtMaxMembers, Constants::GangMaxMembers));
     if (gang.members[context->msg.author.id] > 1)
-        return dpp::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
+        return dppcmd::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
 
     target.pendingGangInvites.insert(gang.name);
     MongoManager::updateUser(target);
 
-    return dpp::command_result::from_success(std::format(Responses::InvitedUserToGang, member.get_mention()));
+    return dppcmd::command_result::from_success(std::format(Responses::InvitedUserToGang, member.get_mention()));
 }
 
-dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
+dppcmd::command_result Gangs::joinGang(const dppcmd::remainder<std::string>& name)
 {
     DbGang gang = MongoManager::fetchGang(*name, context->msg.guild_id, true);
     if (gang.name.empty())
-        return dpp::command_result::from_error(Responses::GangNotFound);
+        return dppcmd::command_result::from_error(Responses::GangNotFound);
     if (gang.members.size() >= Constants::GangMaxMembers)
-        return dpp::command_result::from_error(std::format(Responses::GangAtMaxMembers, Constants::GangMaxMembers));
+        return dppcmd::command_result::from_error(std::format(Responses::GangAtMaxMembers, Constants::GangMaxMembers));
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (!user.gang.empty())
-        return dpp::command_result::from_error(Responses::AlreadyInGang);
+        return dppcmd::command_result::from_error(Responses::AlreadyInGang);
     if (!gang.isPublic && !user.pendingGangInvites.contains(gang.name))
-        return dpp::command_result::from_error(std::format(Responses::GangIsPrivate, Constants::GangPositions[1]));
+        return dppcmd::command_result::from_error(std::format(Responses::GangIsPrivate, Constants::GangPositions[1]));
 
     gang.members[context->msg.author.id] = Constants::GangPositions.size() - 1;
     user.gang = gang.name;
@@ -235,29 +236,29 @@ dpp::command_result Gangs::joinGang(const dpp::remainder<std::string>& name)
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
 
-    return dpp::command_result::from_success(std::format(Responses::JoinedGang, gang.name));
+    return dppcmd::command_result::from_success(std::format(Responses::JoinedGang, gang.name));
 }
 
-dpp::command_result Gangs::kickGangMember(const dpp::guild_member& member)
+dppcmd::command_result Gangs::kickGangMember(const dpp::guild_member& member)
 {
     if (member.user_id == context->msg.author.id)
-        return dpp::command_result::from_error(Responses::BadIdea);
+        return dppcmd::command_result::from_error(Responses::BadIdea);
     if (dpp::user* user = member.get_user(); user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (author.gang != target.gang)
-        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
+        return dppcmd::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.members[context->msg.author.id] > 1)
-        return dpp::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
+        return dppcmd::command_result::from_error(std::format(Responses::NeedHigherGangPosition, Constants::GangPositions[1]));
     if (gang.members[context->msg.author.id] > gang.members[member.user_id])
-        return dpp::command_result::from_error(std::format(Responses::UserHasHigherGangPosition, member.get_mention()));
+        return dppcmd::command_result::from_error(std::format(Responses::UserHasHigherGangPosition, member.get_mention()));
 
     gang.members.erase(member.user_id);
     target.gang.clear();
@@ -265,18 +266,18 @@ dpp::command_result Gangs::kickGangMember(const dpp::guild_member& member)
     MongoManager::updateGang(gang);
     MongoManager::updateUser(target);
 
-    return dpp::command_result::from_success(std::format(Responses::KickedUserFromGang, member.get_mention()));
+    return dppcmd::command_result::from_success(std::format(Responses::KickedUserFromGang, member.get_mention()));
 }
 
-dpp::command_result Gangs::leaveGang()
+dppcmd::command_result Gangs::leaveGang()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (gang.leader == context->msg.author.id)
-        return dpp::command_result::from_error(Responses::NeedTransferGangLeadership);
+        return dppcmd::command_result::from_error(Responses::NeedTransferGangLeadership);
 
     gang.members.erase(context->msg.author.id);
     user.gang.clear();
@@ -284,25 +285,25 @@ dpp::command_result Gangs::leaveGang()
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
 
-    return dpp::command_result::from_success(Responses::LeftGang);
+    return dppcmd::command_result::from_success(Responses::LeftGang);
 }
 
-dpp::task<dpp::command_result> Gangs::renameGang(const dpp::remainder<std::string>& name)
+dpp::task<dppcmd::command_result> Gangs::renameGang(const dppcmd::remainder<std::string>& name)
 {
     if (name->size() <= 2 || name->size() > 32 || !std::regex_match(*name, std::regex("^[a-zA-Z0-9\x20]*$")))
-        co_return dpp::command_result::from_error(Responses::InvalidGangName);
+        co_return dppcmd::command_result::from_error(Responses::InvalidGangName);
 
     DbGang matchingGang = MongoManager::fetchGang(*name, context->msg.guild_id, true);
     if (!matchingGang.name.empty())
-        co_return dpp::command_result::from_error(Responses::GangAlreadyExists);
+        co_return dppcmd::command_result::from_error(Responses::GangAlreadyExists);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        co_return dpp::command_result::from_error(Responses::NotInGang);
+        co_return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (gang.leader != context->msg.author.id)
-        co_return dpp::command_result::from_error(Responses::NotGangLeader);
+        co_return dppcmd::command_result::from_error(Responses::NotGangLeader);
 
     std::string ogGangName = gang.name;
     gang.name = *name;
@@ -321,132 +322,132 @@ dpp::task<dpp::command_result> Gangs::renameGang(const dpp::remainder<std::strin
     MongoManager::updateGang(gang, ogGangName);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::RenamedGang, *name));
+    co_return dppcmd::command_result::from_success(std::format(Responses::RenamedGang, *name));
 }
 
-dpp::command_result Gangs::setPosition(const dpp::guild_member& member, const dpp::remainder<std::string>& position)
+dppcmd::command_result Gangs::setPosition(const dpp::guild_member& member, const dppcmd::remainder<std::string>& position)
 {
     if (member.user_id == context->msg.author.id)
-        return dpp::command_result::from_error(Responses::BadIdea);
+        return dppcmd::command_result::from_error(Responses::BadIdea);
     if (dpp::user* user = member.get_user(); user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
-    auto posMatch = [&position](std::string_view p) { return dpp::utility::iequals(*position, p); };
+    auto posMatch = [&position](std::string_view p) { return dppcmd::utility::iequals(*position, p); };
     if (auto it = std::ranges::find_if(Constants::GangPositions, posMatch); it != Constants::GangPositions.end())
     {
         if (*it == Constants::GangPositions.front())
-            return dpp::command_result::from_error(Responses::SetPositionLeaderCorrection);
+            return dppcmd::command_result::from_error(Responses::SetPositionLeaderCorrection);
 
         DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
         if (author.gang.empty())
-            return dpp::command_result::from_error(Responses::NotInGang);
+            return dppcmd::command_result::from_error(Responses::NotInGang);
 
         DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
         if (author.gang != target.gang)
-            return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
+            return dppcmd::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
         DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
         if (gang.leader != context->msg.author.id)
-            return dpp::command_result::from_error(Responses::NotGangLeader);
+            return dppcmd::command_result::from_error(Responses::NotGangLeader);
 
         long posDistance = std::distance(Constants::GangPositions.begin(), it);
         if (gang.members[member.user_id] == posDistance)
-            return dpp::command_result::from_error(std::format(Responses::UserAlreadyHasPosition, member.get_mention(), *it));
+            return dppcmd::command_result::from_error(std::format(Responses::UserAlreadyHasPosition, member.get_mention(), *it));
 
         gang.members[member.user_id] = posDistance;
         MongoManager::updateGang(gang);
 
-        return dpp::command_result::from_success(std::format(Responses::ChangedUserPosition, member.get_mention(), *it));
+        return dppcmd::command_result::from_success(std::format(Responses::ChangedUserPosition, member.get_mention(), *it));
     }
     else
     {
-        return dpp::command_result::from_error(Responses::InvalidGangPosition);
+        return dppcmd::command_result::from_error(Responses::InvalidGangPosition);
     }
 }
 
-dpp::command_result Gangs::togglePublic()
+dppcmd::command_result Gangs::togglePublic()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (gang.leader != context->msg.author.id)
-        return dpp::command_result::from_error(Responses::NotGangLeader);
+        return dppcmd::command_result::from_error(Responses::NotGangLeader);
 
     gang.isPublic = !gang.isPublic;
     MongoManager::updateGang(gang);
 
     using namespace std::string_view_literals;
-    return dpp::command_result::from_success(std::format(Responses::GangPublicityToggled, gang.isPublic ? "now"sv : "no longer"sv));
+    return dppcmd::command_result::from_success(std::format(Responses::GangPublicityToggled, gang.isPublic ? "now"sv : "no longer"sv));
 }
 
-dpp::command_result Gangs::transferLeadership(const dpp::guild_member& member)
+dppcmd::command_result Gangs::transferLeadership(const dpp::guild_member& member)
 {
     if (member.user_id == context->msg.author.id)
-        return dpp::command_result::from_error(Responses::BadIdea);
+        return dppcmd::command_result::from_error(Responses::BadIdea);
     if (dpp::user* user = member.get_user(); user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
     DbUser author = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (author.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbUser target = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (author.gang != target.gang)
-        return dpp::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
+        return dppcmd::command_result::from_error(std::format(Responses::UserNotInYourGang, member.get_mention()));
 
     DbGang gang = MongoManager::fetchGang(author.gang, context->msg.guild_id, false);
     if (gang.leader != context->msg.author.id)
-        return dpp::command_result::from_error(Responses::NotGangLeader);
+        return dppcmd::command_result::from_error(Responses::NotGangLeader);
 
     gang.leader = member.user_id;
     gang.members[context->msg.author.id] = Constants::GangPositions.size() - 1;
     gang.members[member.user_id] = 0;
 
     MongoManager::updateGang(gang);
-    return dpp::command_result::from_error(std::format(Responses::TransferredLeadership, member.get_mention()));
+    return dppcmd::command_result::from_error(std::format(Responses::TransferredLeadership, member.get_mention()));
 }
 
-dpp::command_result Gangs::vaultBalance()
+dppcmd::command_result Gangs::vaultBalance()
 {
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        return dpp::command_result::from_error(Responses::NotInGang);
+        return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (!gang.vaultUnlocked)
-        return dpp::command_result::from_error(Responses::GangHasNoVault);
+        return dppcmd::command_result::from_error(Responses::GangHasNoVault);
     if (gang.vaultBalance < 0.01L)
-        return dpp::command_result::from_error(Responses::GangIsBroke);
+        return dppcmd::command_result::from_error(Responses::GangIsBroke);
 
-    return dpp::command_result::from_success(std::format(Responses::GangVaultBalance, RR::utility::cash2str(gang.vaultBalance)));
+    return dppcmd::command_result::from_success(std::format(Responses::GangVaultBalance, RR::utility::cash2str(gang.vaultBalance)));
 }
 
-dpp::task<dpp::command_result> Gangs::withdrawVault(long double amount)
+dpp::task<dppcmd::command_result> Gangs::withdrawVault(long double amount)
 {
     if (amount < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::cash2str(Constants::TransactionMin)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::cash2str(Constants::TransactionMin)));
 
-    std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-    if (!gm)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+	auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+	if (!member)
+		co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
-        co_return dpp::command_result::from_error(Responses::NotInGang);
+        co_return dppcmd::command_result::from_error(Responses::NotInGang);
 
     DbGang gang = MongoManager::fetchGang(user.gang, context->msg.guild_id, false);
     if (!gang.vaultUnlocked)
-        co_return dpp::command_result::from_error(Responses::GangHasNoVault);
+        co_return dppcmd::command_result::from_error(Responses::GangHasNoVault);
     if (gang.vaultBalance < amount)
-        co_return dpp::command_result::from_error(Responses::VaultNotEnoughCash);
+        co_return dppcmd::command_result::from_error(Responses::VaultNotEnoughCash);
 
     gang.vaultBalance -= amount;
-    co_await user.setCashWithoutAdjustment(gm.value(), user.cash + amount, cluster);
+    co_await user.setCashWithoutAdjustment(member.value(), user.cash + amount, cluster);
 
     MongoManager::updateGang(gang);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::WithdrewFromVault, RR::utility::cash2str(amount)));
+    co_return dppcmd::command_result::from_success(std::format(Responses::WithdrewFromVault, RR::utility::cash2str(amount)));
 }

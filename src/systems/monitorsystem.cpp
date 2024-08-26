@@ -7,7 +7,7 @@
 #include "database/entities/dbpot.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/extensions/cache.h"
+#include "dppcmd/extensions/cache.h"
 #include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/timestamp.h"
@@ -187,8 +187,7 @@ namespace MonitorSystem
             {
                 if (uint64_t luckyGuy = pot.drawMember())
                 {
-                    std::optional<dpp::guild_member> gm = dpp::find_guild_member_opt(pot.guildId, luckyGuy);
-                    if (!gm)
+                    if (!dppcmd::find_guild_member_opt(pot.guildId, luckyGuy))
                     {
                         pot.members.erase(luckyGuy);
                         continue;

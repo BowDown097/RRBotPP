@@ -1,13 +1,13 @@
 #include "rrguildmembertypereader.h"
 #include "data/responses.h"
-#include "dpp-command-handler/utils/join.h"
+#include "dppcmd/utils/join.h"
 #include "utils/strings.h"
 #include <dpp/cache.h>
 #include <dpp/dispatcher.h>
 
 namespace RR
 {
-    dpp::type_reader_result guild_member_in::read(dpp::cluster* cluster,
+    dppcmd::type_reader_result guild_member_in::read(dpp::cluster* cluster,
         const dpp::message_create_t* context, std::string_view input)
     {
         add_results_by_mention(context->msg.guild_id, input); // weight: 1.0
@@ -18,17 +18,17 @@ namespace RR
 
         if (results().size() == 1)
         {
-            return dpp::type_reader_result::from_success();
+            return dppcmd::type_reader_result::from_success();
         }
         else if (results().size() > 1)
         {
             std::string response = std::format(Responses::GuildMemberAmbiguous,
-                results().size(), dpp::utility::join(results(), ", ", [](const auto& v) { return v->get_mention(); }));
-            return dpp::type_reader_result::from_error(dpp::command_error::multiple_matches, response);
+                results().size(), dppcmd::utility::join(results(), ", ", [](const auto& v) { return v->get_mention(); }));
+            return dppcmd::type_reader_result::from_error(dppcmd::command_error::multiple_matches, response);
         }
         else
         {
-            return dpp::type_reader_result::from_error(dpp::command_error::object_not_found, "User not found.");
+            return dppcmd::type_reader_result::from_error(dppcmd::command_error::object_not_found, "User not found.");
         }
     }
 

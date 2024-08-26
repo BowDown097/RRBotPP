@@ -1,5 +1,5 @@
 #include "ld.h"
-#include "dpp-command-handler/utils/lexical_cast.h"
+#include "dppcmd/utils/lexical_cast.h"
 #include "utils/strings.h"
 #include <bsoncxx/document/element.hpp>
 #include <bsoncxx/types.hpp>
@@ -14,13 +14,13 @@ namespace RR
         long double get_long_double(const bsoncxx::document::element& element)
         {
             return element
-                ? dpp::utility::lexical_cast<long double>(element.get_decimal128().value.to_string())
+                ? dppcmd::utility::lexical_cast<long double>(element.get_decimal128().value.to_string())
                 : (long double){};
         }
 
         bsoncxx::decimal128 put_long_double(long double value)
         {
-            return bsoncxx::decimal128(dpp::utility::lexical_cast<std::string>(value));
+            return bsoncxx::decimal128(dppcmd::utility::lexical_cast<std::string>(value));
         }
 
         std::string cash2str(long double value)
@@ -44,7 +44,7 @@ namespace RR
                 if (cashValue == "-inf") [[unlikely]]
                     return -std::numeric_limits<long double>::infinity();
 
-                dpp::utility::memstreambuf sbuf(cashValue.data(), cashValue.size());
+                dppcmd::utility::memstreambuf sbuf(cashValue.data(), cashValue.size());
                 std::istream in(&sbuf);
                 in.imbue(std::locale(""));
 

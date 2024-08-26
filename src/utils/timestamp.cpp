@@ -1,5 +1,5 @@
 #include "timestamp.h"
-#include "dpp-command-handler/utils/lexical_cast.h"
+#include "dppcmd/utils/lexical_cast.h"
 #include <chrono>
 #include <format>
 
@@ -37,7 +37,7 @@ namespace RR
             try
             {
                 long secs{};
-                long duration = dpp::utility::lexical_cast<long>(durationStr.substr(0, durationStr.size() - 1));
+                long duration = dppcmd::utility::lexical_cast<long>(durationStr.substr(0, durationStr.size() - 1));
                 switch (durationStr.back())
                 {
                 case 's':
@@ -56,7 +56,7 @@ namespace RR
 
                 return secs;
             }
-            catch (const dpp::utility::bad_lexical_cast& e) {}
+            catch (const dppcmd::utility::bad_lexical_cast& e) {}
 
             return 0;
         }

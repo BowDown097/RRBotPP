@@ -4,8 +4,8 @@
 #include "database/entities/dbpot.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/extensions/cache.h"
 #include "dpp-interactive/interactiveservice.h"
+#include "dppcmd/extensions/cache.h"
 #include "utils/ld.h"
 #include "utils/random.h"
 #include "utils/timestamp.h"
@@ -14,7 +14,7 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
+Gambling::Gambling() : dppcmd::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
 {
     register_command(&Gambling::bet, "bet", "Pick a number between 1 and 100 and place a bet on it against another user. The user and I will also pick a number between 1 and 100. Whoever is closest to the number I pick wins!", "$bet [user] [bet] [number]");
     register_command(&Gambling::roll55, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");
@@ -31,30 +31,30 @@ Gambling::Gambling() : dpp::module<Gambling>("Gambling", "Do you want to test yo
 // for a committed retard to essentially lock someone out of the bot.
 // $slots is also probably the heaviest command in the entire bot,
 // which is the other reason why i introduced the restriction.
-dpp::task<dpp::command_result> Gambling::bet(const dpp::guild_member& member, long double bet, int number)
+dpp::task<dppcmd::command_result> Gambling::bet(const dpp::guild_member& member, long double bet, int number)
 {
     if (member.user_id == context->msg.author.id)
-        co_return dpp::command_result::from_error(Responses::BadIdea);
+        co_return dppcmd::command_result::from_error(Responses::BadIdea);
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
     if (number < 1 || number > 100)
-        co_return dpp::command_result::from_error(std::format(Responses::InputNotInRange, 1, 100));
+        co_return dppcmd::command_result::from_error(std::format(Responses::InputNotInRange, 1, 100));
     if (dpp::user* user = member.get_user(); user->is_bot())
-        co_return dpp::command_result::from_error(Responses::UserIsBot);
+        co_return dppcmd::command_result::from_error(Responses::UserIsBot);
 
-    std::optional<dpp::guild_member> authorMember = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    auto authorMember = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!authorMember)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser authorDbUser = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (authorDbUser.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     DbUser targetDbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (targetDbUser.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasNotEnoughOfThing, member.get_mention(), "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserHasNotEnoughOfThing, member.get_mention(), "cash"));
     if (targetDbUser.usingSlots)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
 
     std::string betStr = RR::utility::cash2str(bet);
     dpp::embed betEmbed = dpp::embed()
@@ -67,27 +67,27 @@ dpp::task<dpp::command_result> Gambling::bet(const dpp::guild_member& member, lo
     int targetNumber;
     dpp::interactive_service* interactive = extra_data<dpp::interactive_service*>();
     auto betResult = co_await interactive->next_message([this, &targetNumber, userId = member.user_id](const dpp::message& m) {
-        targetNumber = dpp::utility::lexical_cast<int>(m.content, false);
+        targetNumber = dppcmd::utility::lexical_cast<int>(m.content, false);
         return m.channel_id == context->msg.channel_id && m.author.id == userId && targetNumber >= 1 && targetNumber <= 100;
     });
 
     if (!betResult.success() || !betResult.value)
-        co_return dpp::command_result::from_error(std::format(Responses::UserDidntRespond, member.get_mention()));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserDidntRespond, member.get_mention()));
     if (targetNumber == number)
-        co_return dpp::command_result::from_error(std::format(Responses::UserPickedSameNumber, member.get_mention()));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserPickedSameNumber, member.get_mention()));
 
     // now, we get the dbusers AGAIN in case something has changed
     authorDbUser = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (authorDbUser.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
     if (authorDbUser.usingSlots)
-        co_return dpp::command_result::from_error(Responses::YouAreGambling);
+        co_return dppcmd::command_result::from_error(Responses::YouAreGambling);
 
     targetDbUser = MongoManager::fetchUser(member.user_id, context->msg.guild_id);
     if (targetDbUser.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::UserHasNotEnoughOfThing, member.get_mention(), "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserHasNotEnoughOfThing, member.get_mention(), "cash"));
     if (targetDbUser.usingSlots)
-        co_return dpp::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
+        co_return dppcmd::command_result::from_error(std::format(Responses::UserIsGambling, member.get_mention()));
 
     int botNumber = RR::utility::random(1, 101);
     int authorDistance = std::abs(botNumber - number);
@@ -108,23 +108,23 @@ dpp::task<dpp::command_result> Gambling::bet(const dpp::guild_member& member, lo
     }
 
     MongoManager::updateUser(targetDbUser);
-    co_return dpp::command_result::from_success(response);
+    co_return dppcmd::command_result::from_success(response);
 }
 
-dpp::task<dpp::command_result> Gambling::dice(long double bet, int number)
+dpp::task<dppcmd::command_result> Gambling::dice(long double bet, int number)
 {
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
     if (number < 1 || number > 6)
-        co_return dpp::command_result::from_error(std::format(Responses::InputNotInRange, 1, 6));
+        co_return dppcmd::command_result::from_error(std::format(Responses::InputNotInRange, 1, 6));
 
-    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     int rolls[3] = { RR::utility::random(1, 7), RR::utility::random(1, 7), RR::utility::random(1, 7) };
     int matches = std::ranges::count(rolls, number);
@@ -173,14 +173,14 @@ dpp::task<dpp::command_result> Gambling::dice(long double bet, int number)
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    co_return dpp::command_result::from_success();
+    co_return dppcmd::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Gambling::doubleGamble()
+dpp::task<dppcmd::command_result> Gambling::doubleGamble()
 {
-    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (RR::utility::random(100) < Constants::DoubleOdds)
@@ -195,16 +195,16 @@ dpp::task<dpp::command_result> Gambling::doubleGamble()
     }
 
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success(Responses::Doubled);
+    co_return dppcmd::command_result::from_success(Responses::Doubled);
 }
 
-dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& betOpt)
+dpp::task<dppcmd::command_result> Gambling::pot(const std::optional<long double>& betOpt)
 {
     if (!betOpt)
     {
         DbPot pot = MongoManager::fetchPot(context->msg.guild_id);
         if (pot.endTime < RR::utility::unixTimestamp())
-            co_return dpp::command_result::from_error("The pot is currently empty.");
+            co_return dppcmd::command_result::from_error("The pot is currently empty.");
 
         dpp::embed embed = dpp::embed()
             .set_color(dpp::colors::red)
@@ -226,20 +226,20 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& b
 
         embed.add_field("Members", memberInfo);
         context->reply(dpp::message(context->msg.channel_id, embed));
-        co_return dpp::command_result::from_success();
+        co_return dppcmd::command_result::from_success();
     }
 
     long double bet = *betOpt;
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
 
-    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     DbPot pot = MongoManager::fetchPot(context->msg.guild_id);
     if (pot.endTime < RR::utility::unixTimestamp())
@@ -260,26 +260,26 @@ dpp::task<dpp::command_result> Gambling::pot(const std::optional<long double>& b
     MongoManager::updatePot(pot);
     MongoManager::updateUser(user);
 
-    co_return dpp::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::cash2str(bet)));
+    co_return dppcmd::command_result::from_success(std::format(Responses::AddedIntoPot, RR::utility::cash2str(bet)));
 }
 
-dpp::task<dpp::command_result> Gambling::roll55(long double bet) { co_return co_await genericGamble(bet, 55, 1); }
-dpp::task<dpp::command_result> Gambling::roll6969(long double bet) { co_return co_await genericGamble(bet, 69.69L, 6968, true); }
-dpp::task<dpp::command_result> Gambling::roll75(long double bet) { co_return co_await genericGamble(bet, 75, 2.6L); }
-dpp::task<dpp::command_result> Gambling::roll99(long double bet) { co_return co_await genericGamble(bet, 99, 89); }
+dpp::task<dppcmd::command_result> Gambling::roll55(long double bet) { co_return co_await genericGamble(bet, 55, 1); }
+dpp::task<dppcmd::command_result> Gambling::roll6969(long double bet) { co_return co_await genericGamble(bet, 69.69L, 6968, true); }
+dpp::task<dppcmd::command_result> Gambling::roll75(long double bet) { co_return co_await genericGamble(bet, 75, 2.6L); }
+dpp::task<dppcmd::command_result> Gambling::roll99(long double bet) { co_return co_await genericGamble(bet, 99, 89); }
 
-dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long double target, long double mult, bool exactRoll)
+dpp::task<dppcmd::command_result> Gambling::genericGamble(long double bet, long double target, long double mult, bool exactRoll)
 {
     if (bet < Constants::TransactionMin)
-        co_return dpp::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
+        co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "bet", RR::utility::cash2str(Constants::TransactionMin)));
 
-    std::optional<dpp::guild_member> member = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
     if (!member)
-        co_return dpp::command_result::from_error(Responses::GetUserFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.cash < bet)
-        co_return dpp::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
+        co_return dppcmd::command_result::from_error(std::format(Responses::NotEnoughOfThing, "cash"));
 
     long double roll = RR::utility::round(RR::utility::random(1.0L, 100.0L), 2);
     if (!exactRoll && user.perks.contains("Speed Demon"))
@@ -320,7 +320,7 @@ dpp::task<dpp::command_result> Gambling::genericGamble(long double bet, long dou
     }
 
     MongoManager::updateUser(user);
-    co_return dpp::command_result::from_success();
+    co_return dppcmd::command_result::from_success();
 }
 
 void Gambling::statUpdate(DbUser& user, bool success, long double gain)

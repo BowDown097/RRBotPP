@@ -1,25 +1,25 @@
 #pragma once
-#include "dpp-command-handler/modules/module.h"
+#include "dppcmd/modules/module.h"
 
 class Consumable;
 class DbUser;
 
 namespace dpp { class guild_member; }
 
-class Goods : public dpp::module<Goods>
+class Goods : public dppcmd::module<Goods>
 {
 public:
     Goods();
 private:
-    dpp::task<dpp::command_result> buy(const dpp::remainder<std::string>& itemIn);
-    dpp::task<dpp::command_result> daily();
-    dpp::task<dpp::command_result> discard(const dpp::remainder<std::string>& itemIn);
-    dpp::command_result itemInfo(const dpp::remainder<std::string>& itemIn);
-    dpp::command_result items(const std::optional<dpp::guild_member>& memberOpt);
-    dpp::task<dpp::command_result> open(const dpp::remainder<std::string>& crateIn);
-    dpp::command_result shop();
+    dpp::task<dppcmd::command_result> buy(const dppcmd::remainder<std::string>& itemIn);
+    dpp::task<dppcmd::command_result> daily();
+    dpp::task<dppcmd::command_result> discard(const dppcmd::remainder<std::string>& itemIn);
+    dppcmd::command_result itemInfo(const dppcmd::remainder<std::string>& itemIn);
+    dppcmd::command_result items(const std::optional<dpp::guild_member>& memberOpt);
+    dpp::task<dppcmd::command_result> open(const dppcmd::remainder<std::string>& crateIn);
+    dppcmd::command_result shop();
 
-    dpp::task<dpp::command_result> use(const dpp::remainder<std::string>& consumableIn);
+    dpp::task<dppcmd::command_result> use(const dppcmd::remainder<std::string>& consumableIn);
 
     dpp::task<std::string> genericUse(const std::string& con, DbUser& user, const dpp::guild_member& gm,
                                       std::string_view successMsg, std::string_view loseMsg, int64_t& cooldown,

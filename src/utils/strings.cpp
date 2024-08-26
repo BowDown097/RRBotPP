@@ -1,5 +1,5 @@
 #include "strings.h"
-#include "dpp-command-handler/utils/strings.h"
+#include "dppcmd/utils/strings.h"
 #include <array>
 #include <algorithm>
 
@@ -11,7 +11,7 @@ namespace RR
         {
             if (substr.size() > str.size())
                 return false;
-            return dpp::utility::iequals(str.substr(0, substr.size()), substr);
+            return dppcmd::utility::iequals(str.substr(0, substr.size()), substr);
         }
 
         std::string& sanitize(std::string& str)

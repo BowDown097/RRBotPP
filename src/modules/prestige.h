@@ -1,11 +1,11 @@
 #pragma once
-#include "dpp-command-handler/modules/module.h"
+#include "dppcmd/modules/module.h"
 
-class Prestige : public dpp::module<Prestige>
+class Prestige : public dppcmd::module<Prestige>
 {
 public:
     Prestige();
 private:
-    dpp::task<dpp::command_result> doPrestige();
-    dpp::command_result prestigeInfo();
+    dpp::task<dppcmd::command_result> doPrestige();
+    dppcmd::command_result prestigeInfo();
 };

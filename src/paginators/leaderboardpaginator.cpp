@@ -2,12 +2,12 @@
 #include "data/constants.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/extensions/cache.h"
 #include "dpp-interactive/pagination/interactionpage.h"
+#include "dppcmd/extensions/cache.h"
 #include "utils/ld.h"
 #include "utils/strings.h"
 #include <bsoncxx/builder/stream/document.hpp>
-#include <dpp/message.h> // needed for dpp::embed_field
+#include <dpp/message.h>
 #include <mongocxx/collection.hpp>
 #include <mongocxx/options/find.hpp>
 
@@ -34,7 +34,7 @@ dpp::interaction_page LeaderboardPaginator::get_or_load_page(int pageIndex)
             break;
 
         DbUser dbUser(*it);
-        const dpp::user* user = dpp::find_guild_user(dbUser.guildId, dbUser.userId);
+        const dpp::user* user = dppcmd::find_guild_user(dbUser.guildId, dbUser.userId);
         if (!user || dbUser.perks.contains("Pacifist"))
         {
             if (pageIndex >= lastPageIndex)

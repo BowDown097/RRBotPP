@@ -4,7 +4,7 @@
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-Fun::Fun() : dpp::module<Fun>("Fun", "Commands that don't do anything related to the cash system and what not: they just exist for fun (hence the name).")
+Fun::Fun() : dppcmd::module<Fun>("Fun", "Commands that don't do anything related to the cash system and what not: they just exist for fun (hence the name).")
 {
     register_command(&Fun::cat, "cat", "Random cat picture!");
     register_command(&Fun::dog, "dog", "Random dog picture!");
@@ -18,16 +18,16 @@ Fun::Fun() : dpp::module<Fun>("Fun", "Commands that don't do anything related to
     register_command(&Fun::waifu, "waifu", "Get yourself a random waifu from our vast and sexy collection of scrumptious waifus.");
 }
 
-dpp::task<dpp::command_result> Fun::cat()
+dpp::task<dppcmd::command_result> Fun::cat()
 {
     dpp::http_request_completion_t result = co_await cluster->co_request(
         "https://api.thecatapi.com/v1/images/search", dpp::m_get);
     if (result.status != 200)
-        co_return dpp::command_result::from_error(Responses::CatFailed);
+        co_return dppcmd::command_result::from_error(Responses::CatFailed);
 
     std::string url = nlohmann::json::parse(result.body, nullptr, false)[0]["url"].template get<std::string>();
     if (url.empty())
-        co_return dpp::command_result::from_error(Responses::CatFailed);
+        co_return dppcmd::command_result::from_error(Responses::CatFailed);
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
@@ -35,19 +35,19 @@ dpp::task<dpp::command_result> Fun::cat()
         .set_image(url);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    co_return dpp::command_result::from_success();
+    co_return dppcmd::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Fun::dog()
+dpp::task<dppcmd::command_result> Fun::dog()
 {
     dpp::http_request_completion_t result = co_await cluster->co_request(
         "https://dog.ceo/api/breeds/image/random", dpp::m_get);
     if (result.status != 200)
-        co_return dpp::command_result::from_error(Responses::DogFailed);
+        co_return dppcmd::command_result::from_error(Responses::DogFailed);
 
     std::string url = nlohmann::json::parse(result.body, nullptr, false)["message"].template get<std::string>();
     if (url.empty())
-        co_return dpp::command_result::from_error(Responses::DogFailed);
+        co_return dppcmd::command_result::from_error(Responses::DogFailed);
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
@@ -55,10 +55,10 @@ dpp::task<dpp::command_result> Fun::dog()
         .set_image(url);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    co_return dpp::command_result::from_success();
+    co_return dppcmd::command_result::from_success();
 }
 
-dpp::command_result Fun::flip()
+dppcmd::command_result Fun::flip()
 {
     dpp::embed embed = dpp::embed().set_color(dpp::colors::red);
     if (RR::utility::random(2) != 0)
@@ -67,14 +67,14 @@ dpp::command_result Fun::flip()
         embed.set_title(Responses::TailsTitle).set_image(Responses::TailsImage);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result Fun::gay(const std::optional<dpp::guild_member>& memberOpt)
+dppcmd::command_result Fun::gay(const std::optional<dpp::guild_member>& memberOpt)
 {
     const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     int gay = !user->is_bot() ? RR::utility::random(101) : 0;
     const char* title = Responses::Gay4;
@@ -93,27 +93,27 @@ dpp::command_result Fun::gay(const std::optional<dpp::guild_member>& memberOpt)
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> Fun::godword(const std::optional<int>& amountOpt)
+dpp::task<dppcmd::command_result> Fun::godword(const std::optional<int>& amountOpt)
 {
     int amount = amountOpt ? amountOpt.value() : 1;
     dpp::http_request_completion_t result = co_await cluster->co_request(
         std::format("http://temple.xslendi.xyz/api/v1/godword?amount={}", amount), dpp::m_get);
     if (result.status != 200)
-        co_return dpp::command_result::from_error(Responses::GodWordFailed);
+        co_return dppcmd::command_result::from_error(Responses::GodWordFailed);
 
     std::string words = nlohmann::json::parse(result.body, nullptr, false)["words"].template get<std::string>();
     if (words.empty())
-        co_return dpp::command_result::from_error(Responses::GodWordFailed);
+        co_return dppcmd::command_result::from_error(Responses::GodWordFailed);
     if (words.size() > 2000)
-        co_return dpp::command_result::from_error(Responses::GodWordTooLong);
+        co_return dppcmd::command_result::from_error(Responses::GodWordTooLong);
 
-    co_return dpp::command_result::from_success(words);
+    co_return dppcmd::command_result::from_success(words);
 }
 
-dpp::command_result Fun::magicConch(const dpp::remainder<std::string>&)
+dppcmd::command_result Fun::magicConch(const dppcmd::remainder<std::string>&)
 {
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
@@ -121,14 +121,14 @@ dpp::command_result Fun::magicConch(const dpp::remainder<std::string>&)
         .set_image(RR::utility::randomElement(Responses::MagicConchImages));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result Fun::penis(const std::optional<dpp::guild_member>& memberOpt)
+dppcmd::command_result Fun::penis(const std::optional<dpp::guild_member>& memberOpt)
 {
     const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     int equals = !user->is_bot() ? RR::utility::random(1, 16) : 20;
     std::string title = Responses::Penis4;
@@ -148,31 +148,31 @@ dpp::command_result Fun::penis(const std::optional<dpp::guild_member>& memberOpt
         .set_description(description);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result Fun::sneed()
+dppcmd::command_result Fun::sneed()
 {
-    return dpp::command_result::from_success(Responses::SneedImage);
+    return dppcmd::command_result::from_success(Responses::SneedImage);
 }
 
-dpp::task<dpp::command_result> Fun::terryQuote()
+dpp::task<dppcmd::command_result> Fun::terryQuote()
 {
     dpp::http_request_completion_t result = co_await cluster->co_request(
         "http://temple.xslendi.xyz/api/v1/quote", dpp::m_get);
     if (result.status != 200)
-        co_return dpp::command_result::from_error(Responses::TerryQuoteFailed);
+        co_return dppcmd::command_result::from_error(Responses::TerryQuoteFailed);
 
     std::string quote = nlohmann::json::parse(result.body, nullptr, false)["quote"].template get<std::string>();
     if (quote.empty())
-        co_return dpp::command_result::from_error(Responses::TerryQuoteFailed);
+        co_return dppcmd::command_result::from_error(Responses::TerryQuoteFailed);
     if (quote.size() > 2000)
-        co_return dpp::command_result::from_error(Responses::TerryQuoteTooLong);
+        co_return dppcmd::command_result::from_error(Responses::TerryQuoteTooLong);
 
-    co_return dpp::command_result::from_success("\"" + quote + "\"");
+    co_return dppcmd::command_result::from_success("\"" + quote + "\"");
 }
 
-dpp::command_result Fun::waifu()
+dppcmd::command_result Fun::waifu()
 {
     auto [name, image] = RR::utility::randomElement(Responses::Waifus);
     dpp::embed embed = dpp::embed()
@@ -182,5 +182,5 @@ dpp::command_result Fun::waifu()
         .set_image(std::string(image));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }

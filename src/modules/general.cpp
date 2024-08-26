@@ -2,15 +2,15 @@
 #include "data/responses.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/extensions/cache.h"
-#include "dpp-command-handler/services/moduleservice.h"
-#include "dpp-command-handler/utils/join.h"
+#include "dppcmd/extensions/cache.h"
+#include "dppcmd/services/moduleservice.h"
+#include "dppcmd/utils/join.h"
 #include "utils/dpp.h"
 #include <boost/locale/conversion.hpp>
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-General::General() : dpp::module<General>("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
+General::General() : dppcmd::module<General>("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
 {
     register_command(&General::achievements, std::initializer_list<std::string> { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
     register_command(&General::help, "help", "View info about a command.", "$help <command>");
@@ -22,56 +22,56 @@ General::General() : dpp::module<General>("General", "The name really explains i
     register_command(&General::userInfo, std::initializer_list<std::string> { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
 }
 
-dpp::command_result General::achievements(const std::optional<dpp::guild_member>& memberOpt)
+dppcmd::command_result General::achievements(const std::optional<dpp::guild_member>& memberOpt)
 {
     const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (dbUser.achievements.empty())
     {
-        return dpp::command_result::from_error(user->id == context->msg.author.id
+        return dppcmd::command_result::from_error(user->id == context->msg.author.id
             ? Responses::YouHaveNoAchs : std::format(Responses::UserHasNoAchs, user->get_mention()));
     }
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Achievements")
-        .set_description(dpp::utility::join(dbUser.achievements, '\n', [](const auto& p) {
+        .set_description(dppcmd::utility::join(dbUser.achievements, '\n', [](const auto& p) {
                                return std::format("**{}**: {}", p.first, p.second); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::help(const std::optional<std::string>& commandName)
+dppcmd::command_result General::help(const std::optional<std::string>& commandName)
 {
     if (!commandName)
-        return dpp::command_result::from_success(Responses::HelpGenericResponse);
+        return dppcmd::command_result::from_success(Responses::HelpGenericResponse);
 
-    std::vector<std::reference_wrapper<const dpp::command_info>> commands = service->search_command(commandName.value());
+    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = service->search_command(commandName.value());
     if (commands.empty())
-        return dpp::command_result::from_error(Responses::NonexistentCommand);
+        return dppcmd::command_result::from_error(Responses::NonexistentCommand);
 
-    const dpp::command_info& command = commands.front();
+    const dppcmd::command_info& command = commands.front();
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
        .set_description("**" + boost::locale::to_title(command.name()) + "**")
        .add_field("Module", command.module()->name())
        .add_field("Description", command.summary())
        .add_field("Usage", command.remarks())
-       .add_field("Aliases", dpp::utility::join(command.aliases(), ", "));
+       .add_field("Aliases", dppcmd::utility::join(command.aliases(), ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::info()
+dppcmd::command_result General::info()
 {
-    std::span<const std::unique_ptr<dpp::module_base>> modules = service->modules();
+    std::span<const std::unique_ptr<dppcmd::module_base>> modules = service->modules();
     uint32_t commandCount = std::accumulate(modules.begin(), modules.end(), 0,
                                             [](uint32_t a, auto& b) { return a + b->commands().size(); });
 
@@ -87,50 +87,50 @@ dpp::command_result General::info()
         .set_footer(Responses::InfoFooter, "");
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::module(const std::string& moduleName)
+dppcmd::command_result General::module(const std::string& moduleName)
 {
-    std::vector<std::reference_wrapper<const dpp::module_base>> modules = service->search_module(moduleName);
+    std::vector<std::reference_wrapper<const dppcmd::module_base>> modules = service->search_module(moduleName);
     if (modules.empty())
-        return dpp::command_result::from_error(Responses::NonexistentModule);
+        return dppcmd::command_result::from_error(Responses::NonexistentModule);
 
-    const dpp::module_base& module = modules.front();
-    std::vector<std::reference_wrapper<const dpp::command_info>> commands = module.commands();
+    const dppcmd::module_base& module = modules.front();
+    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = module.commands();
     std::ranges::sort(commands, [](const auto& a, const auto& b) { return a.get().name() < b.get().name(); });
 
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
        .set_description("**" + module.name() + "**")
-       .add_field("Available commands", dpp::utility::join(commands, ", ", [](const auto& c) { return c.get().name(); }))
+       .add_field("Available commands", dppcmd::utility::join(commands, ", ", [](const auto& c) { return c.get().name(); }))
        .add_field("Description", module.summary());
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::modules()
+dppcmd::command_result General::modules()
 {
-    std::span<const std::unique_ptr<dpp::module_base>> modules = service->modules();
+    std::span<const std::unique_ptr<dppcmd::module_base>> modules = service->modules();
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Modules")
-        .set_description(dpp::utility::join(modules, ", ", [](auto& m) { return m->name(); }));
+        .set_description(dppcmd::utility::join(modules, ", ", [](auto& m) { return m->name(); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::task<dpp::command_result> General::serverInfo()
+dpp::task<dppcmd::command_result> General::serverInfo()
 {
     dpp::guild* guild = dpp::find_guild(context->msg.guild_id);
     if (!guild)
-        co_return dpp::command_result::from_error(Responses::GetGuildFailed);
+        co_return dppcmd::command_result::from_error(Responses::GetGuildFailed);
 
     dpp::confirmation_callback_t stickersResult = co_await cluster->co_guild_stickers_get(guild->id);
     if (stickersResult.is_error())
-        co_return dpp::command_result::from_error(stickersResult.get_error().human_readable);
+        co_return dppcmd::command_result::from_error(stickersResult.get_error().human_readable);
 
     std::string banner = guild->get_banner_url();
     std::string discovery = guild->get_discovery_splash_url();
@@ -177,50 +177,50 @@ dpp::task<dpp::command_result> General::serverInfo()
         .add_field("Vanity URL", !guild->vanity_url_code.empty() ? guild->vanity_url_code : "N/A", true);
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    co_return dpp::command_result::from_success();
+    co_return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::stats(const std::optional<dpp::guild_member>& memberOpt)
+dppcmd::command_result General::stats(const std::optional<dpp::guild_member>& memberOpt)
 {
     const dpp::user* user = memberOpt ? memberOpt->get_user() : &context->msg.author;
     if (!user)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
     if (user->is_bot())
-        return dpp::command_result::from_error(Responses::UserIsBot);
+        return dppcmd::command_result::from_error(Responses::UserIsBot);
 
     DbUser dbUser = MongoManager::fetchUser(user->id, context->msg.guild_id);
     if (dbUser.stats.empty())
     {
-        return dpp::command_result::from_error(user->id == context->msg.author.id
+        return dppcmd::command_result::from_error(user->id == context->msg.author.id
             ? Responses::YouHaveNoStats : std::format(Responses::UserHasNoStats, user->get_mention()));
     }
 
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Stats")
-        .set_description(dpp::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', [](const auto& p) {
-                               return std::format("**{}**: {}", p.first, p.second); }));
+        .set_description(dppcmd::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', [](const auto& p) {
+            return std::format("**{}**: {}", p.first, p.second); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }
 
-dpp::command_result General::userInfo(std::optional<dpp::guild_member> memberOpt)
+dppcmd::command_result General::userInfo(std::optional<dpp::guild_member> memberOpt)
 {
-    if (!(memberOpt || (memberOpt = dpp::find_guild_member_opt(context->msg.guild_id, context->msg.author.id))))
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+    if (!(memberOpt || (memberOpt = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id))))
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     dpp::user* user = memberOpt->get_user();
     if (!user)
-        return dpp::command_result::from_error(Responses::GetUserFailed);
+        return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     dpp::guild* guild = dpp::find_guild(context->msg.guild_id);
     if (!guild)
-        return dpp::command_result::from_error(Responses::GetGuildFailed);
+        return dppcmd::command_result::from_error(Responses::GetGuildFailed);
 
     dpp::channel* channel = dpp::find_channel(context->msg.channel_id);
     if (!channel)
-        return dpp::command_result::from_error(Responses::GetChannelFailed);
+        return dppcmd::command_result::from_error(Responses::GetChannelFailed);
 
     dpp::permission overwrites = guild->permission_overwrites(memberOpt.value(), *channel);
     std::vector<std::pair<dpp::permissions, std::string>> perms = RR::utility::permissionsToList(overwrites);
@@ -241,9 +241,9 @@ dpp::command_result General::userInfo(std::optional<dpp::guild_member> memberOpt
         .add_field("Nickname", memberOpt->get_nickname(), true)
         .add_field("Joined At", dpp::utility::timestamp(memberOpt->joined_at), true)
         .add_field("Created At", dpp::utility::timestamp(user->get_creation_time()), true)
-        .add_field("Permissions", dpp::utility::join(permNames, ", "))
-        .add_field("Roles", dpp::utility::join(roleMentions, ", "));
+        .add_field("Permissions", dppcmd::utility::join(permNames, ", "))
+        .add_field("Roles", dppcmd::utility::join(roleMentions, ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
-    return dpp::command_result::from_success();
+    return dppcmd::command_result::from_success();
 }

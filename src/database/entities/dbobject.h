@@ -9,7 +9,7 @@
 #define bsoncxx_elem_to_map(elem, map, valType) \
     bsoncxx::document::view map##Doc = bsoncxx_get_or_default(elem, document); \
     for (auto it = map##Doc.cbegin(); it != map##Doc.cend(); ++it) \
-        map.emplace(dpp::utility::lexical_cast<decltype(map)::key_type>(it->key()), it->get_##valType());
+        map.emplace(dppcmd::utility::lexical_cast<decltype(map)::key_type>(it->key()), it->get_##valType());
 
 #define bsoncxx_elem_to_set(elem, set, type) \
     bsoncxx::array::view set##Arr = bsoncxx_get_or_default(elem, array); \
@@ -22,7 +22,7 @@
 
 #define bsoncxx_stream_map_into(map, doc) \
     for (const auto& [key, val] : map) \
-        doc << dpp::utility::lexical_cast<std::string>(key) << val;
+        doc << dppcmd::utility::lexical_cast<std::string>(key) << val;
 
 struct DbObject
 {

@@ -1,8 +1,8 @@
 #include "data/credentials.h"
 #include "data/responses.h"
 #include "database/mongomanager.h"
-#include "dpp-command-handler/services/moduleservice.h"
 #include "dpp-interactive/interactiveservice.h"
+#include "dppcmd/services/moduleservice.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
 #include "modules/config.h"
@@ -26,7 +26,7 @@
 
 std::unique_ptr<dpp::cluster> cluster;
 std::unique_ptr<dpp::interactive_service> interactive;
-std::unique_ptr<dpp::module_service> modules;
+std::unique_ptr<dppcmd::module_service> modules;
 
 dpp::task<void> handleMessage(const dpp::message_create_t& event)
 {
@@ -39,30 +39,30 @@ dpp::task<void> handleMessage(const dpp::message_create_t& event)
 
     try
     {
-        dpp::command_result result = co_await modules->handle_message(&event);
+        dppcmd::command_result result = co_await modules->handle_message(&event);
         if (result.message().empty())
             co_return;
 
-        std::optional<dpp::command_error> error = result.error();
-        if (result.success() || error == dpp::command_error::unsuccessful || error == dpp::command_error::unmet_precondition)
+        std::optional<dppcmd::command_error> error = result.error();
+        if (result.success() || error == dppcmd::command_error::unsuccessful || error == dppcmd::command_error::unmet_precondition)
             event.reply(result.message());
     }
-    catch (const dpp::bad_argument_count& ex)
+    catch (const dppcmd::bad_argument_count& ex)
     {
-        std::vector<std::reference_wrapper<const dpp::command_info>> cmds = modules->search_command(ex.command());
+        std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
         event.reply(!cmds.empty()
             ? std::format(Responses::BadArgCount, ex.target_arg_count(), cmds.front().get().remarks())
             : std::format(Responses::ErrorOccurred, ex.what()));
     }
-    catch (const dpp::bad_command_argument& ex)
+    catch (const dppcmd::bad_command_argument& ex)
     {
-        if (ex.error() == dpp::command_error::multiple_matches)
+        if (ex.error() == dppcmd::command_error::multiple_matches)
         {
             event.reply(ex.message());
             co_return;
         }
 
-        std::vector<std::reference_wrapper<const dpp::command_info>> cmds = modules->search_command(ex.command());
+        std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
         event.reply(!cmds.empty()
             ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front().get().remarks())
             : std::format(Responses::ErrorOccurred, ex.what()));
@@ -93,8 +93,8 @@ int main()
     interactive = std::make_unique<dpp::interactive_service>();
     interactive->setup_event_handlers(cluster.get());
 
-    dpp::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
-    modules = std::make_unique<dpp::module_service>(cluster.get(), config);
+    dppcmd::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
+    modules = std::make_unique<dppcmd::module_service>(cluster.get(), config);
     modules->register_type_reader<RR::cash_in>();
     modules->register_type_reader<RR::guild_member_in>();
 
