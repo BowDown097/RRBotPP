@@ -3,9 +3,9 @@
 #include "data/responses.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
-#include "dpp-interactive/pagination/staticpaginator.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/interactiveservice.h"
+#include "dppinteract/pagination/staticpaginator.h"
 #include "entities/goods/ammo.h"
 #include "entities/goods/crate.h"
 #include "entities/goods/item.h"
@@ -235,12 +235,12 @@ dppcmd::command_result Goods::itemInfo(const dppcmd::remainder<std::string>& ite
     return dppcmd::command_result::from_error(Responses::NotAnItem);
 }
 
-inline void createItemsPage(std::vector<dpp::interaction_page>& pages, std::string_view title,
+inline void createItemsPage(std::vector<dppinteract::interaction_page>& pages, std::string_view title,
                             std::ranges::range auto&& range)
 {
     if (std::ranges::empty(range))
         return;
-    pages.push_back(dpp::interaction_page()
+    pages.push_back(dppinteract::interaction_page()
         .set_color(dpp::colors::red)
         .set_title(title)
         .set_description(dppcmd::utility::join(range, '\n')));
@@ -266,7 +266,7 @@ dppcmd::command_result Goods::items(const std::optional<dpp::guild_member>& memb
         | std::views::filter([](const auto& perk) { return perk.second > RR::utility::unixTimestamp(); })
         | std::views::transform([](const auto& perk) { return perk.first; });
 
-    std::vector<dpp::interaction_page> pages;
+    std::vector<dppinteract::interaction_page> pages;
     createItemsPage(pages, "Tools", dbUser.tools);
     createItemsPage(pages, "Weapons", dbUser.weapons);
     createItemsPage(pages, "Perks", applicablePerks);
@@ -281,10 +281,10 @@ dppcmd::command_result Goods::items(const std::optional<dpp::guild_member>& memb
             : Responses::YouHaveNothing);
     }
 
-    auto paginator = std::make_unique<dpp::static_paginator>();
+    auto paginator = std::make_unique<dppinteract::static_paginator>();
     paginator->with_default_buttons().add_user(context->msg.author.id).set_pages(pages);
 
-    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    extra_data<dppinteract::interactive_service*>()->send_paginator(std::move(paginator), *context);
     return dppcmd::command_result::from_success();
 }
 
@@ -389,16 +389,16 @@ dppcmd::command_result Goods::shop()
     auto weapons = Constants::Weapons
         | std::views::transform([](const Weapon& w) { return std::format("**{}**: {}", w.name(), w.information()); });
 
-    std::vector<dpp::interaction_page> pages;
+    std::vector<dppinteract::interaction_page> pages;
     createItemsPage(pages, "Tools", tools);
     createItemsPage(pages, "Weapons", weapons);
     createItemsPage(pages, "Perks", perks);
     createItemsPage(pages, "Crates", crates);
 
-    auto paginator = std::make_unique<dpp::static_paginator>();
+    auto paginator = std::make_unique<dppinteract::static_paginator>();
     paginator->with_default_buttons().add_user(context->msg.author.id).set_pages(pages);
 
-    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    extra_data<dppinteract::interactive_service*>()->send_paginator(std::move(paginator), *context);
     return dppcmd::command_result::from_success();
 }
 

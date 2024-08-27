@@ -1,8 +1,8 @@
 #include "data/credentials.h"
 #include "data/responses.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
 #include "dppcmd/services/moduleservice.h"
+#include "dppinteract/interactiveservice.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
 #include "modules/config.h"
@@ -25,7 +25,7 @@
 #include <sodium.h>
 
 std::unique_ptr<dpp::cluster> cluster;
-std::unique_ptr<dpp::interactive_service> interactive;
+std::unique_ptr<dppinteract::interactive_service> interactive;
 std::unique_ptr<dppcmd::module_service> modules;
 
 dpp::task<void> handleMessage(const dpp::message_create_t& event)
@@ -90,7 +90,7 @@ int main()
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    interactive = std::make_unique<dpp::interactive_service>();
+    interactive = std::make_unique<dppinteract::interactive_service>();
     interactive->setup_event_handlers(cluster.get());
 
     dppcmd::command_service_config config { .command_prefix = '|', .throw_exceptions = true };

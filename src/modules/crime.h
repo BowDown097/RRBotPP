@@ -1,6 +1,6 @@
 #pragma once
-#include "dpp-interactive/interactiveresult.h"
 #include "dppcmd/modules/module.h"
+#include "dppinteract/interactiveresult.h"
 
 namespace dpp { class guild_member; class message; }
 
@@ -24,7 +24,7 @@ private:
     dpp::task<dppcmd::command_result> genericCrime(const std::span<const std::string_view>& successOutcomes,
                                                    const std::span<const std::string_view>& failOutcomes,
                                                    DbUser& user, int64_t& cooldown, bool hasMehOutcome = false);
-    dpp::task<void> handleScavenge(dpp::message& msg, const dpp::interactive_result<dpp::message>& result,
+    dpp::task<void> handleScavenge(dpp::message& msg, const dppinteract::interactive_result<dpp::message>& result,
                                    DbUser& user, const dpp::guild_member& member,
                                    bool successCondition, std::string_view successResponse,
                                    std::string_view timeoutResponse, std::string_view failureResponse);

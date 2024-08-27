@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_COROUTINES "" ON)
-add_subdirectory(dpp-interactive)
 add_subdirectory(dppcmd)
+add_subdirectory(dppinteract)
 
 add_executable(RRBot
     src/main.cpp
@@ -78,7 +78,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(MONGOCXX REQUIRED libmongocxx)
 
 target_include_directories(RRBot PRIVATE src ${Boost_INCLUDE_DIRS} ${MONGOCXX_INCLUDE_DIRS})
-target_link_libraries(RRBot PRIVATE ${Boost_LIBRARIES} ${MONGOCXX_LIBRARIES} dpp-interactive dppcmd)
+target_link_libraries(RRBot PRIVATE ${Boost_LIBRARIES} ${MONGOCXX_LIBRARIES} dppcmd dppinteract)
 
 include(GNUInstallDirs)
 install(TARGETS RRBot

@@ -4,8 +4,8 @@
 #include "database/entities/config/dbconfigroles.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/interactiveservice.h"
 #include "investments.h"
 #include "systems/itemsystem.h"
 #include "utils/ld.h"
@@ -311,8 +311,8 @@ dpp::task<dppcmd::command_result> Crime::scavenge()
     dpp::confirmation_callback_t event = co_await cluster->co_message_create(inMsg);
     dpp::message outMsg = event.get<dpp::message>();
 
-    dpp::interactive_service* interactive = extra_data<dpp::interactive_service*>();
-    dpp::interactive_result<dpp::message> result = co_await interactive->next_message([this](const dpp::message& m) {
+    auto interactive = extra_data<dppinteract::interactive_service*>();
+    dppinteract::interactive_result<dpp::message> result = co_await interactive->next_message([this](const dpp::message& m) {
         return m.channel_id == context->msg.channel_id && m.author.id == context->msg.author.id;
     }, std::chrono::seconds(Constants::ScavengeTimeout));
 
@@ -403,7 +403,7 @@ dpp::task<dppcmd::command_result> Crime::genericCrime(const std::span<const std:
     co_return dppcmd::command_result::from_success();
 }
 
-dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dpp::interactive_result<dpp::message>& result,
+dpp::task<void> Crime::handleScavenge(dpp::message& msg, const dppinteract::interactive_result<dpp::message>& result,
                                       DbUser& user, const dpp::guild_member& member,
                                       bool successCondition, std::string_view successResponse,
                                       std::string_view timeoutResponse, std::string_view failureResponse)

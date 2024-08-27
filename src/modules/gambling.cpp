@@ -4,8 +4,8 @@
 #include "database/entities/dbpot.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/interactiveservice.h"
 #include "utils/ld.h"
 #include "utils/random.h"
 #include "utils/timestamp.h"
@@ -65,13 +65,14 @@ dpp::task<dppcmd::command_result> Gambling::bet(const dpp::guild_member& member,
     context->reply(dpp::message(context->msg.channel_id, betEmbed));
 
     int targetNumber;
-    dpp::interactive_service* interactive = extra_data<dpp::interactive_service*>();
-    auto betResult = co_await interactive->next_message([this, &targetNumber, userId = member.user_id](const dpp::message& m) {
+    auto interactive = extra_data<dppinteract::interactive_service*>();
+    auto messageFilter = [this, &targetNumber, userId = member.user_id](const dpp::message& m) {
         targetNumber = dppcmd::utility::lexical_cast<int>(m.content, false);
         return m.channel_id == context->msg.channel_id && m.author.id == userId && targetNumber >= 1 && targetNumber <= 100;
-    });
+    };
 
-    if (!betResult.success() || !betResult.value)
+    dppinteract::interactive_result<dpp::message> result = co_await interactive->next_message(messageFilter);
+    if (!result.success() || !result.value)
         co_return dppcmd::command_result::from_error(std::format(Responses::UserDidntRespond, member.get_mention()));
     if (targetNumber == number)
         co_return dppcmd::command_result::from_error(std::format(Responses::UserPickedSameNumber, member.get_mention()));

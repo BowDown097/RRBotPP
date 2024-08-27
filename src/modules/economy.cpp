@@ -4,8 +4,8 @@
 #include "database/entities/config/dbconfigranks.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/interactiveservice.h"
 #include "investments.h"
 #include "paginators/leaderboardpaginator.h"
 #include "utils/dpp.h"
@@ -91,7 +91,7 @@ dpp::task<dppcmd::command_result> Economy::leaderboard(const std::optional<std::
     auto paginator = std::make_unique<LeaderboardPaginator>(currencyIsCash ? "cash" : cryptoAbbrev, cryptoValue, context->msg.guild_id);
     paginator->with_default_buttons().add_user(context->msg.author.id);
 
-    extra_data<dpp::interactive_service*>()->send_paginator(std::move(paginator), *context);
+    extra_data<dppinteract::interactive_service*>()->send_paginator(std::move(paginator), *context);
     co_return dppcmd::command_result::from_success();
 }
 

@@ -2,8 +2,8 @@
 #include "data/constants.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/pagination/interactionpage.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/pagination/interactionpage.h"
 #include "utils/ld.h"
 #include "utils/strings.h"
 #include <bsoncxx/builder/stream/document.hpp>
@@ -11,9 +11,9 @@
 #include <mongocxx/collection.hpp>
 #include <mongocxx/options/find.hpp>
 
-dpp::interaction_page LeaderboardPaginator::get_or_load_page(int pageIndex)
+dppinteract::interaction_page LeaderboardPaginator::get_or_load_page(int pageIndex)
 {
-    dpp::interaction_page page;
+    dppinteract::interaction_page page;
     page.set_title(currency == "cash" ? "Leaderboard" : RR::utility::toUpper(currency) + " Leaderboard");
 
     int start = 10 * pageIndex;

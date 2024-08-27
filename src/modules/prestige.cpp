@@ -4,8 +4,8 @@
 #include "database/entities/config/dbconfigranks.h"
 #include "database/entities/dbuser.h"
 #include "database/mongomanager.h"
-#include "dpp-interactive/interactiveservice.h"
 #include "dppcmd/extensions/cache.h"
+#include "dppinteract/interactiveservice.h"
 #include "utils/ld.h"
 #include <dpp/colors.h>
 #include <dpp/dispatcher.h>
@@ -38,8 +38,8 @@ dpp::task<dppcmd::command_result> Prestige::doPrestige()
         co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     context->reply(std::format(Responses::PrestigePrompt, Constants::PrestigeTimeout));
-    dpp::interactive_service* interactive = extra_data<dpp::interactive_service*>();
-    dpp::interactive_result<dpp::message> result = co_await interactive->next_message([this](const dpp::message& m) {
+    auto interactive = extra_data<dppinteract::interactive_service*>();
+    dppinteract::interactive_result<dpp::message> result = co_await interactive->next_message([this](const dpp::message& m) {
         return m.channel_id == context->msg.channel_id && m.author.id == context->msg.author.id;
     }, std::chrono::seconds(Constants::PrestigeTimeout));
 
