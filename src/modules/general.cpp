@@ -198,7 +198,7 @@ dppcmd::command_result General::stats(const std::optional<dpp::guild_member>& me
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Stats")
-        .set_description(dppcmd::utility::join(dbUser.stats | std::ranges::to<std::map>(), '\n', [](const auto& p) {
+        .set_description(dppcmd::utility::join(std::ranges::to<std::map>(dbUser.stats), '\n', [](const auto& p) {
             return std::format("**{}**: {}", p.first, p.second); }));
 
     context->reply(dpp::message(context->msg.channel_id, embed));

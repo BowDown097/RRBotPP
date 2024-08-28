@@ -400,4 +400,9 @@ constexpr const char* NoPrestige = "You haven't prestiged yet!";
 constexpr const char* PrestigeCancelled = "Prestige cancelled.";
 constexpr const char* PrestigePrompt = "Are you SURE you want to prestige? If you don't know already,\nyou will **GET**:\n- +1.2x cash multiplier\n- +1.5x rank costs\n- A shiny, cool new badge on $prestigeinfo\n\nand you will **LOSE**:\n- All money, including in crypto investments\n- All cooldowns\n- All items\n**Respond with \"YES\" if you are sure that you want to prestige. You have {} seconds.**";
 constexpr const char* PrestigeSuccess = "Congratulations, homie! You're now Prestige {}. Check $prestigeinfo for your new prestige perks. Hope you said your goodbyes to all of your stuff, cause it's gone!";
+// ********************
+//        TASKS
+// ********************
+constexpr const char* TaskComplete = "You {} {} {} with your {} and earned **{}**.\nBalance: {}";
+constexpr const char* ToolBroke = "Your {} broke into pieces as soon as you tried to use it. You made no money.";
 }

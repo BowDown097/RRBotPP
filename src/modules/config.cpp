@@ -85,7 +85,7 @@ dppcmd::command_result Config::currentConfig()
     description += "***Ranks***\n";
     if (!ranks.costs.empty())
     {
-        for (const auto& [level, cost] : ranks.costs | std::ranges::to<std::map>())
+        for (const auto& [level, cost] : std::ranges::to<std::map>(ranks.costs))
         {
             description += std::format("Level {}: {} - {}\n",
                 level, dpp::role::get_mention(ranks.ids[level]), RR::utility::cash2str(cost));

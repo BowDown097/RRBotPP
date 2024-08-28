@@ -47,6 +47,7 @@ add_executable(RRBot
     src/modules/investments.h src/modules/investments.cpp
     src/modules/moderation.h src/modules/moderation.cpp
     src/modules/prestige.h src/modules/prestige.cpp
+    src/modules/tasks.h src/modules/tasks.cpp
     src/paginators/leaderboardpaginator.h src/paginators/leaderboardpaginator.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
     src/readers/rrguildmembertypereader.h src/readers/rrguildmembertypereader.cpp

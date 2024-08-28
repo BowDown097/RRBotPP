@@ -299,7 +299,7 @@ dpp::task<dppcmd::command_result> Moderation::purgeUser(const dpp::guild_member&
     auto messagesView = messageMap | std::views::filter(filter) | std::views::keys;
     std::vector<dpp::snowflake> messages = limitIn.has_value()
         ? messagesView | std::views::take(limitIn.value()) | std::ranges::to<std::vector>()
-        : messagesView | std::ranges::to<std::vector>();
+        : std::ranges::to<std::vector>(messagesView);
 
     if (messages.empty())
         co_return dppcmd::command_result::from_error(Responses::PurgeFoundNoMessages);

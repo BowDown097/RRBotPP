@@ -16,6 +16,7 @@
 #include "modules/investments.h"
 #include "modules/moderation.h"
 #include "modules/prestige.h"
+#include "modules/tasks.h"
 #include "readers/cashtypereader.h"
 #include "readers/rrguildmembertypereader.h"
 #include "systems/filtersystem.h"
@@ -107,6 +108,7 @@ int main()
     modules->register_module<Goods>(interactive.get());
     modules->register_modules<Investments, Moderation>();
     modules->register_module<Prestige>(interactive.get());
+    modules->register_module<Tasks>();
 
     cluster->on_log(dpp::utility::cout_logger());
     cluster->on_message_create(&handleMessage);

@@ -157,7 +157,7 @@ bsoncxx::document::value DbUser::toDocument() const
            << bsoncxx::builder::stream::finalize;
 }
 
-std::unordered_map<std::string, int64_t&> DbUser::constructCooldownMap()
+std::unordered_map<std::string, int64_t&, string_hash, std::equal_to<>> DbUser::constructCooldownMap()
 {
     return {
         { "Bully", bullyCooldown },

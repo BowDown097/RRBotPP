@@ -75,7 +75,7 @@ struct DbUser : DbObject
     // this method is NOT safe. validate with resolveAbbreviation() before using!
     long double* getCrypto(std::string_view abbrev);
 
-    std::unordered_map<std::string, int64_t&> constructCooldownMap();
+    std::unordered_map<std::string, int64_t&, string_hash, std::equal_to<>> constructCooldownMap();
     std::unordered_map<std::string, int64_t&> constructEndTimeMap();
     void mergeStat(const std::string& stat, const std::string& value);
     void mergeStats(const std::unordered_map<std::string, std::string>& statsToMerge);
