@@ -220,7 +220,7 @@ dppcmd::command_result Goods::itemInfo(const dppcmd::remainder<std::string>& ite
         {
             embed.set_title(std::string(weapon->name()));
             embed.set_description(std::string(weapon->information()));
-            embed.add_field("Type", std::string(weapon->type()), true);
+            embed.add_field("Type", std::string(weapon->typeAsString()), true);
             embed.add_field("Accuracy", dppcmd::utility::lexical_cast<std::string>(weapon->accuracy()) + '%', true);
             embed.add_field("Ammo", std::string(weapon->ammo()), true);
             embed.add_field("Damage Range", std::format("{} - {}", weapon->damageMin(), weapon->damageMax()), true);

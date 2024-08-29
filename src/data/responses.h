@@ -353,6 +353,7 @@ constexpr const char* InCratesOnly = "That item can only be obtained from crates
 constexpr const char* ItemDiscarded = "You gave your {} to some dude for **{}**.";
 constexpr const char* NotAConsumable = "That is not a consumable!";
 constexpr const char* NotACrate = "That is not a crate!";
+constexpr const char* NotAGun = "That is not a gun!";
 constexpr const char* NotAnItem = "That is not an item!";
 constexpr const char* ReachedMaxCrates = "You already reached the maximum amount of {}s (10).";
 constexpr const char* SkiMaskFail = "You got arrested on suspicion and charged for some other shit before you could even do anything! Systemic racism in action. A homie bailed you out for **{}**, and you had to pay him back.";
@@ -405,4 +406,21 @@ constexpr const char* PrestigeSuccess = "Congratulations, homie! You're now Pres
 // ********************
 constexpr const char* TaskComplete = "You {} {} {} with your {} and earned **{}**.\nBalance: {}";
 constexpr const char* ToolBroke = "Your {} broke into pieces as soon as you tried to use it. You made no money.";
+// ********************
+//       WEAPONS
+// ********************
+constexpr std::array<std::string_view, 3> ShootFails = {
+	"The dude did some fucking Matrix shit and literally dodged your bullet. What in the sac of nuts.",
+	"The gun jammed and the son of a bitch got away. Looks like it's time to kill the retard that made this gun too.",
+	"You just straight up missed! Skill issue."
+};
+constexpr std::array<std::string_view, 2> ShootHits = {
+	"Clean shot. Right in the leg. Cool beans. You dealt **{}** damage.",
+	"You saw a miracle today bro! You shot the dude in the FACE and he lived. He certainly don't look like a miracle now though lmao. You dealt **{}** damage."
+};
+constexpr std::array<std::string_view, 2> ShootKills = {
+	"​HIS HEAD FUCKING BLEW UP LMFAO 😂! GUTS AND GORE BABY! You got **{}**.",
+	"Well damn, that was nice and easy. Dude went down like nothing and is now in a river somewhere 100 miles away. You got **{}**."
+};
+constexpr const char* YouNeedAmmo = "You need ammo!";
 }

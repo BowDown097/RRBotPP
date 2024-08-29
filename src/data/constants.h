@@ -212,13 +212,13 @@ namespace Constants
         Tool("Fishing Rod", 7500, Tool::Tier::Special, Fish.front().second * 7L, Fish.back().second * 15L)
     };
     constexpr std::array Weapons = {
-        Weapon("Glock 17", 30, "Pistol Round", 13, 21, 40, "The classic. Also the weakest. Upgrade when?", "Gun", { "Bronze Crate", "Silver Crate", "Gold Crate", "Diamond Crate" }),
-        Weapon("Python", 35, "Pistol Round", 20, 25, 30, "Nice, small, and hits like a truck. Like a Glock but it doesn't suck.", "Gun", { "Silver Crate", "Gold Crate", "Diamond Crate" }),
-        Weapon("AR-15", 50, "Rifle Round", 40, 45, 25, "\"Ummmm.. This is like a full on military weapon, we should ban it\" said some fucking loser no one cares about. This gun is awesome.", "Gun", { "Gold Crate", "Diamond Crate" }),
-        Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", "Gun", { "Gold Crate", "Diamond Crate" }),
-        Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", "Gun", { "Gold Crate", "Diamond Crate" }),
-        Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", "Gun", { "Gold Crate", "Diamond Crate" }),
-        Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", "Gun", { "Diamond Crate" })
+        Weapon("Glock 17", 30, "Pistol Round", 13, 21, 40, "The classic. Also the weakest. Upgrade when?", Weapon::Type::Gun, { "Bronze Crate", "Silver Crate", "Gold Crate", "Diamond Crate" }),
+        Weapon("Python", 35, "Pistol Round", 20, 25, 30, "Nice, small, and hits like a truck. Like a Glock but it doesn't suck.", Weapon::Type::Gun, { "Silver Crate", "Gold Crate", "Diamond Crate" }),
+        Weapon("AR-15", 50, "Rifle Round", 40, 45, 25, "\"Ummmm.. This is like a full on military weapon, we should ban it\" said some fucking loser no one cares about. This gun is awesome.", Weapon::Type::Gun, { "Gold Crate", "Diamond Crate" }),
+        Weapon("M16", 60, "Rifle Round", 35, 40, 20, "TA-TA-TA! Three round burst. Nice n' accurate. Absolute beauty.", Weapon::Type::Gun, { "Gold Crate", "Diamond Crate" }),
+        Weapon("Intervention", 70, "Sniper Round", 60, 80, 3, "Big dick energy in a weapon. Sexy. Accurate. Hard-hitting. The bros love it, the hoes love it. I love it.", Weapon::Type::Gun, { "Gold Crate", "Diamond Crate" }),
+        Weapon("Barrett M82", 60, "Sniper Round", 50, 70, 7, "Like an Intervention but gayer.", Weapon::Type::Gun, { "Gold Crate", "Diamond Crate" }),
+        Weapon("RPG", 30, "Rocket", 99, 100, 10, "A FUCKIN' ROCKET LAUNCHER!!!! GUN GO BOOM!", Weapon::Type::Gun, { "Diamond Crate" })
     };
     // ********************
     //      SCAVENGE
