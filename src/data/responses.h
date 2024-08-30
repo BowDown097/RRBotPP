@@ -29,7 +29,7 @@ constexpr const char* UserIsBot = "Nope.";
 constexpr const char* UserIsBroke = "{} is broke!";
 constexpr const char* UserIsGambling = "{} is using the slot machine! Let them finish!";
 constexpr const char* YouAreBroke = "You're broke!";
-constexpr const char* YouAreGambling = "You appear to be using the slot machine. You can't do any betting until it is finished.";
+constexpr const char* YouAreGambling = "You appear to be using the slot machine. You can't run any command until it is finished.";
 // ********************
 //    ADMINISTRATION
 // ********************
@@ -164,14 +164,25 @@ constexpr const char* SaucedUser = "You sauced {} {}.";
 constexpr const char* UserBalance = "{} has **{}**.";
 constexpr const char* YourBalance = "You have **{}**.";
 // ********************
-//       ERRORS
+//       EVENTS
 // ********************
 constexpr const char* BadArgCount = "You must provide {} argument(s)!\nCommand usage: ``{}``";
 constexpr const char* BadArgument = "Couldn't understand your input of \"{}\".\n"
                                     "This error info might help: ``{}``\n"
                                     "Or maybe the command usage will: ``{}``";
+constexpr const char* BannedFromBot = "You are banned from using the bot!";
+constexpr const char* CommandDisabled = "This command is disabled!";
+constexpr const char* CommandsDisabled = "Commands are disabled in this channel!";
 constexpr const char* ErrorOccurred = "An error occurred while running the command. You should probably report this! Here's some info: ``{}``";
 constexpr const char* GuildMemberAmbiguous = "Your user input is ambiguous. Run the command again, but this time with the user being one of these {} results:\n{}";
+constexpr const char* JoinMessage = R"(
+Thank you for inviting me to your server!
+You're gonna want to check out $modules. Use $module to view the commands in each module, and $help to see how to use a command.
+The Config module will probably be the most important to look at as an admin or server owner.
+There's a LOT to look at, so it's probably gonna take some time to get everything set up, but trust me, it's worth it.
+Have fun!
+)";
+constexpr const char* ModuleDisabled = "The module for this command is disabled!";
 // ********************
 //         FUN
 // ********************

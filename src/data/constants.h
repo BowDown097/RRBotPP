@@ -35,6 +35,7 @@ namespace Constants
     //     CASH SYSTEM
     // ********************
     constexpr long double CashMultiplier = 1.0L;
+    constexpr long double MessageCash = 30;
     constexpr long double TransactionMin = 100;
     // ********************
     //      COOLDOWNS

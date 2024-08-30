@@ -1,8 +1,8 @@
 #include "data/credentials.h"
-#include "data/responses.h"
 #include "database/mongomanager.h"
 #include "dppcmd/services/moduleservice.h"
 #include "dppinteract/interactiveservice.h"
+#include "events.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
 #include "modules/config.h"
@@ -20,7 +20,6 @@
 #include "modules/weapons.h"
 #include "readers/cashtypereader.h"
 #include "readers/rrguildmembertypereader.h"
-#include "systems/filtersystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
 #include <dpp/cluster.h>
@@ -29,51 +28,6 @@
 std::unique_ptr<dpp::cluster> cluster;
 std::unique_ptr<dppinteract::interactive_service> interactive;
 std::unique_ptr<dppcmd::module_service> modules;
-
-dpp::task<void> handleMessage(const dpp::message_create_t& event)
-{
-    if (event.msg.content.empty() || event.msg.author.is_bot())
-        co_return;
-
-    co_await FilterSystem::doFilteredWordCheck(event.msg, cluster.get());
-    co_await FilterSystem::doInviteCheck(event.msg, cluster.get());
-    co_await FilterSystem::doScamCheck(event.msg, cluster.get());
-
-    try
-    {
-        dppcmd::command_result result = co_await modules->handle_message(&event);
-        if (result.message().empty())
-            co_return;
-
-        std::optional<dppcmd::command_error> error = result.error();
-        if (result.success() || error == dppcmd::command_error::unsuccessful || error == dppcmd::command_error::unmet_precondition)
-            event.reply(result.message());
-    }
-    catch (const dppcmd::bad_argument_count& ex)
-    {
-        std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
-        event.reply(!cmds.empty()
-            ? std::format(Responses::BadArgCount, ex.target_arg_count(), cmds.front().get().remarks())
-            : std::format(Responses::ErrorOccurred, ex.what()));
-    }
-    catch (const dppcmd::bad_command_argument& ex)
-    {
-        if (ex.error() == dppcmd::command_error::multiple_matches)
-        {
-            event.reply(ex.message());
-            co_return;
-        }
-
-        std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
-        event.reply(!cmds.empty()
-            ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front().get().remarks())
-            : std::format(Responses::ErrorOccurred, ex.what()));
-    }
-    catch (const std::exception& ex)
-    {
-        event.reply(std::format(Responses::ErrorOccurred, ex.what()));
-    }
-}
 
 int main()
 {
@@ -111,9 +65,7 @@ int main()
     modules->register_module<Prestige>(interactive.get());
     modules->register_modules<Tasks, Weapons>();
 
-    cluster->on_log(dpp::utility::cout_logger());
-    cluster->on_message_create(&handleMessage);
-
+    Events::connectEvents(cluster.get(), modules.get());
     MonitorSystem::initialize(cluster.get());
 
     cluster->start(dpp::st_wait);

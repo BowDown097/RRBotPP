@@ -9,6 +9,7 @@ add_subdirectory(dppcmd)
 add_subdirectory(dppinteract)
 
 add_executable(RRBot
+    src/events.h src/events.cpp
     src/main.cpp
     src/data/constants.h
     src/data/credentials.h src/data/credentials.cpp
