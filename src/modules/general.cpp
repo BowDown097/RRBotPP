@@ -52,18 +52,18 @@ dppcmd::command_result General::help(const std::optional<std::string>& commandNa
     if (!commandName)
         return dppcmd::command_result::from_success(Responses::HelpGenericResponse);
 
-    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = service->search_command(commandName.value());
-    if (commands.empty())
+    std::vector<const dppcmd::command_info*> cmds = service->search_command(commandName.value());
+    if (cmds.empty())
         return dppcmd::command_result::from_error(Responses::NonexistentCommand);
 
-    const dppcmd::command_info& command = commands.front();
+    const dppcmd::command_info* cmd = cmds.front();
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
-       .set_description("**" + boost::locale::to_title(command.name()) + "**")
-       .add_field("Module", command.module()->name())
-       .add_field("Description", command.summary())
-       .add_field("Usage", command.remarks())
-       .add_field("Aliases", dppcmd::utility::join(command.aliases(), ", "));
+       .set_description("**" + boost::locale::to_title(cmd->name()) + "**")
+       .add_field("Module", cmd->module()->name())
+       .add_field("Description", cmd->summary())
+       .add_field("Usage", cmd->remarks())
+       .add_field("Aliases", dppcmd::utility::join(cmd->aliases(), ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dppcmd::command_result::from_success();
@@ -73,7 +73,7 @@ dppcmd::command_result General::info()
 {
     std::span<const std::unique_ptr<dppcmd::module_base>> modules = service->modules();
     uint32_t commandCount = std::accumulate(modules.begin(), modules.end(), 0,
-                                            [](uint32_t a, auto& b) { return a + b->commands().size(); });
+        [](uint32_t a, const std::unique_ptr<dppcmd::module_base>& b) { return a + b->commands().size(); });
 
     dpp::embed embed = dpp::embed()
         .set_author(Responses::InfoTitle, "", cluster->me.get_avatar_url())
@@ -92,19 +92,21 @@ dppcmd::command_result General::info()
 
 dppcmd::command_result General::module(const std::string& moduleName)
 {
-    std::vector<std::reference_wrapper<const dppcmd::module_base>> modules = service->search_module(moduleName);
+    std::vector<const dppcmd::module_base*> modules = service->search_module(moduleName);
     if (modules.empty())
         return dppcmd::command_result::from_error(Responses::NonexistentModule);
 
-    const dppcmd::module_base& module = modules.front();
-    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = module.commands();
-    std::ranges::sort(commands, [](const auto& a, const auto& b) { return a.get().name() < b.get().name(); });
+    const dppcmd::module_base* module = modules.front();
+    std::vector<const dppcmd::command_info*> cmds = module->commands();
+
+    auto nameFilter = [](const dppcmd::command_info* ci) { return ci->name(); };
+    std::ranges::sort(cmds, {}, nameFilter);
 
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
-       .set_description("**" + module.name() + "**")
-       .add_field("Available commands", dppcmd::utility::join(commands, ", ", [](const auto& c) { return c.get().name(); }))
-       .add_field("Description", module.summary());
+       .set_description("**" + module->name() + "**")
+       .add_field("Available commands", dppcmd::utility::join(cmds, ", ", nameFilter))
+       .add_field("Description", module->summary());
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dppcmd::command_result::from_success();

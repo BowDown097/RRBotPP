@@ -239,7 +239,7 @@ dpp::task<dppcmd::command_result> Moderation::purgeRange(uint64_t from, uint64_t
     std::vector<std::pair<dpp::snowflake, dpp::message>> messageMap(
         std::make_move_iterator(messageUnorderedMap.begin()),
         std::make_move_iterator(messageUnorderedMap.end()));
-    std::ranges::sort(messageMap, [](const auto& a, const auto& b) { return a.first < b.first; });
+    std::ranges::sort(messageMap, {}, [](const std::pair<dpp::snowflake, dpp::message>& p) { return p.first; });
 
     dpp::confirmation_callback_t get2Conf = co_await cluster->co_messages_get(context->msg.channel_id, 0, messageMap.front().first, 0, 1);
     if (get2Conf.is_error())

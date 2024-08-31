@@ -25,7 +25,7 @@ dpp::task<dppcmd::command_result> Prestige::doPrestige()
     std::vector<std::pair<int, long double>> rankCosts(
         std::make_move_iterator(ranks.costs.begin()),
         std::make_move_iterator(ranks.costs.end()));
-    std::ranges::sort(rankCosts, [](const auto& a, const auto& b) { return a.second < b.second; });
+    std::ranges::sort(rankCosts, {}, [](const std::pair<int, long double>& p) { return p.second; });
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (long double prestigeCost = rankCosts.back().second * (1 + 0.5L * user.prestige); user.cash < prestigeCost)

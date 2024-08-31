@@ -35,12 +35,12 @@ dppcmd::command_result BotOwner::disableCommandGlobal(const std::string& cmd)
     if (dppcmd::utility::iequals(cmd, "disablecmdglobal") || dppcmd::utility::iequals(cmd, "enablecmdglobal"))
         return dppcmd::command_result::from_error(Responses::BadIdea);
 
-    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = service->search_command(cmd);
-    if (commands.empty())
+    std::vector<const dppcmd::command_info*> cmds = service->search_command(cmd);
+    if (cmds.empty())
         return dppcmd::command_result::from_error(Responses::NonexistentCommand);
 
     DbConfigGlobal globalConfig = MongoManager::fetchGlobalConfig();
-    globalConfig.disabledCommands.insert(commands[0].get().name());
+    globalConfig.disabledCommands.insert(cmds.front()->name());
 
     MongoManager::updateGlobalConfig(globalConfig);
     return dppcmd::command_result::from_success(Responses::SetCommandDisabled);

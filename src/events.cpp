@@ -18,7 +18,7 @@
 #include "utils/timestamp.h"
 #include <dpp/cluster.h>
 
-dpp::task<void> on_guild_create(const dpp::guild_create_t& event, dpp::cluster* cluster)
+dpp::task<void> onGuildCreate(const dpp::guild_create_t& event, dpp::cluster* cluster)
 {
     if (!event.created)
         co_return;
@@ -32,9 +32,10 @@ dpp::task<void> on_guild_create(const dpp::guild_create_t& event, dpp::cluster* 
         co_await cluster->co_message_create(dpp::message(defaultChannel->id, Responses::JoinMessage));
 }
 
-dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::cluster* cluster, dppcmd::module_service* modules)
+dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster* cluster, dppcmd::module_service* modules)
 {
-    if (event.msg.content.empty() || event.msg.author.is_bot())
+    const std::string& content = event.msg.content;
+    if (content.empty() || event.msg.author.is_bot())
         co_return;
 
     co_await FilterSystem::doFilteredWordCheck(event.msg, cluster);
@@ -42,13 +43,13 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
     co_await FilterSystem::doScamCheck(event.msg, cluster);
 
     DbUser user = MongoManager::fetchUser(event.msg.author.id, event.msg.guild_id);
-    if (event.msg.content.starts_with(modules->config().command_prefix))
+    if (content.starts_with(modules->config().command_prefix))
     {
         try
         {
-            auto commands = modules->search_command(event.msg.content.substr(1,
-                event.msg.content.find(modules->config().separator_char) - 1));
-            if (commands.empty())
+            std::vector<const dppcmd::command_info*> cmds = modules->search_command(
+                content.substr(1, content.find(modules->config().separator_char) - 1));
+            if (cmds.empty())
                 co_return;
 
             if (user.usingSlots)
@@ -58,10 +59,10 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
             }
 
             DbConfigChannels channels = MongoManager::fetchChannelConfig(event.msg.guild_id);
-            const dppcmd::command_info& command = commands.front().get();
-            constexpr std::array<std::string_view, 4> exemptModules = { "Administration", "BotOwner", "Config", "Moderation" };
+            const dppcmd::command_info* cmd = cmds.front();
+            constexpr std::array exemptModules = { "Administration", "BotOwner", "Config", "Moderation" };
 
-            if (!std::ranges::contains(exemptModules, command.module()->name()) &&
+            if (!std::ranges::contains(exemptModules, cmd->module()->name()) &&
                 !channels.whitelistedChannels.empty() &&
                 !channels.whitelistedChannels.contains(event.msg.channel_id))
             {
@@ -77,12 +78,12 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
             }
 
             DbConfigMisc misc = MongoManager::fetchMiscConfig(event.msg.guild_id);
-            if (globalConfig.disabledCommands.contains(command.name()) || misc.disabledCommands.contains(command.name()))
+            if (globalConfig.disabledCommands.contains(cmd->name()) || misc.disabledCommands.contains(cmd->name()))
             {
                 event.reply(Responses::CommandDisabled);
                 co_return;
             }
-            if (misc.disabledModules.contains(command.module()->name()))
+            if (misc.disabledModules.contains(cmd->module()->name()))
             {
                 event.reply(Responses::ModuleDisabled);
                 co_return;
@@ -93,14 +94,15 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
                 co_return;
 
             std::optional<dppcmd::command_error> error = result.error();
-            if (result.success() || error == dppcmd::command_error::unsuccessful || error == dppcmd::command_error::unmet_precondition)
+            using CmdErr = dppcmd::command_error;
+            if (result.success() || error == CmdErr::unsuccessful || error == CmdErr::unmet_precondition)
                 event.reply(result.message());
         }
         catch (const dppcmd::bad_argument_count& ex)
         {
-            std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
+            std::vector<const dppcmd::command_info*> cmds = modules->search_command(ex.command());
             event.reply(!cmds.empty()
-                ? std::format(Responses::BadArgCount, ex.target_arg_count(), cmds.front().get().remarks())
+                ? std::format(Responses::BadArgCount, ex.target_arg_count(), cmds.front()->remarks())
                 : std::format(Responses::ErrorOccurred, ex.what()));
         }
         catch (const dppcmd::bad_command_argument& ex)
@@ -111,9 +113,9 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
                 co_return;
             }
 
-            std::vector<std::reference_wrapper<const dppcmd::command_info>> cmds = modules->search_command(ex.command());
+            std::vector<const dppcmd::command_info*> cmds = modules->search_command(ex.command());
             event.reply(!cmds.empty()
-                ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front().get().remarks())
+                ? std::format(Responses::BadArgument, ex.arg(), ex.message(), cmds.front()->remarks())
                 : std::format(Responses::ErrorOccurred, ex.what()));
         }
         catch (const std::exception& ex)
@@ -153,7 +155,7 @@ dpp::task<void> on_message_create(const dpp::message_create_t& event, dpp::clust
 
 void Events::connectEvents(dpp::cluster* cluster, dppcmd::module_service* modules)
 {
-    cluster->on_guild_create(std::bind(&on_guild_create, std::placeholders::_1, cluster));
+    cluster->on_guild_create(std::bind(&onGuildCreate, std::placeholders::_1, cluster));
     cluster->on_log(dpp::utility::cout_logger());
-    cluster->on_message_create(std::bind(&on_message_create, std::placeholders::_1, cluster, modules));
+    cluster->on_message_create(std::bind(&onMessageCreate, std::placeholders::_1, cluster, modules));
 }

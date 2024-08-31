@@ -116,12 +116,12 @@ dppcmd::command_result Config::disableCommand(const std::string& cmd)
     if (dppcmd::utility::iequals(cmd, "disablecmd") || dppcmd::utility::iequals(cmd, "enablecmd"))
         return dppcmd::command_result::from_error(Responses::BadIdea);
 
-    std::vector<std::reference_wrapper<const dppcmd::command_info>> commands = service->search_command(cmd);
-    if (commands.empty())
+    std::vector<const dppcmd::command_info*> cmds = service->search_command(cmd);
+    if (cmds.empty())
         return dppcmd::command_result::from_error(Responses::NonexistentCommand);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    misc.disabledCommands.insert(commands[0].get().name());
+    misc.disabledCommands.insert(cmds.front()->name());
 
     MongoManager::updateMiscConfig(misc);
     return dppcmd::command_result::from_success(Responses::SetCommandDisabled);
@@ -145,12 +145,12 @@ dppcmd::command_result Config::disableModule(const std::string& module)
     if (dppcmd::utility::iequals(module, "Config"))
         return dppcmd::command_result::from_error(Responses::BadIdea);
 
-    std::vector<std::reference_wrapper<const dppcmd::module_base>> modules = service->search_module(module);
+    std::vector<const dppcmd::module_base*> modules = service->search_module(module);
     if (modules.empty())
         return dppcmd::command_result::from_error(Responses::NonexistentModule);
 
     DbConfigMisc misc = MongoManager::fetchMiscConfig(context->msg.guild_id);
-    misc.disabledModules.insert(modules[0].get().name());
+    misc.disabledModules.insert(modules.front()->name());
 
     MongoManager::updateMiscConfig(misc);
     return dppcmd::command_result::from_success(Responses::SetModuleDisabled);
