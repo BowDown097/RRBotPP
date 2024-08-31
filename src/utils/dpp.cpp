@@ -25,22 +25,22 @@ namespace RR
             return out;
         }
 
-		dpp::channel* getDefaultChannel(const std::vector<dpp::snowflake>& channelIds, const dpp::user* botUser)
-		{
-			auto channelFilter = [botUser](dpp::channel* c) {
-				return c && c->get_user_permissions(botUser).can(dpp::p_view_channel) && c->is_text_channel();
-			};
+        dpp::channel* getDefaultChannel(const std::vector<dpp::snowflake>& channelIds, const dpp::user* botUser)
+        {
+            auto channelFilter = [botUser](dpp::channel* c) {
+                return c && c->get_user_permissions(botUser).can(dpp::p_view_channel) && c->is_text_channel();
+            };
 
-			auto validChannelsRange = channelIds
-				| std::views::transform([](dpp::snowflake id) { return dpp::find_channel(id); })
-				| std::views::filter(channelFilter);
-			if (std::ranges::empty(validChannelsRange))
-				return nullptr;
+            auto validChannelsRange = channelIds
+                | std::views::transform([](dpp::snowflake id) { return dpp::find_channel(id); })
+                | std::views::filter(channelFilter);
+            if (std::ranges::empty(validChannelsRange))
+                return nullptr;
 
-			std::vector<dpp::channel*> validChannels = std::ranges::to<std::vector>(validChannelsRange);
-			std::ranges::sort(validChannels, {}, [](const dpp::channel* c) { return c->position; });
-			return validChannels.front();
-		}
+            std::vector<dpp::channel*> validChannels = std::ranges::to<std::vector>(validChannelsRange);
+            std::ranges::sort(validChannels, {}, [](const dpp::channel* c) { return c->position; });
+            return validChannels.front();
+        }
 
         std::string getDisplayAvatar(const dpp::guild_member& guildMember, const dpp::user* user)
         {
@@ -50,15 +50,15 @@ namespace RR
                 return user->get_avatar_url();
         }
 
-		dpp::task<time_t> getJoinTime(dpp::cluster* cluster, dpp::guild* guild, dpp::snowflake userId)
-		{
-			auto memberFilter = [userId](const std::pair<dpp::snowflake, dpp::guild_member>& p) { return p.first == userId; };
-			if (auto it = std::ranges::find_if(guild->members, memberFilter); it != guild->members.end())
-				co_return it->second.joined_at;
-			else if (auto memberConf = co_await cluster->co_guild_get_member(guild->id, userId); !memberConf.is_error())
-				co_return memberConf.get<dpp::guild_member>().joined_at;
-			co_return time_t{};
-		}
+        dpp::task<time_t> getJoinTime(dpp::cluster* cluster, dpp::guild* guild, dpp::snowflake userId)
+        {
+            auto memberFilter = [userId](const std::pair<dpp::snowflake, dpp::guild_member>& p) { return p.first == userId; };
+            if (auto it = std::ranges::find_if(guild->members, memberFilter); it != guild->members.end())
+                co_return it->second.joined_at;
+            else if (auto memberConf = co_await cluster->co_guild_get_member(guild->id, userId); !memberConf.is_error())
+                co_return memberConf.get<dpp::guild_member>().joined_at;
+            co_return time_t{};
+        }
 
         std::vector<dpp::snowflake> getLast14DaysMessages(const dpp::message_map& map)
         {

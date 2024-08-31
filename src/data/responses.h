@@ -421,17 +421,17 @@ constexpr const char* ToolBroke = "Your {} broke into pieces as soon as you trie
 //       WEAPONS
 // ********************
 constexpr std::array<std::string_view, 3> ShootFails = {
-	"The dude did some fucking Matrix shit and literally dodged your bullet. What in the sac of nuts.",
-	"The gun jammed and the son of a bitch got away. Looks like it's time to kill the retard that made this gun too.",
-	"You just straight up missed! Skill issue."
+    "The dude did some fucking Matrix shit and literally dodged your bullet. What in the sac of nuts.",
+    "The gun jammed and the son of a bitch got away. Looks like it's time to kill the retard that made this gun too.",
+    "You just straight up missed! Skill issue."
 };
 constexpr std::array<std::string_view, 2> ShootHits = {
-	"Clean shot. Right in the leg. Cool beans. You dealt **{}** damage.",
-	"You saw a miracle today bro! You shot the dude in the FACE and he lived. He certainly don't look like a miracle now though lmao. You dealt **{}** damage."
+    "Clean shot. Right in the leg. Cool beans. You dealt **{}** damage.",
+    "You saw a miracle today bro! You shot the dude in the FACE and he lived. He certainly don't look like a miracle now though lmao. You dealt **{}** damage."
 };
 constexpr std::array<std::string_view, 2> ShootKills = {
-	"​HIS HEAD FUCKING BLEW UP LMFAO 😂! GUTS AND GORE BABY! You got **{}**.",
-	"Well damn, that was nice and easy. Dude went down like nothing and is now in a river somewhere 100 miles away. You got **{}**."
+    "​HIS HEAD FUCKING BLEW UP LMFAO 😂! GUTS AND GORE BABY! You got **{}**.",
+    "Well damn, that was nice and easy. Dude went down like nothing and is now in a river somewhere 100 miles away. You got **{}**."
 };
 constexpr const char* YouNeedAmmo = "You need ammo!";
 }

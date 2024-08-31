@@ -5,10 +5,10 @@
 class Weapon : public Item
 {
 public:
-	enum class Type { Gun, Knife };
+    enum class Type { Gun, Knife };
 
-	consteval Weapon(std::string_view name, int accuracy, std::string_view ammo, int damageMin,
-					 int damageMax, int dropChance, std::string_view information, Type type,
+    consteval Weapon(std::string_view name, int accuracy, std::string_view ammo, int damageMin,
+                     int damageMax, int dropChance, std::string_view information, Type type,
                      std::initializer_list<std::string_view> insideCrates)
         : Item(name, 0), m_accuracy(accuracy), m_ammo(ammo), m_damageMax(damageMax), m_damageMin(damageMin),
           m_dropChance(dropChance), m_information(information), m_type(type)
@@ -28,11 +28,11 @@ public:
     constexpr std::span<const std::string_view> insideCrates() const
     { return std::span(m_insideCrates.first.begin(), m_insideCrates.second); }
 
-	constexpr std::string_view typeAsString() const
-	{
-		static constexpr std::array<std::string_view, 2> stringValues = { "Gun", "Knife" };
-		return stringValues[static_cast<int>(m_type)];
-	}
+    constexpr std::string_view typeAsString() const
+    {
+        static constexpr std::array<std::string_view, 2> stringValues = { "Gun", "Knife" };
+        return stringValues[static_cast<int>(m_type)];
+    }
 private:
     int m_accuracy;
     std::string_view m_ammo;

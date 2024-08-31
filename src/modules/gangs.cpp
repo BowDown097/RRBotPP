@@ -429,9 +429,9 @@ dpp::task<dppcmd::command_result> Gangs::withdrawVault(long double amount)
     if (amount < Constants::TransactionMin)
         co_return dppcmd::command_result::from_error(std::format(Responses::CashInputTooLow, "withdraw", RR::utility::cash2str(Constants::TransactionMin)));
 
-	auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
-	if (!member)
-		co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
+    auto member = dppcmd::find_guild_member_opt(context->msg.guild_id, context->msg.author.id);
+    if (!member)
+        co_return dppcmd::command_result::from_error(Responses::GetUserFailed);
 
     DbUser user = MongoManager::fetchUser(context->msg.author.id, context->msg.guild_id);
     if (user.gang.empty())
