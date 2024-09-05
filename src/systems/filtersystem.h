@@ -1,16 +1,20 @@
 #pragma once
 #include <dpp/coro/task.h>
+#include <set>
 
 namespace dpp
 {
     class cluster;
+    class embed;
     class message;
 }
 
+class DbConfigMisc;
+
 namespace FilterSystem
 {
-    bool containsFilteredWord(const dpp::snowflake& guildId, std::string_view input);
-    dpp::task<void> doFilteredWordCheck(const dpp::message& message, dpp::cluster* cluster);
-    dpp::task<void> doInviteCheck(const dpp::message& message, dpp::cluster* cluster);
-    dpp::task<void> doScamCheck(const dpp::message& message, dpp::cluster* cluster);
+    bool containsFilteredTerm(std::string_view input, const std::set<std::string>& terms);
+    dpp::task<bool> containsInvite(std::string_view input, dpp::cluster* cluster);
+    bool containsScam(std::string_view input, const std::vector<dpp::embed>& embeds);
+    dpp::task<bool> messageIsBad(const dpp::message& msg, dpp::cluster* cluster, const DbConfigMisc& misc);
 }

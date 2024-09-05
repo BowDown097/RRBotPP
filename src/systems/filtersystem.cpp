@@ -1,7 +1,6 @@
 #include "filtersystem.h"
-#include "database/entities/config/dbconfigchannels.h"
 #include "database/entities/config/dbconfigmisc.h"
-#include "database/mongomanager.h"
+#include "utils/regex.h"
 #include "utils/strings.h"
 #include <boost/url.hpp>
 #include <dpp/cluster.h>
@@ -19,9 +18,11 @@
 
 namespace FilterSystem
 {
-    bool containsFilteredWord(const dpp::snowflake& guildId, std::string_view input)
+    bool containsFilteredTerm(std::string_view input, const std::set<std::string>& terms)
     {
-        DbConfigMisc misc = MongoManager::fetchMiscConfig(guildId);
+        if (terms.empty())
+            return false;
+
         std::string inputLower = RR::utility::toLower(input);
         std::string cleaned = inputLower
             | std::views::filter([](unsigned char c) { return !std::isspace(c); })
@@ -44,23 +45,16 @@ namespace FilterSystem
         uspoof_getSkeletonUnicodeString(sc.getAlias(), 0, cleanedUnicode, cleanedSkeleton, &status);
         ICU_FAILURE_CHECK(status, "Failed to create skeleton for cleaned input");
 
-        for (const std::string& term : misc.filteredTerms)
+        for (const std::string& term : terms)
         {
             icu::UnicodeString termUnicode = icu::UnicodeString::fromUTF8(term);
             icu::UnicodeString termSkeleton;
             uspoof_getSkeletonUnicodeString(sc.getAlias(), 0, termUnicode, termSkeleton, &status);
             ICU_FAILURE_CHECK(status, "Failed to create skeleton for filtered term");
 
-            if (std::ranges::any_of(term, [](unsigned char c) { return std::isspace(c); }))
-            {
-                if (inputSkeleton.indexOf(termSkeleton) != -1)
-                    return true;
-            }
-            else
-            {
-                if (cleanedSkeleton.indexOf(termSkeleton) != -1)
-                    return true;
-            }
+            bool hasWhitespace = std::ranges::any_of(term, [](unsigned char c) { return std::isspace(c); });
+            if ((hasWhitespace ? inputSkeleton : cleanedSkeleton).indexOf(termSkeleton) != -1)
+                return true;
         }
 
         return false;
@@ -74,61 +68,32 @@ namespace FilterSystem
     #endif
     }
 
-    dpp::task<void> doFilteredWordCheck(const dpp::message& message, dpp::cluster* cluster)
+    dpp::task<bool> containsInvite(std::string_view input, dpp::cluster* cluster)
     {
-        DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (channels.noFilterChannels.contains(message.channel_id))
-            co_return;
-        if (containsFilteredWord(message.guild_id, message.content))
-            co_await cluster->co_message_delete(message.id, message.channel_id);
-    }
-
-    dpp::task<void> doInviteCheck(const dpp::message& message, dpp::cluster* cluster)
-    {
-        DbConfigMisc misc = MongoManager::fetchMiscConfig(message.guild_id);
-        if (!misc.inviteFilterEnabled)
-            co_return;
-
-        DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (channels.noFilterChannels.contains(message.channel_id))
-            co_return;
-
         static std::regex inviteRegex(R"(discord(?:\.com\/invite|app\.com\/invite|\.gg|\.me|\.io)\/([a-zA-Z0-9\-]+))");
-        std::smatch res;
+        RR::utility::svmatch res;
 
-        for (auto it = message.content.cbegin();
-             std::regex_search(it, message.content.cend(), res, inviteRegex);
-             it = res.suffix().first)
+        for (auto it = input.cbegin(); std::regex_search(it, input.cend(), res, inviteRegex); it = res.suffix().first)
         {
             dpp::confirmation_callback_t inviteEvent = co_await cluster->co_invite_get(res[1].str());
             if (!inviteEvent.is_error())
-            {
-                co_await cluster->co_message_delete(message.id, message.channel_id);
-                break;
-            }
+                co_return true;
         }
+
+        co_return false;
     }
 
-    dpp::task<void> doScamCheck(const dpp::message& message, dpp::cluster* cluster)
+    bool containsScam(std::string_view input, const std::vector<dpp::embed>& embeds)
     {
-        DbConfigMisc misc = MongoManager::fetchMiscConfig(message.guild_id);
-        if (!misc.scamFilterEnabled)
-            co_return;
-
-        DbConfigChannels channels = MongoManager::fetchChannelConfig(message.guild_id);
-        if (channels.noFilterChannels.contains(message.channel_id))
-            co_return;
-
-        std::string content = RR::utility::toLower(message.content);
+        std::string content = RR::utility::toLower(input);
         if ((content.contains("skins") && content.contains("imgur")) ||
             (content.contains("nitro") && content.contains("free") && content.contains("http")) ||
             (content.contains("nitro") && content.contains("steam")))
         {
-            co_await cluster->co_message_delete(message.id, message.channel_id);
-            co_return;
+            return true;
         }
 
-        for (const dpp::embed& embed : message.embeds)
+        for (const dpp::embed& embed : embeds)
         {
             if (embed.title.empty() || embed.url.empty())
                 continue;
@@ -148,10 +113,18 @@ namespace FilterSystem
                     (title.contains("you've been gifted") && host != "discord.gift") ||
                     (title.contains("nitro") && title.contains("steam")))
                 {
-                    co_await cluster->co_message_delete(message.id, message.channel_id);
-                    break;
+                    return true;
                 }
             }
         }
+
+        return false;
+    }
+
+    dpp::task<bool> messageIsBad(const dpp::message& msg, dpp::cluster* cluster, const DbConfigMisc& misc)
+    {
+        co_return FilterSystem::containsFilteredTerm(msg.content, misc.filteredTerms)
+            || (misc.inviteFilterEnabled && co_await FilterSystem::containsInvite(msg.content, cluster))
+            || (misc.scamFilterEnabled && FilterSystem::containsScam(msg.content, msg.embeds));
     }
 }

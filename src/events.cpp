@@ -11,6 +11,7 @@
 #include "dppcmd/extensions/cache.h"
 #include "dppcmd/modules/modulebase.h"
 #include "dppcmd/services/moduleservice.h"
+#include "entities/sizedcache.h"
 #include "systems/filtersystem.h"
 #include "systems/itemsystem.h"
 #include "utils/dpp.h"
@@ -18,7 +19,7 @@
 #include "utils/timestamp.h"
 #include <dpp/cluster.h>
 
-dpp::task<void> onGuildCreate(const dpp::guild_create_t& event, dpp::cluster* cluster)
+dpp::task<void> onGuildCreate(dpp::cluster* cluster, const dpp::guild_create_t& event)
 {
     if (!event.created)
         co_return;
@@ -32,15 +33,25 @@ dpp::task<void> onGuildCreate(const dpp::guild_create_t& event, dpp::cluster* cl
         co_await cluster->co_message_create(dpp::message(defaultChannel->id, Responses::JoinMessage));
 }
 
-dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster* cluster, dppcmd::module_service* modules)
+dpp::task<void> onMessageCreate(dpp::cluster* cluster, dppcmd::module_service* modules, const dpp::message_create_t& event)
 {
-    const std::string& content = event.msg.content;
+    std::string_view content = event.msg.content;
     if (content.empty() || event.msg.author.is_bot())
         co_return;
 
-    co_await FilterSystem::doFilteredWordCheck(event.msg, cluster);
-    co_await FilterSystem::doInviteCheck(event.msg, cluster);
-    co_await FilterSystem::doScamCheck(event.msg, cluster);
+    DbConfigChannels channels = MongoManager::fetchChannelConfig(event.msg.guild_id);
+    DbConfigMisc misc = MongoManager::fetchMiscConfig(event.msg.guild_id);
+
+    if (!channels.noFilterChannels.contains(event.msg.channel_id) &&
+        co_await FilterSystem::messageIsBad(event.msg, cluster, misc))
+    {
+        co_await cluster->co_message_delete(event.msg.id, event.msg.channel_id);
+        co_return;
+    }
+
+    dpp::message* msg = new dpp::message;
+    *msg = event.msg;
+    RR::get_message_cache()->store(msg);
 
     DbUser user = MongoManager::fetchUser(event.msg.author.id, event.msg.guild_id);
     if (content.starts_with(modules->config().command_prefix))
@@ -58,7 +69,6 @@ dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster
                 co_return;
             }
 
-            DbConfigChannels channels = MongoManager::fetchChannelConfig(event.msg.guild_id);
             const dppcmd::command_info* cmd = cmds.front();
             constexpr std::array exemptModules = { "Administration", "BotOwner", "Config", "Moderation" };
 
@@ -76,8 +86,6 @@ dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster
                 event.reply(Responses::BannedFromBot);
                 co_return;
             }
-
-            DbConfigMisc misc = MongoManager::fetchMiscConfig(event.msg.guild_id);
             if (globalConfig.disabledCommands.contains(cmd->name()) || misc.disabledCommands.contains(cmd->name()))
             {
                 event.reply(Responses::CommandDisabled);
@@ -138,7 +146,6 @@ dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster
             co_await user.setCash(member.value(), user.cash + Constants::MessageCash, cluster);
             user.modCooldown(user.messageCashCooldown = Constants::MessageCashCooldown, member.value());
 
-            DbConfigMisc misc = MongoManager::fetchMiscConfig(event.msg.guild_id);
             if (!misc.dropsDisabled && RR::utility::random(70) == 1)
                 ItemSystem::giveCollectible("Bank Cheque", &event, user);
 
@@ -153,9 +160,28 @@ dpp::task<void> onMessageCreate(const dpp::message_create_t& event, dpp::cluster
     }
 }
 
+dpp::task<void> onMessageUpdate(dpp::cluster* cluster, const dpp::message_update_t& event)
+{
+    if (event.msg.content.empty() || event.msg.author.is_bot())
+        co_return;
+
+    DbConfigChannels channels = MongoManager::fetchChannelConfig(event.msg.guild_id);
+    DbConfigMisc misc = MongoManager::fetchMiscConfig(event.msg.guild_id);
+
+    if (!channels.noFilterChannels.contains(event.msg.channel_id) &&
+        co_await FilterSystem::messageIsBad(event.msg, cluster, misc))
+    {
+        co_await cluster->co_message_delete(event.msg.id, event.msg.channel_id);
+    }
+
+    if (dpp::message* msg = RR::find_message(event.msg.id))
+        *msg = event.msg;
+}
+
 void Events::connectEvents(dpp::cluster* cluster, dppcmd::module_service* modules)
 {
-    cluster->on_guild_create(std::bind(&onGuildCreate, std::placeholders::_1, cluster));
+    cluster->on_guild_create(std::bind_front(&onGuildCreate, cluster));
     cluster->on_log(dpp::utility::cout_logger());
-    cluster->on_message_create(std::bind(&onMessageCreate, std::placeholders::_1, cluster, modules));
+    cluster->on_message_create(std::bind_front(&onMessageCreate, cluster, modules));
+    cluster->on_message_update(std::bind_front(&onMessageUpdate, cluster));
 }
