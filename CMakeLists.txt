@@ -27,6 +27,8 @@ add_executable(RRBot
     src/database/entities/config/dbconfigranks.h src/database/entities/config/dbconfigranks.cpp
     src/database/entities/config/dbconfigroles.h src/database/entities/config/dbconfigroles.cpp
     src/entities/achievement.h
+    src/entities/embed.h src/entities/embed.cpp
+    src/entities/sizedcache.h src/entities/sizedcache.cpp
     src/entities/goods/ammo.h
     src/entities/goods/collectible.h
     src/entities/goods/consumable.h
