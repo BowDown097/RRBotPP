@@ -95,8 +95,8 @@ namespace RR
         {
             if (entries_ordered.size() > Size)
             {
-                auto out = std::make_pair(entries_ordered.back(), true);
-                entries_ordered.pop_back();
+                auto out = std::make_pair(entries_ordered.front(), true);
+                entries_ordered.pop_front();
                 return out;
             }
 
