@@ -2,8 +2,6 @@
 #include <deque>
 #include <dpp/cache.h>
 
-namespace dpp { class message; }
-
 namespace RR
 {
     // a version of dpp::cache with a maximum size.
@@ -112,8 +110,4 @@ namespace RR
             }
         }
     };
-
-    // major cache(s)
-    dpp::message* find_message(dpp::snowflake id);
-    sized_cache<dpp::message, 1500>* get_message_cache();
 }

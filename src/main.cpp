@@ -2,7 +2,6 @@
 #include "database/mongomanager.h"
 #include "dppcmd/services/moduleservice.h"
 #include "dppinteract/interactiveservice.h"
-#include "events.h"
 #include "modules/administration.h"
 #include "modules/botowner.h"
 #include "modules/config.h"
@@ -20,6 +19,7 @@
 #include "modules/weapons.h"
 #include "readers/cashtypereader.h"
 #include "readers/rrguildmembertypereader.h"
+#include "systems/eventsystem.h"
 #include "systems/monitorsystem.h"
 #include <boost/locale/generator.hpp>
 #include <dpp/cluster.h>
@@ -65,7 +65,7 @@ int main()
     modules->register_module<Prestige>(interactive.get());
     modules->register_modules<Tasks, Weapons>();
 
-    Events::connectEvents(cluster.get(), modules.get());
+    EventSystem::connectEvents(cluster.get(), modules.get());
     MonitorSystem::initialize(cluster.get());
 
     cluster->start(dpp::st_wait);

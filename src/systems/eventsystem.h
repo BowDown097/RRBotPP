@@ -3,7 +3,7 @@
 namespace dpp { class cluster; }
 namespace dppcmd { class module_service; }
 
-namespace Events
+namespace EventSystem
 {
     void connectEvents(dpp::cluster* cluster, dppcmd::module_service* modules);
 };

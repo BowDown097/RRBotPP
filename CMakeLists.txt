@@ -9,7 +9,7 @@ add_subdirectory(dppcmd)
 add_subdirectory(dppinteract)
 
 add_executable(RRBot
-    src/events.h src/events.cpp
+    src/cache.h src/cache.cpp
     src/main.cpp
     src/data/constants.h
     src/data/credentials.h src/data/credentials.cpp
@@ -28,7 +28,7 @@ add_executable(RRBot
     src/database/entities/config/dbconfigroles.h src/database/entities/config/dbconfigroles.cpp
     src/entities/achievement.h
     src/entities/embed.h src/entities/embed.cpp
-    src/entities/sizedcache.h src/entities/sizedcache.cpp
+    src/entities/sizedcache.h
     src/entities/goods/ammo.h
     src/entities/goods/collectible.h
     src/entities/goods/consumable.h
@@ -55,6 +55,7 @@ add_executable(RRBot
     src/paginators/leaderboardpaginator.h src/paginators/leaderboardpaginator.cpp
     src/readers/cashtypereader.h src/readers/cashtypereader.cpp
     src/readers/rrguildmembertypereader.h src/readers/rrguildmembertypereader.cpp
+    src/systems/eventsystem.h src/systems/eventsystem.cpp
     src/systems/filtersystem.h src/systems/filtersystem.cpp
     src/systems/itemsystem.h src/systems/itemsystem.cpp
     src/systems/monitorsystem.h src/systems/monitorsystem.cpp
