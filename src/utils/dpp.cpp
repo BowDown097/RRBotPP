@@ -6,13 +6,13 @@ namespace RR
 {
     namespace utility
     {
-        dpp::embed_author asEmbedAuthor(const dpp::guild_member& guildMember, const dpp::user* user, bool useNickname)
+        dpp::embed_author asEmbedAuthor(const dpp::user* user, const dpp::guild_member* guildMember, bool useNickname)
         {
             dpp::embed_author out;
-            out.icon_url = getDisplayAvatar(guildMember, user);
-            if (useNickname)
+            out.icon_url = getDisplayAvatar(user, guildMember);
+            if (guildMember && useNickname)
             {
-                if (std::string nickname = guildMember.get_nickname(); !nickname.empty())
+                if (std::string nickname = guildMember->get_nickname(); !nickname.empty())
                     out.name = nickname;
                 else
                     out.name = user->global_name;
@@ -42,22 +42,12 @@ namespace RR
             return validChannels.front();
         }
 
-        std::string getDisplayAvatar(const dpp::guild_member& guildMember, const dpp::user* user)
+        std::string getDisplayAvatar(const dpp::user* user, const dpp::guild_member* guildMember)
         {
-            if (std::string guildAvatar = guildMember.get_avatar_url(); !guildAvatar.empty())
-                return guildAvatar;
-            else
-                return user->get_avatar_url();
-        }
-
-        dpp::task<time_t> getJoinTime(dpp::cluster* cluster, dpp::guild* guild, dpp::snowflake userId)
-        {
-            auto memberFilter = [userId](const std::pair<dpp::snowflake, dpp::guild_member>& p) { return p.first == userId; };
-            if (auto it = std::ranges::find_if(guild->members, memberFilter); it != guild->members.end())
-                co_return it->second.joined_at;
-            else if (auto memberConf = co_await cluster->co_guild_get_member(guild->id, userId); !memberConf.is_error())
-                co_return memberConf.get<dpp::guild_member>().joined_at;
-            co_return time_t{};
+            if (guildMember)
+                if (std::string guildAvatar = guildMember->get_avatar_url(); !guildAvatar.empty())
+                    return guildAvatar;
+            return user->get_avatar_url();
         }
 
         std::vector<dpp::snowflake> getLast14DaysMessages(const dpp::message_map& map)

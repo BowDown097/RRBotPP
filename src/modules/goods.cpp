@@ -21,14 +21,14 @@
 
 Goods::Goods() : dppcmd::module<Goods>("Goods", "Items, crates, and everything about 'em.")
 {
-    register_command(&Goods::buy, "buy", "Buy an item from the shop.", "$buy [item]");
-    register_command(&Goods::daily, "daily", "Get a daily reward.");
-    register_command(&Goods::discard, std::initializer_list<std::string> { "discard", "sell" }, "Toss an item you don't want anymore for some cash.");
-    register_command(&Goods::itemInfo, "item", "View information on an item.", "$item [item]");
-    register_command(&Goods::items, std::initializer_list<std::string> { "items", "inv", "inventory" }, "View your own or someone else's items.", "$items <user>");
-    register_command(&Goods::open, std::initializer_list<std::string> { "open", "oc" }, "Open a crate.", "$open [crate]");
-    register_command(&Goods::shop, "shop", "Check out what's available for purchase in the shop.");
-    register_command(&Goods::use, "use", "Use a consumable.", "$use [consumable]");
+    register_command(&Goods::buy, std::in_place, "buy", "Buy an item from the shop.", "$buy [item]");
+    register_command(&Goods::daily, std::in_place, "daily", "Get a daily reward.");
+    register_command(&Goods::discard, std::in_place, { "discard", "sell" }, "Toss an item you don't want anymore for some cash.");
+    register_command(&Goods::itemInfo, std::in_place, "item", "View information on an item.", "$item [item]");
+    register_command(&Goods::items, std::in_place, { "items", "inv", "inventory" }, "View your own or someone else's items.", "$items <user>");
+    register_command(&Goods::open, std::in_place, { "open", "oc" }, "Open a crate.", "$open [crate]");
+    register_command(&Goods::shop, std::in_place, "shop", "Check out what's available for purchase in the shop.");
+    register_command(&Goods::use, std::in_place, "use", "Use a consumable.", "$use [consumable]");
 }
 
 dpp::task<dppcmd::command_result> Goods::buy(const dppcmd::remainder<std::string>& itemIn)

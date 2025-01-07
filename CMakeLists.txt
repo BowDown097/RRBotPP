@@ -58,6 +58,7 @@ add_executable(RRBot
     src/systems/eventsystem.h src/systems/eventsystem.cpp
     src/systems/filtersystem.h src/systems/filtersystem.cpp
     src/systems/itemsystem.h src/systems/itemsystem.cpp
+    src/systems/loggingsystem.h src/systems/loggingsystem.cpp
     src/systems/monitorsystem.h src/systems/monitorsystem.cpp
     src/utils/dpp.h src/utils/dpp.cpp
     src/utils/ld.h src/utils/ld.cpp
@@ -82,9 +83,10 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MONGOCXX REQUIRED libmongocxx)
+pkg_check_modules(SODIUM REQUIRED libsodium)
 
-target_include_directories(RRBot PRIVATE src ${Boost_INCLUDE_DIRS} ${MONGOCXX_INCLUDE_DIRS})
-target_link_libraries(RRBot PRIVATE ${Boost_LIBRARIES} ${MONGOCXX_LIBRARIES} dppcmd dppinteract)
+target_include_directories(RRBot PRIVATE src ${Boost_INCLUDE_DIRS} ${MONGOCXX_INCLUDE_DIRS} ${SODIUM_INCLUDE_DIRS})
+target_link_libraries(RRBot PRIVATE ${Boost_LIBRARIES} ${MONGOCXX_LIBRARIES} ${SODIUM_LIBRARIES} dppcmd dppinteract)
 
 include(GNUInstallDirs)
 install(TARGETS RRBot

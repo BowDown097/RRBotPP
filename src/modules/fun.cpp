@@ -6,16 +6,16 @@
 
 Fun::Fun() : dppcmd::module<Fun>("Fun", "Commands that don't do anything related to the cash system and what not: they just exist for fun (hence the name).")
 {
-    register_command(&Fun::cat, "cat", "Random cat picture!");
-    register_command(&Fun::dog, "dog", "Random dog picture!");
-    register_command(&Fun::flip, "flip", "Flip a coin.");
-    register_command(&Fun::gay, "gay", "See how gay you or another user is.", "$gay <user>");
-    register_command(&Fun::godword, "godword", "God's word, sourced straight from TempleOS.", "$godword <amount>");
-    register_command(&Fun::magicConch, "magicconch", "Ask the Magic Conch ANYTHING!", "$magicconch [question]");
-    register_command(&Fun::penis, "penis", "See how big a user's penis is, or your own.", "$penis <user>");
-    register_command(&Fun::sneed, "sneed", "Sneed");
-    register_command(&Fun::terryQuote, "terryquote", "Behold a random Terry Davis quote.");
-    register_command(&Fun::waifu, "waifu", "Get yourself a random waifu from our vast and sexy collection of scrumptious waifus.");
+    register_command(&Fun::cat, std::in_place, "cat", "Random cat picture!");
+    register_command(&Fun::dog, std::in_place, "dog", "Random dog picture!");
+    register_command(&Fun::flip, std::in_place, "flip", "Flip a coin.");
+    register_command(&Fun::gay, std::in_place, "gay", "See how gay you or another user is.", "$gay <user>");
+    register_command(&Fun::godword, std::in_place, "godword", "God's word, sourced straight from TempleOS.", "$godword <amount>");
+    register_command(&Fun::magicConch, std::in_place, "magicconch", "Ask the Magic Conch ANYTHING!", "$magicconch [question]");
+    register_command(&Fun::penis, std::in_place, "penis", "See how big a user's penis is, or your own.", "$penis <user>");
+    register_command(&Fun::sneed, std::in_place, "sneed", "Sneed");
+    register_command(&Fun::terryQuote, std::in_place, "terryquote", "Behold a random Terry Davis quote.");
+    register_command(&Fun::waifu, std::in_place, "waifu", "Get yourself a random waifu from our vast and sexy collection of scrumptious waifus.");
 }
 
 dpp::task<dppcmd::command_result> Fun::cat()

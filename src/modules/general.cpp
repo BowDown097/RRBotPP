@@ -12,14 +12,14 @@
 
 General::General() : dppcmd::module<General>("General", "The name really explains it all. Fun fact, you used one of the commands under this module to view info about this module.")
 {
-    register_command(&General::achievements, std::initializer_list<std::string> { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
-    register_command(&General::help, "help", "View info about a command.", "$help <command>");
-    register_command(&General::info, "info", "View info about the bot.");
-    register_command(&General::module, "module", "View info about a module.", "$module [module]");
-    register_command(&General::modules, "modules", "View info about the bot's modules.");
-    register_command(&General::serverInfo, "serverinfo", "View info about this server.");
-    register_command(&General::stats, "stats", "View various statistics about yourself or another user.", "$stats <user>");
-    register_command(&General::userInfo, std::initializer_list<std::string> { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
+    register_command(&General::achievements, std::in_place, { "achievements", "ach" }, "View your own or someone else's achievements.", "$achievements <user>");
+    register_command(&General::help, std::in_place, "help", "View info about a command.", "$help <command>");
+    register_command(&General::info, std::in_place, "info", "View info about the bot.");
+    register_command(&General::module, std::in_place, "module", "View info about a module.", "$module [module]");
+    register_command(&General::modules, std::in_place, "modules", "View info about the bot's modules.");
+    register_command(&General::serverInfo, std::in_place, "serverinfo", "View info about this server.");
+    register_command(&General::stats, std::in_place, "stats", "View various statistics about yourself or another user.", "$stats <user>");
+    register_command(&General::userInfo, std::in_place, { "userinfo", "whois" }, "View info about yourself or another user.", "$userinfo <user>");
 }
 
 dppcmd::command_result General::achievements(const std::optional<dpp::guild_member>& memberOpt)
@@ -60,9 +60,9 @@ dppcmd::command_result General::help(const std::optional<std::string>& commandNa
     dpp::embed embed = dpp::embed()
        .set_color(dpp::colors::red)
        .set_description("**" + boost::locale::to_title(cmd->name()) + "**")
-       .add_field("Module", cmd->module()->name())
-       .add_field("Description", cmd->summary())
-       .add_field("Usage", cmd->remarks())
+       .add_field("Module", cmd->module->name())
+       .add_field("Description", cmd->summary)
+       .add_field("Usage", cmd->remarks)
        .add_field("Aliases", dppcmd::utility::join(cmd->aliases(), ", "));
 
     context->reply(dpp::message(context->msg.channel_id, embed));
@@ -233,7 +233,7 @@ dppcmd::command_result General::userInfo(std::optional<dpp::guild_member> member
         if (dpp::role* role = dpp::find_role(roleId))
             roleMentions.push_back(role->get_mention());
 
-    std::string avatarUrl = RR::utility::getDisplayAvatar(memberOpt.value(), user);
+    std::string avatarUrl = RR::utility::getDisplayAvatar(user, &memberOpt.value());
     dpp::embed embed = dpp::embed()
         .set_author(user->global_name, "", avatarUrl)
         .set_color(dpp::colors::red)

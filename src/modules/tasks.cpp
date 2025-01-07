@@ -11,12 +11,12 @@
 
 Tasks::Tasks() : dppcmd::module<Tasks>("Tasks", "The best way to earn money, at least for those lucky or rich enough to get themselves a tool.")
 {
-    register_command(&Tasks::chop, "chop", "Go chop some wood.");
-    register_command(&Tasks::dig, "dig", "Go digging.");
-    register_command(&Tasks::farm, "farm", "Go farming.");
-    register_command(&Tasks::fish, "fish", "Go fishing.");
-    register_command(&Tasks::hunt, "hunt", "Go hunting.");
-    register_command(&Tasks::mine, "mine", "Go mining.");
+    register_command(&Tasks::chop, std::in_place, "chop", "Go chop some wood.");
+    register_command(&Tasks::dig, std::in_place, "dig", "Go digging.");
+    register_command(&Tasks::farm, std::in_place, "farm", "Go farming.");
+    register_command(&Tasks::fish, std::in_place, "fish", "Go fishing.");
+    register_command(&Tasks::hunt, std::in_place, "hunt", "Go hunting.");
+    register_command(&Tasks::mine, std::in_place, "mine", "Go mining.");
 }
 
 dpp::task<dppcmd::command_result> Tasks::chop()
@@ -60,7 +60,7 @@ dpp::task<dppcmd::command_result> Tasks::fish()
         { "Money Gained from Tasks", RR::utility::cash2str(cashGained) }
     });
 
-    user.setCash(member.value(), totalCash, cluster, context,
+    co_await user.setCash(member.value(), totalCash, cluster, context,
         std::format(Responses::TaskComplete, "caught", numCaught, fishPair.first, "rod",
             RR::utility::cash2str(cashGained), RR::utility::cash2str(totalCash)));
     user.modCooldown(user.fishCooldown = Constants::FishCooldown, member.value());
@@ -118,7 +118,7 @@ dpp::task<dppcmd::command_result> Tasks::mine()
         { "Money Gained from Tasks", RR::utility::cash2str(cashGained) }
     });
 
-    user.setCash(member.value(), totalCash, cluster, context,
+    co_await user.setCash(member.value(), totalCash, cluster, context,
         std::format(Responses::TaskComplete, "mined", numMined, mineral, toolName,
             RR::utility::cash2str(cashGained), RR::utility::cash2str(totalCash)));
     user.modCooldown(user.mineCooldown = Constants::MineCooldown, member.value());
@@ -176,7 +176,7 @@ dpp::task<dppcmd::command_result> Tasks::genericTask(std::string_view toolType, 
         { "Money Gained from Tasks", RR::utility::cash2str(cashGained) }
     });
 
-    user.setCash(member.value(), totalCash, cluster, context,
+    co_await user.setCash(member.value(), totalCash, cluster, context,
         std::format(Responses::TaskComplete, activity, numMined, mineral, toolName,
             RR::utility::cash2str(cashGained), RR::utility::cash2str(totalCash)));
 

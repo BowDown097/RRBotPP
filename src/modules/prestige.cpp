@@ -12,8 +12,8 @@
 
 Prestige::Prestige() : dppcmd::module<Prestige>("Prestige", "All prestige-related stuffs.")
 {
-    register_command(&Prestige::doPrestige, "prestige", "Prestige!\n\nUpon prestige, you will **GET**:\n- +1.2x cash multiplier\n- +1.5x rank costs\n- A shiny, cool new badge on $prestigeinfo\n\nand you will **LOSE**:\n- All money, including in crypto investments\n- All cooldowns\n- All items");
-    register_command(&Prestige::prestigeInfo, "prestigeinfo", "Check out the perks you're getting from your prestige, and other info.");
+    register_command(&Prestige::doPrestige, std::in_place, "prestige", "Prestige!\n\nUpon prestige, you will **GET**:\n- +1.2x cash multiplier\n- +1.5x rank costs\n- A shiny, cool new badge on $prestigeinfo\n\nand you will **LOSE**:\n- All money, including in crypto investments\n- All cooldowns\n- All items");
+    register_command(&Prestige::prestigeInfo, std::in_place, "prestigeinfo", "Check out the perks you're getting from your prestige, and other info.");
 }
 
 dpp::task<dppcmd::command_result> Prestige::doPrestige()

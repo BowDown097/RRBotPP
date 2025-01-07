@@ -16,14 +16,14 @@
 
 Gambling::Gambling() : dppcmd::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
 {
-    register_command(&Gambling::bet, "bet", "Pick a number between 1 and 100 and place a bet on it against another user. The user and I will also pick a number between 1 and 100. Whoever is closest to the number I pick wins!", "$bet [user] [bet] [number]");
-    register_command(&Gambling::roll55, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");
-    register_command(&Gambling::roll6969, "6969", "Roll 69.69, get 6969x what you put in.", "$6969 [bet]");
-    register_command(&Gambling::roll75, "75+", "Roll 75 or higher, get 3.6x what you put in.", "$75+ [bet]");
-    register_command(&Gambling::roll99, "99+", "Roll 99 or higher, get 90x what you put in.",  "$99+ [bet]");
-    register_command(&Gambling::dice, "dice", "Play a simple game of Chuck-a-luck, AKA Birdcage. If you don't know how it works: The player bets on a number. Three dice are rolled. The number appearing once gives a 1:1 payout, twice a 2:1, and thrice a 10:1.", "$dice [bet] [number]");
-    register_command(&Gambling::doubleGamble, "double", "Double your cash...?");
-    register_command(&Gambling::pot, "pot", "View the pot or add money into it.", "$pot <bet>");
+    register_command(&Gambling::bet, std::in_place, "bet", "Pick a number between 1 and 100 and place a bet on it against another user. The user and I will also pick a number between 1 and 100. Whoever is closest to the number I pick wins!", "$bet [user] [bet] [number]");
+    register_command(&Gambling::roll55, std::in_place, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");
+    register_command(&Gambling::roll6969, std::in_place, "6969", "Roll 69.69, get 6969x what you put in.", "$6969 [bet]");
+    register_command(&Gambling::roll75, std::in_place, "75+", "Roll 75 or higher, get 3.6x what you put in.", "$75+ [bet]");
+    register_command(&Gambling::roll99, std::in_place, "99+", "Roll 99 or higher, get 90x what you put in.",  "$99+ [bet]");
+    register_command(&Gambling::dice, std::in_place, "dice", "Play a simple game of Chuck-a-luck, AKA Birdcage. If you don't know how it works: The player bets on a number. Three dice are rolled. The number appearing once gives a 1:1 payout, twice a 2:1, and thrice a 10:1.", "$dice [bet] [number]");
+    register_command(&Gambling::doubleGamble, std::in_place, "double", "Double your cash...?");
+    register_command(&Gambling::pot, std::in_place, "pot", "View the pot or add money into it.", "$pot <bet>");
 }
 
 // why does no usingSlots-like restriction apply to this command?

@@ -1,6 +1,7 @@
 #pragma once
 #include "dbobject.h"
 #include "utils/stringhash.h"
+#include <condition_variable>
 #include <dpp/coro/task.h>
 #include <set>
 #include <unordered_map>

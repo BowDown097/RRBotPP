@@ -1,5 +1,6 @@
 #pragma once
 #include "dppcmd/results/commandresult.h"
+#include <condition_variable>
 #include <dpp/coro/task.h>
 
 class Crate;

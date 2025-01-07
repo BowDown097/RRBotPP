@@ -25,10 +25,6 @@
 #include <dpp/cluster.h>
 #include <sodium.h>
 
-std::unique_ptr<dpp::cluster> cluster;
-std::unique_ptr<dppinteract::interactive_service> interactive;
-std::unique_ptr<dppcmd::module_service> modules;
-
 int main()
 {
     Credentials::instance().initialize();
@@ -41,16 +37,19 @@ int main()
         return EXIT_FAILURE;
     }
 
-    cluster = std::make_unique<dpp::cluster>(
+    auto cluster = std::make_unique<dpp::cluster>(
         Credentials::instance().token(),
         dpp::i_default_intents | dpp::i_message_content | dpp::i_guild_members
     );
 
-    interactive = std::make_unique<dppinteract::interactive_service>();
+    auto interactive = std::make_unique<dppinteract::interactive_service>();
     interactive->setup_event_handlers(cluster.get());
 
-    dppcmd::command_service_config config { .command_prefix = '|', .throw_exceptions = true };
-    modules = std::make_unique<dppcmd::module_service>(cluster.get(), config);
+    auto modules = std::make_unique<dppcmd::module_service>(cluster.get(), dppcmd::command_service_config {
+        .command_prefix = '|',
+        .throw_exceptions = true
+    });
+
     modules->register_type_reader<RR::cash_in>();
     modules->register_type_reader<RR::guild_member_in>();
 

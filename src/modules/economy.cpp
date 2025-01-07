@@ -18,12 +18,12 @@
 
 Economy::Economy() : dppcmd::module<Economy>("Economy", "This is the hub for checking and managing your economy stuff. Wanna know how much cash you have? Or what items you have? Or do you want to check out le shoppe? It's all here.")
 {
-    register_command(&Economy::balance, std::initializer_list<std::string> { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
-    register_command(&Economy::cooldowns, std::initializer_list<std::string> { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");
-    register_command(&Economy::leaderboard, std::initializer_list<std::string> { "leaderboard", "lb" }, "Check the leaderboard for cash or for a specific currency.", "$leaderboard <currency>");
-    register_command(&Economy::profile, "profile", "View a bunch of economy-related info on yourself or another user.", "$profile <user>");
-    register_command(&Economy::ranks, "ranks", "View all the ranks and their costs.");
-    register_command(&Economy::sauce, std::initializer_list<std::string> { "sauce", "give", "transfer" }, "Sauce someone some cash.");
+    register_command(&Economy::balance, std::in_place, { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
+    register_command(&Economy::cooldowns, std::in_place, { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");
+    register_command(&Economy::leaderboard, std::in_place, { "leaderboard", "lb" }, "Check the leaderboard for cash or for a specific currency.", "$leaderboard <currency>");
+    register_command(&Economy::profile, std::in_place, "profile", "View a bunch of economy-related info on yourself or another user.", "$profile <user>");
+    register_command(&Economy::ranks, std::in_place, "ranks", "View all the ranks and their costs.");
+    register_command(&Economy::sauce, std::in_place, { "sauce", "give", "transfer" }, "Sauce someone some cash.");
 }
 
 dppcmd::command_result Economy::balance(const std::optional<dpp::guild_member>& memberOpt)
@@ -109,7 +109,7 @@ dppcmd::command_result Economy::profile(std::optional<dpp::guild_member> memberO
     DbUser dbUser = MongoManager::fetchUser(memberOpt->user_id, context->msg.guild_id);
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
-        .set_author(RR::utility::asEmbedAuthor(memberOpt.value(), user))
+        .set_author(RR::utility::asEmbedAuthor(user, &memberOpt.value()))
         .set_title("User Profile");
 
     std::string essentials = "**Cash**: " + RR::utility::cash2str(dbUser.cash);

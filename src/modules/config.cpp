@@ -18,27 +18,27 @@
 
 Config::Config() : dppcmd::module<Config>("Config", "This is where all the BORING administration stuff goes. Here, you can change how the bot does things in the server in a variety of ways. Huge generalization, but that's the best I can do.")
 {
-    register_command(&Config::addRank, "addrank", "Register a rank, its level, and the money required to get it.", "$addrank [level] [cost] [role]");
-    register_command(&Config::clearConfig, "clearconfig", "Clear all configuration for this server.");
-    register_command(&Config::currentConfig, "currentconfig", "List the current configuration for this server.");
-    register_command(&Config::disableCommand, "disablecmd", "Disable a command for this server.", "$disablecmd [command]");
-    register_command(&Config::disableFiltersInChannel, "disablefiltersinchannel", "Disable filters for a specific channel.", "$disablefiltersinchannel [channel]");
-    register_command(&Config::disableModule, "disablemodule", "Disable a module for this server.", "$disablemodule [module]");
-    register_command(&Config::enableCommand, "enablecmd", "Enable a previously disabled command.", "$enablecmd [command]");
-    register_command(&Config::enableModule, "enablemodule", "Enable a previously disabled module.", "$enablemodule [module]");
-    register_command(&Config::filterTerm, "filterterm", "Add a term to the filter system. Must be alphanumeric, including hyphens and spaces.", "$filterterm [term]");
-    register_command(&Config::setAdminRole, "setadminrole", "Register a role that can use commands in the Administration and Config modules.", "$setadminrole [role]");
-    register_command(&Config::setDjRole, "setdjrole", "Register a role as the DJ role, which is required for some of the music commands.", "$setdjrole [role]");
-    register_command(&Config::setLogsChannel, "setlogschannel", "Register a channel for logs to be posted in.", "$setlogschannel [channel]");
-    register_command(&Config::setModRole, "setmodrole", "Register a role that can use commands in the Moderation module.", "$setmodrole [role]");
-    register_command(&Config::setPotChannel, "setpotchannel", "Register a channel for pot winnings to be announced in.", "$setpotchannel [channel]");
-    register_command(&Config::toggleDrops, "toggledrops", "Toggles random drops, such as Bank Cheques.");
-    register_command(&Config::toggleInviteFilter, "toggleinvitefilter", "Toggle the invite filter.");
-    register_command(&Config::toggleNsfw, "togglensfw", "Enable age-restricted content to be played with the music feature.");
-    register_command(&Config::toggleScamFilter, "togglescamfilter", "Toggle the scam filter.");
-    register_command(&Config::unfilterTerm, "unfilterterm", "Remove a term from the filter system.", "$unfilterterm [term]");
-    register_command(&Config::unwhitelistChannel, "unwhitelistchannel", "Remove a channel from the bot command whitelist.", "$unwhitelistchannel [channel]");
-    register_command(&Config::whitelistChannel, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
+    register_command(&Config::addRank, std::in_place, "addrank", "Register a rank, its level, and the money required to get it.", "$addrank [level] [cost] [role]");
+    register_command(&Config::clearConfig, std::in_place, "clearconfig", "Clear all configuration for this server.");
+    register_command(&Config::currentConfig, std::in_place, "currentconfig", "List the current configuration for this server.");
+    register_command(&Config::disableCommand, std::in_place, "disablecmd", "Disable a command for this server.", "$disablecmd [command]");
+    register_command(&Config::disableFiltersInChannel, std::in_place, "disablefiltersinchannel", "Disable filters for a specific channel.", "$disablefiltersinchannel [channel]");
+    register_command(&Config::disableModule, std::in_place, "disablemodule", "Disable a module for this server.", "$disablemodule [module]");
+    register_command(&Config::enableCommand, std::in_place, "enablecmd", "Enable a previously disabled command.", "$enablecmd [command]");
+    register_command(&Config::enableModule, std::in_place, "enablemodule", "Enable a previously disabled module.", "$enablemodule [module]");
+    register_command(&Config::filterTerm, std::in_place, "filterterm", "Add a term to the filter system. Must be alphanumeric, including hyphens and spaces.", "$filterterm [term]");
+    register_command(&Config::setAdminRole, std::in_place, "setadminrole", "Register a role that can use commands in the Administration and Config modules.", "$setadminrole [role]");
+    register_command(&Config::setDjRole, std::in_place, "setdjrole", "Register a role as the DJ role, which is required for some of the music commands.", "$setdjrole [role]");
+    register_command(&Config::setLogsChannel, std::in_place, "setlogschannel", "Register a channel for logs to be posted in.", "$setlogschannel [channel]");
+    register_command(&Config::setModRole, std::in_place, "setmodrole", "Register a role that can use commands in the Moderation module.", "$setmodrole [role]");
+    register_command(&Config::setPotChannel, std::in_place, "setpotchannel", "Register a channel for pot winnings to be announced in.", "$setpotchannel [channel]");
+    register_command(&Config::toggleDrops, std::in_place, "toggledrops", "Toggles random drops, such as Bank Cheques.");
+    register_command(&Config::toggleInviteFilter, std::in_place, "toggleinvitefilter", "Toggle the invite filter.");
+    register_command(&Config::toggleNsfw, std::in_place, "togglensfw", "Enable age-restricted content to be played with the music feature.");
+    register_command(&Config::toggleScamFilter, std::in_place, "togglescamfilter", "Toggle the scam filter.");
+    register_command(&Config::unfilterTerm, std::in_place, "unfilterterm", "Remove a term from the filter system.", "$unfilterterm [term]");
+    register_command(&Config::unwhitelistChannel, std::in_place, "unwhitelistchannel", "Remove a channel from the bot command whitelist.", "$unwhitelistchannel [channel]");
+    register_command(&Config::whitelistChannel, std::in_place, "whitelistchannel", "Add a channel to a list of whitelisted channels for bot commands. All administration, moderation, and music commands will still work in every channel.", "$whitelistchannel [channel]");
 }
 
 dppcmd::command_result Config::addRank(int level, long double cost, dpp::role* role)

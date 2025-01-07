@@ -13,17 +13,17 @@
 
 Moderation::Moderation() : dppcmd::module<Moderation>("Moderation", "This is like George Orwell's, uh book, 1984.")
 {
-    register_command(&Moderation::ban, std::initializer_list<std::string> { "ban", "seethe" }, "Ban any member.", "$ban [user] <duration> <reason>");
-    register_command(&Moderation::chill, "chill", "Shut chat up for a specific amount of time.", "$chill [duration]");
-    register_command(&Moderation::hackban, "hackban", "Ban any member, even if they are not in the server.", "$hackban [userId] <reason>");
-    register_command(&Moderation::kick, std::initializer_list<std::string> { "kick", "cope" }, "Kick any member.", "$kick [user] <reason>");
-    register_command(&Moderation::mute, std::initializer_list<std::string> { "mute", "1984", "timeout" }, "Mute any member for any amount of time for any reason.", "$mute [user] [duration] <reason>");
-    register_command(&Moderation::purge, std::initializer_list<std::string> { "purge", "clear" }, "Delete any amount of messages (Note: messages that are 2+ weeks old will not be caught by this command).", "$purge [limit]");
-    register_command(&Moderation::purgeRange, std::initializer_list<std::string> { "purgerange", "clearrange" }, "Delete a range of message IDs (Note: messages that are 2+ weeks old will not be caught by this command).", "$purgerange [from] [to]");
-    register_command(&Moderation::purgeUser, std::initializer_list<std::string> { "purgeuser", "clearuser" }, "Delete any amount of messages from a user (Note: messages that are 2+ weeks old will not be caught by this command).", "$purgeuser [user] <limit>");
-    register_command(&Moderation::unban, "unban", "Unban any currently banned member.", "$unban [userId]");
-    register_command(&Moderation::unchill, std::initializer_list<std::string> { "unchill", "thaw" }, "Let chat talk again.");
-    register_command(&Moderation::unmute, std::initializer_list<std::string> { "unmute", "1985", "untimeout" }, "Unmute any member.", "$unmute [user]");
+    register_command(&Moderation::ban, std::in_place, { "ban", "seethe" }, "Ban any member.", "$ban [user] <duration> <reason>");
+    register_command(&Moderation::chill, std::in_place, "chill", "Shut chat up for a specific amount of time.", "$chill [duration]");
+    register_command(&Moderation::hackban, std::in_place, "hackban", "Ban any member, even if they are not in the server.", "$hackban [userId] <reason>");
+    register_command(&Moderation::kick, std::in_place, { "kick", "cope" }, "Kick any member.", "$kick [user] <reason>");
+    register_command(&Moderation::mute, std::in_place, { "mute", "1984", "timeout" }, "Mute any member for any amount of time for any reason.", "$mute [user] [duration] <reason>");
+    register_command(&Moderation::purge, std::in_place, { "purge", "clear" }, "Delete any amount of messages (Note: messages that are 2+ weeks old will not be caught by this command).", "$purge [limit]");
+    register_command(&Moderation::purgeRange, std::in_place, { "purgerange", "clearrange" }, "Delete a range of message IDs (Note: messages that are 2+ weeks old will not be caught by this command).", "$purgerange [from] [to]");
+    register_command(&Moderation::purgeUser, std::in_place, { "purgeuser", "clearuser" }, "Delete any amount of messages from a user (Note: messages that are 2+ weeks old will not be caught by this command).", "$purgeuser [user] <limit>");
+    register_command(&Moderation::unban, std::in_place, "unban", "Unban any currently banned member.", "$unban [userId]");
+    register_command(&Moderation::unchill, std::in_place, { "unchill", "thaw" }, "Let chat talk again.");
+    register_command(&Moderation::unmute, std::in_place, { "unmute", "1985", "untimeout" }, "Unmute any member.", "$unmute [user]");
 }
 
 dpp::task<dppcmd::command_result> Moderation::ban(const dpp::guild_member& member,

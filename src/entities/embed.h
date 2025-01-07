@@ -36,6 +36,13 @@ namespace RR
         embed& set_thumbnail(const std::string& url)
         { dpp::embed::set_thumbnail(url); return *this; }
 
+        embed& add_separator();
+        embed& add_string_field(const std::string& name, const std::string& value, bool is_inline = false,
+                                bool show_if_not_available = true, const std::string& default_value = "N/A");
+        embed& set_author(const dpp::guild_member& member, dpp::user* user = nullptr);
+        embed& set_author(const dpp::guild_member& member, const dpp::user& user);
+        embed& set_author(dpp::snowflake guild_id, dpp::snowflake user_id);
+
         embed& add_comparison_field(const std::string& name, auto&& value1, auto&& value2,
                                     const std::string& default_value = "N/A")
         {
@@ -51,7 +58,7 @@ namespace RR
             return *this;
         }
 
-        embed& add_field(const std::string& name, auto&& value, bool condition = true, bool is_inline = false)
+        embed& add_field(const std::string& name, auto&& value, bool is_inline = false, bool condition = true)
         {
             if (condition)
             {
@@ -63,11 +70,6 @@ namespace RR
 
             return *this;
         }
-
-        embed& add_separator();
-
-        embed& add_string_field(const std::string& name, const std::string& value, bool is_inline = false,
-                                bool show_if_not_available = true, const std::string& default_value = "N/A");
     private:
         template<typename T>
         inline static constexpr bool is_string = std::is_same_v<std::decay_t<T>, std::string>;

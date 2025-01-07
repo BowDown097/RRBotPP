@@ -15,18 +15,18 @@
 
 Administration::Administration() : dppcmd::module<Administration>("Administration", "Commands for admin stuff. Whether you wanna screw with the economy or fuck someone over, I'm sure you'll have fun. However, you'll need to have a very high role to have all this fun. Sorry!")
 {
-    register_command(&Administration::clearTextChannel, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
-    register_command(&Administration::drawPot, "drawpot", "Draw the pot before it ends.");
-    register_command(&Administration::giveItem, "giveitem", "Give a user an item.", "$giveitem [user] [item]");
-    register_command(&Administration::removeAchievement, std::initializer_list<std::string> { "removeachievement", "rmach" }, "Remove a user's achievement.", "$removeachievement [user] [name]");
-    register_command(&Administration::removeCrates, std::initializer_list<std::string> { "removecrates", "rmcrates" }, "Remove a user's crates.", "$removecrates [user]");
-    register_command(&Administration::removeStat, std::initializer_list<std::string> { "removestat", "rmstat" }, "Remove a user's stat.", "$removestat [user] [stat]");
-    register_command(&Administration::resetCooldowns, "resetcd", "Reset a user's cooldowns.", "$resetcd [user]");
-    register_command(&Administration::setCash, "setcash", "Set a user's cash.", "$setcash [user] [amount]");
-    register_command(&Administration::setCrypto, "setcrypto", "Set a user's cryptocurrency amount. See $invest's help info for currently accepted currencies.", "$setcrypto [user] [crypto] [amount]");
-    register_command(&Administration::setPrestige, "setprestige", "Set a user's prestige level.", "$setprestige [user] [level]");
-    register_command(&Administration::setStat, "setstat", "Set a stat for a user.", "$setstat [user] [stat] [value]");
-    register_command(&Administration::unlockAchievement, "unlockachievement", "Unlock an achievement for a user.", "$unlockachievement [user] [achievement]");
+    register_command(&Administration::clearTextChannel, std::in_place, "cleartextchannel", "Deletes and recreates a text channel, effectively wiping its messages.", "$cleartextchannel [channel]");
+    register_command(&Administration::drawPot, std::in_place, "drawpot", "Draw the pot before it ends.");
+    register_command(&Administration::giveItem, std::in_place, "giveitem", "Give a user an item.", "$giveitem [user] [item]");
+    register_command(&Administration::removeAchievement, std::in_place, { "removeachievement", "rmach" }, "Remove a user's achievement.", "$removeachievement [user] [name]");
+    register_command(&Administration::removeCrates, std::in_place, { "removecrates", "rmcrates" }, "Remove a user's crates.", "$removecrates [user]");
+    register_command(&Administration::removeStat, std::in_place, { "removestat", "rmstat" }, "Remove a user's stat.", "$removestat [user] [stat]");
+    register_command(&Administration::resetCooldowns, std::in_place, "resetcd", "Reset a user's cooldowns.", "$resetcd [user]");
+    register_command(&Administration::setCash, std::in_place, "setcash", "Set a user's cash.", "$setcash [user] [amount]");
+    register_command(&Administration::setCrypto, std::in_place, "setcrypto", "Set a user's cryptocurrency amount. See $invest's help info for currently accepted currencies.", "$setcrypto [user] [crypto] [amount]");
+    register_command(&Administration::setPrestige, std::in_place, "setprestige", "Set a user's prestige level.", "$setprestige [user] [level]");
+    register_command(&Administration::setStat, std::in_place, "setstat", "Set a stat for a user.", "$setstat [user] [stat] [value]");
+    register_command(&Administration::unlockAchievement, std::in_place, "unlockachievement", "Unlock an achievement for a user.", "$unlockachievement [user] [achievement]");
 }
 
 dpp::task<dppcmd::command_result> Administration::clearTextChannel(dpp::channel* channel)

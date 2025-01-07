@@ -16,21 +16,21 @@
 
 Gangs::Gangs() : dppcmd::module<Gangs>("Gangs", "All about that gang shit.")
 {
-    register_command(&Gangs::buyVault, "buyvault", "Buy a vault for your gang.");
-    register_command(&Gangs::createGang, "creategang", "Create a gang.", "$creategang [name]");
-    register_command(&Gangs::deposit, "deposit", "Deposit cash into your gang's vault.", "$deposit [amount]");
-    register_command(&Gangs::disband, std::initializer_list<std::string> { "disband", "destroygang" }, "Disband your gang.");
-    register_command(&Gangs::gang, std::initializer_list<std::string> { "gang", "ganginfo" }, "View info about your own gang or another gang.", "$gang <name>");
-    register_command(&Gangs::invite, "invite", "Invite a user to your gang (if it is private).", "$invite [user]");
-    register_command(&Gangs::joinGang, std::initializer_list<std::string> { "join", "joingang" }, "Join a gang.", "$join [name]");
-    register_command(&Gangs::kickGangMember, "kickgangmember", "Kick out a member of your gang.", "$kickgangmember [user]");
-    register_command(&Gangs::leaveGang, "leavegang", "Leave your current gang.");
-    register_command(&Gangs::renameGang, "renamegang", "Rename your gang.", "$renamegang [name]");
-    register_command(&Gangs::setPosition, "setposition", "Set a member of your gang's position.", "$setposition [user] [position]");
-    register_command(&Gangs::togglePublic, "togglepublic", "Toggles if your gang can be joined without an invite.");
-    register_command(&Gangs::transferLeadership, "transferleadership", "Crown a new leader of your gang.", "$transferleadership [user]");
-    register_command(&Gangs::vaultBalance, std::initializer_list<std::string> { "vault", "vb", "vaultbal", "vaultbalance" }, "Check how much money is in your gang's vault.");
-    register_command(&Gangs::withdrawVault, std::initializer_list<std::string> { "withdrawvault", "wv" }, "Withdraw money from your gang's vault.", "$withdrawvault 10000");
+    register_command(&Gangs::buyVault, std::in_place, "buyvault", "Buy a vault for your gang.");
+    register_command(&Gangs::createGang, std::in_place, "creategang", "Create a gang.", "$creategang [name]");
+    register_command(&Gangs::deposit, std::in_place, "deposit", "Deposit cash into your gang's vault.", "$deposit [amount]");
+    register_command(&Gangs::disband, std::in_place, { "disband", "destroygang" }, "Disband your gang.");
+    register_command(&Gangs::gang, std::in_place, { "gang", "ganginfo" }, "View info about your own gang or another gang.", "$gang <name>");
+    register_command(&Gangs::invite, std::in_place, "invite", "Invite a user to your gang (if it is private).", "$invite [user]");
+    register_command(&Gangs::joinGang, std::in_place, { "join", "joingang" }, "Join a gang.", "$join [name]");
+    register_command(&Gangs::kickGangMember, std::in_place, "kickgangmember", "Kick out a member of your gang.", "$kickgangmember [user]");
+    register_command(&Gangs::leaveGang, std::in_place, "leavegang", "Leave your current gang.");
+    register_command(&Gangs::renameGang, std::in_place, "renamegang", "Rename your gang.", "$renamegang [name]");
+    register_command(&Gangs::setPosition, std::in_place, "setposition", "Set a member of your gang's position.", "$setposition [user] [position]");
+    register_command(&Gangs::togglePublic, std::in_place, "togglepublic", "Toggles if your gang can be joined without an invite.");
+    register_command(&Gangs::transferLeadership, std::in_place, "transferleadership", "Crown a new leader of your gang.", "$transferleadership [user]");
+    register_command(&Gangs::vaultBalance, std::in_place, { "vault", "vb", "vaultbal", "vaultbalance" }, "Check how much money is in your gang's vault.");
+    register_command(&Gangs::withdrawVault, std::in_place, { "withdrawvault", "wv" }, "Withdraw money from your gang's vault.", "$withdrawvault 10000");
 }
 
 dpp::task<dppcmd::command_result> Gangs::buyVault()

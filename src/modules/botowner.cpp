@@ -9,11 +9,11 @@
 
 BotOwner::BotOwner() : dppcmd::module<BotOwner>("BotOwner", "Commands for bot owners only.")
 {
-    register_command(&BotOwner::blacklist, "blacklist", "Ban a user from using the bot.", "$blacklist [user]");
-    register_command(&BotOwner::disableCommandGlobal, "disablecmdglobal", "Globally disable a command.", "$disablecmdglobal [command]");
-    register_command(&BotOwner::enableCommandGlobal, "enablecmdglobal", "Globally enable a previously disabled command.", "$enablecmdglobal [command]");
-    register_command(&BotOwner::resetUser, "resetuser", "Completely reset a user.", "$resetuser [user]");
-    register_command(&BotOwner::unblacklist, "unblacklist", "Unban a user from using the bot." "$unblacklist [user]");
+    register_command(&BotOwner::blacklist, std::in_place, "blacklist", "Ban a user from using the bot.", "$blacklist [user]");
+    register_command(&BotOwner::disableCommandGlobal, std::in_place, "disablecmdglobal", "Globally disable a command.", "$disablecmdglobal [command]");
+    register_command(&BotOwner::enableCommandGlobal, std::in_place, "enablecmdglobal", "Globally enable a previously disabled command.", "$enablecmdglobal [command]");
+    register_command(&BotOwner::resetUser, std::in_place, "resetuser", "Completely reset a user.", "$resetuser [user]");
+    register_command(&BotOwner::unblacklist, std::in_place, "unblacklist", "Unban a user from using the bot." "$unblacklist [user]");
 }
 
 dppcmd::command_result BotOwner::blacklist(const dpp::guild_member& member)

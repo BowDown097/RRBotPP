@@ -44,7 +44,7 @@ namespace RR
                 if (cashValue == "-inf") [[unlikely]]
                     return -std::numeric_limits<long double>::infinity();
 
-                dppcmd::utility::memstreambuf sbuf(cashValue.data(), cashValue.size());
+                dppcmd::utility::detail::memstreambuf sbuf(cashValue.data(), cashValue.size());
                 std::istream in(&sbuf);
                 in.imbue(std::locale(""));
 

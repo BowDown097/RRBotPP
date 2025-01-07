@@ -17,15 +17,15 @@
 
 Crime::Crime() : dppcmd::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways of being a law-abiding citizen for some cold hard cash and maybe even a tool. Or, maybe not. Depends how good you are at being a criminal.")
 {
-    register_command(&Crime::bully, "bully", "Change the nickname of any victim you wish.", "$bully [user] [nickname]");
-    register_command(&Crime::deal, "deal", "Deal some drugs.");
-    register_command(&Crime::hack, "hack", "Hack into someone's crypto wallet.", "$hack [user] [crypto] [amount]");
-    register_command(&Crime::loot, "loot", "Loot some locations.");
-    register_command(&Crime::rape, std::initializer_list<std::string> { "rape", "strugglesnuggle" }, "Get yourself some ass!", "$rape [user]");
-    register_command(&Crime::rob, "rob", "Yoink money from a user.", "$rob [user] [amount]");
-    register_command(&Crime::scavenge, "scavenge", "Scavenge around the streets for some cash money.");
-    register_command(&Crime::slavery, "slavery", "Get some slave labor goin'.");
-    register_command(&Crime::whore, "whore", "Sell your body for quick cash.");
+    register_command(&Crime::bully, std::in_place, "bully", "Change the nickname of any victim you wish.", "$bully [user] [nickname]");
+    register_command(&Crime::deal, std::in_place, "deal", "Deal some drugs.");
+    register_command(&Crime::hack, std::in_place, "hack", "Hack into someone's crypto wallet.", "$hack [user] [crypto] [amount]");
+    register_command(&Crime::loot, std::in_place, "loot", "Loot some locations.");
+    register_command(&Crime::rape, std::in_place, { "rape", "strugglesnuggle" }, "Get yourself some ass!", "$rape [user]");
+    register_command(&Crime::rob, std::in_place, "rob", "Yoink money from a user.", "$rob [user] [amount]");
+    register_command(&Crime::scavenge, std::in_place, "scavenge", "Scavenge around the streets for some cash money.");
+    register_command(&Crime::slavery, std::in_place, "slavery", "Get some slave labor goin'.");
+    register_command(&Crime::whore, std::in_place, "whore", "Sell your body for quick cash.");
 }
 
 dpp::task<dppcmd::command_result> Crime::bully(dpp::guild_member member, const dppcmd::remainder<std::string>& nickname)
