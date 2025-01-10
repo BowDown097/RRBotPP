@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_COROUTINES "" ON)
-add_subdirectory(dppcmd)
-add_subdirectory(dppinteract)
+add_subdirectory(lib/dppcmd)
+add_subdirectory(lib/dppinteract)
 
 add_executable(RRBot
     src/cache.h src/cache.cpp

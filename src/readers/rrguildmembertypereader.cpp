@@ -8,7 +8,7 @@
 namespace RR
 {
     dppcmd::type_reader_result guild_member_in::read(dpp::cluster* cluster,
-        const dpp::message_create_t* context, std::string_view input)
+        const dpp::message_create_t* context, const std::string& input)
     {
         add_results_by_mention(context->msg.guild_id, input); // weight: 1.0
         add_results_by_id(context->msg.guild_id, input); // weight: 0.9
@@ -32,7 +32,7 @@ namespace RR
         }
     }
 
-    void guild_member_in::add_results_by_global_name(const dpp::snowflake guild_id, std::string_view input)
+    void guild_member_in::add_results_by_global_name(const dpp::snowflake guild_id, const std::string& input)
     {
         if (const dpp::guild* guild = dpp::find_guild(guild_id))
             for (const auto& [_, member] : guild->members)
@@ -41,7 +41,7 @@ namespace RR
                         add_result(member, user->global_name == input ? 0.8f : 0.7f);
     }
 
-    void guild_member_in::add_results_by_nickname(const dpp::snowflake guild_id, std::string_view input)
+    void guild_member_in::add_results_by_nickname(const dpp::snowflake guild_id, const std::string& input)
     {
         if (const dpp::guild* guild = dpp::find_guild(guild_id))
             for (const auto& [_, member] : guild->members)
@@ -50,7 +50,7 @@ namespace RR
                         add_result(member, nickname == input ? 0.8f : 0.7f);
     }
 
-    void guild_member_in::add_results_by_username(const dpp::snowflake guild_id, std::string_view input)
+    void guild_member_in::add_results_by_username(const dpp::snowflake guild_id, const std::string& input)
     {
         if (const dpp::guild* guild = dpp::find_guild(guild_id))
             for (const auto& [_, member] : guild->members)

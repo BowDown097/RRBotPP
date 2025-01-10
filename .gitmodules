@@ -1,6 +1,6 @@
-[submodule "dppcmd"]
-	path = dppcmd
+[submodule "lib/dppcmd"]
+	path = lib/dppcmd
 	url = https://github.com/BowDown097/dppcmd
-[submodule "dppinteract"]
-	path = dppinteract
+[submodule "lib/dppinteract"]
+	path = lib/dppinteract
 	url = https://github.com/BowDown097/dppinteract

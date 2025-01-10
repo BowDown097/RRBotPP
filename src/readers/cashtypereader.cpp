@@ -5,7 +5,8 @@
 #include "dppcmd/utils/strings.h"
 #include <dpp/dispatcher.h>
 
-dppcmd::type_reader_result RR::cash_in::read(dpp::cluster* cluster, const dpp::message_create_t* context, std::string_view input)
+dppcmd::type_reader_result RR::cash_in::read(dpp::cluster* cluster,
+    const dpp::message_create_t* context, const std::string& input)
 {
     if (input.size() > 1 && std::tolower(input.back()) == 'k')
         add_result(dppcmd::utility::lexical_cast<long double>(input.substr(0, input.size() - 1)) * 1000.0L);

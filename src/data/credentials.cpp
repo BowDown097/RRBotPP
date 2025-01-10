@@ -17,9 +17,7 @@ void Credentials::initialize()
         nlohmann::json reader;
         stream >> reader;
         m_token = reader["token"].template get<std::string>();
-
-        if (auto it = reader.find("mongoConnectionString"); it != reader.end())
-            m_mongoConnectionString = it->template get<std::string>();
+        m_mongoConnectionString = reader["mongoConnectionString"].template get<std::string>();
     }
     catch (const nlohmann::json::exception& e)
     {
