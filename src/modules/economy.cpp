@@ -16,7 +16,7 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Economy::Economy() : dppcmd::module<Economy>("Economy", "This is the hub for checking and managing your economy stuff. Wanna know how much cash you have? Or what items you have? Or do you want to check out le shoppe? It's all here.")
+Economy::Economy() : dppcmd::module<Economy>("Economy", "This is the hub for checking and managing your economy stuff. Wanna know how much cash you have? Or what items you have? Or do you want to check out the shop? It's all here.")
 {
     register_command(&Economy::balance, std::in_place, { "balance", "bal", "cash" }, "Check your own or someone else's balance.", "$balance <user>");
     register_command(&Economy::cooldowns, std::in_place, { "cooldowns", "cd" }, "Check your own or someone else's command cooldowns.", "$cooldowns <user>");

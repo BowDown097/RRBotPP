@@ -14,7 +14,7 @@
 #include <dpp/dispatcher.h>
 #include <format>
 
-Gambling::Gambling() : dppcmd::module<Gambling>("Gambling", "Do you want to test your luck? Do you want to probably go broke? Here you go! By the way, you don't need to be 21 or older in this joint ;)")
+Gambling::Gambling() : dppcmd::module<Gambling>("Gambling", "Test your luck, and probably go broke.")
 {
     register_command(&Gambling::bet, std::in_place, "bet", "Pick a number between 1 and 100 and place a bet on it against another user. The user and I will also pick a number between 1 and 100. Whoever is closest to the number I pick wins!", "$bet [user] [bet] [number]");
     register_command(&Gambling::roll55, std::in_place, "55x2", "Roll 55 or higher, get 2x what you put in.", "$55x2 [bet]");

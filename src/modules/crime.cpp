@@ -15,7 +15,7 @@
 #include <dpp/cluster.h>
 #include <dpp/colors.h>
 
-Crime::Crime() : dppcmd::module<Crime>("Crime", "Hell yeah! Crime! Reject the ways of being a law-abiding citizen for some cold hard cash and maybe even a tool. Or, maybe not. Depends how good you are at being a criminal.")
+Crime::Crime() : dppcmd::module<Crime>("Crime", "Throw your morals out the window. It's time to make dough.")
 {
     register_command(&Crime::bully, std::in_place, "bully", "Change the nickname of any victim you wish.", "$bully [user] [nickname]");
     register_command(&Crime::deal, std::in_place, "deal", "Deal some drugs.");

@@ -9,7 +9,7 @@
 #include "utils/random.h"
 #include <dpp/dispatcher.h>
 
-Weapons::Weapons() : dppcmd::module<Weapons>("Weapons", "So you've chosen the path of death huh? The rewards here may be pretty large, but be warned - I don't want to hear about any of this \"guilt\" stuff. Proceed with caution.")
+Weapons::Weapons() : dppcmd::module<Weapons>("Weapons", "For when the crime commands have become too tame.")
 {
     register_command(&Weapons::shoot, std::in_place, "shoot", "Blast someone into oblivion with your gun.", "$shoot [user] [gun]");
 }

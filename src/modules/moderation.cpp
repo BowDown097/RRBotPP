@@ -11,7 +11,7 @@
 #include <dpp/cluster.h>
 #include <dpp/guild.h>
 
-Moderation::Moderation() : dppcmd::module<Moderation>("Moderation", "This is like George Orwell's, uh book, 1984.")
+Moderation::Moderation() : dppcmd::module<Moderation>("Moderation", "Abuse your powers. Become Big Brother.")
 {
     register_command(&Moderation::ban, std::in_place, { "ban", "seethe" }, "Ban any member.", "$ban [user] <duration> <reason>");
     register_command(&Moderation::chill, std::in_place, "chill", "Shut chat up for a specific amount of time.", "$chill [duration]");

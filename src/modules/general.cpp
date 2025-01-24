@@ -118,7 +118,8 @@ dppcmd::command_result General::modules()
     dpp::embed embed = dpp::embed()
         .set_color(dpp::colors::red)
         .set_title("Modules")
-        .set_description(dppcmd::utility::join(modules, ", ", [](auto& m) { return m->name(); }));
+        .set_description(dppcmd::utility::join(modules, ", ", [](auto& m) { return m->name(); }))
+        .set_footer("Use $module to learn more about a specific module.", "");
 
     context->reply(dpp::message(context->msg.channel_id, embed));
     return dppcmd::command_result::from_success();
