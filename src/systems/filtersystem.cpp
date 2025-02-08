@@ -110,6 +110,7 @@ namespace FilterSystem
                 std::string title = RR::utility::toLower(embed.title);
                 if ((title.contains("trade offer") && host != "steamcommunity.com") ||
                     (title.contains("steam community") && host != "steamcommunity.com") ||
+                    (title.contains("steam gift") && host != "steamcommunity.com") ||
                     (title.contains("you've been gifted") && host != "discord.gift") ||
                     (title.contains("nitro") && title.contains("steam")))
                 {
