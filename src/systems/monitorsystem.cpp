@@ -11,9 +11,6 @@
 #include "systems/itemsystem.h"
 #include "utils/ld.h"
 #include "utils/timestamp.h"
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/strand.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 #include <dpp/cluster.h>
 #include <mongocxx/collection.hpp>
@@ -27,9 +24,7 @@ using bsoncxx::builder::stream::open_document;
 
 namespace MonitorSystem
 {
-    static std::unique_ptr<boost::asio::io_context> io_ctx;
-
-    void checkBans(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
+    void checkBans(dpp::cluster* cluster, dpp::timer)
     {
         mongocxx::cursor cursor = MongoManager::bans().find(
             stream_document() << "time" << open_document
@@ -42,12 +37,9 @@ namespace MonitorSystem
             cluster->guild_ban_delete(ban.guildId, ban.userId);
             MongoManager::deleteBan(ban.userId, ban.guildId);
         }
-
-        timer->expires_from_now(boost::posix_time::seconds(30));
-        timer->async_wait(std::bind(checkBans, timer, cluster));
     }
 
-    void checkChills(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
+    void checkChills(dpp::cluster* cluster, dpp::timer)
     {
         mongocxx::cursor cursor = MongoManager::chills().find(
             stream_document() << "time" << open_document
@@ -73,12 +65,9 @@ namespace MonitorSystem
             }
             MongoManager::deleteChill(chill.channelId, chill.guildId);
         }
-
-        timer->expires_from_now(boost::posix_time::seconds(30));
-        timer->async_wait(std::bind(checkChills, timer, cluster));
     }
 
-    void checkConsumables(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
+    void checkConsumables(dpp::cluster* cluster, dpp::timer)
     {
         // reset used consumables when their end times have passed up
         constexpr std::array<std::pair<std::string_view, std::string_view>, 4> endTimeMap = {{
@@ -107,12 +96,9 @@ namespace MonitorSystem
             stream_document() << "$set" << open_document
                 << "cocaineRecoveryTime" << 0
             << close_document << finalize);
-
-        timer->expires_from_now(boost::posix_time::seconds(30));
-        timer->async_wait(std::bind(checkConsumables, timer, cluster));
     }
 
-    void checkPerks(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
+    void checkPerks(dpp::cluster* cluster, dpp::timer)
     {
         // https://youtu.be/DWtpNPZ4tb4
         mongocxx::cursor cursor = MongoManager::users().find(
@@ -168,12 +154,9 @@ namespace MonitorSystem
             }
             MongoManager::updateUser(user);
         }
-
-        timer->expires_from_now(boost::posix_time::seconds(30));
-        timer->async_wait(std::bind(checkPerks, timer, cluster));
     }
 
-    void checkPots(boost::asio::deadline_timer* timer, dpp::cluster* cluster)
+    void checkPots(dpp::cluster* cluster, dpp::timer)
     {
         mongocxx::cursor cursor = MongoManager::pots().find(
             stream_document() << "endTime" << open_document
@@ -213,37 +196,14 @@ namespace MonitorSystem
 
             MongoManager::deletePot(pot.guildId);
         }
-
-        timer->expires_from_now(boost::posix_time::seconds(30));
-        timer->async_wait(std::bind(checkPots, timer, cluster));
-    }
-
-    void startTimers(dpp::cluster* cluster)
-    {
-        boost::asio::deadline_timer banTimer(*io_ctx, boost::posix_time::seconds(30));
-        banTimer.async_wait(std::bind(checkBans, &banTimer, cluster));
-
-        boost::asio::deadline_timer chillTimer(*io_ctx, boost::posix_time::seconds(30));
-        chillTimer.async_wait(std::bind(checkChills, &chillTimer, cluster));
-
-        boost::asio::deadline_timer consumableTimer(*io_ctx, boost::posix_time::seconds(30));
-        consumableTimer.async_wait(std::bind(checkConsumables, &consumableTimer, cluster));
-
-        boost::asio::deadline_timer perkTimer(*io_ctx, boost::posix_time::seconds(30));
-        perkTimer.async_wait(std::bind(checkPerks, &perkTimer, cluster));
-
-        boost::asio::deadline_timer potTimer(*io_ctx, boost::posix_time::seconds(30));
-        potTimer.async_wait(std::bind(checkPots, &potTimer, cluster));
-
-        io_ctx->run();
     }
 
     void initialize(dpp::cluster* cluster)
     {
-        if (io_ctx)
-            return;
-        io_ctx = std::make_unique<boost::asio::io_context>();
-        std::thread timerThread(startTimers, cluster);
-        timerThread.detach();
+        cluster->start_timer(std::bind_front(checkBans, cluster), 10);
+        cluster->start_timer(std::bind_front(checkChills, cluster), 10);
+        cluster->start_timer(std::bind_front(checkConsumables, cluster), 10);
+        cluster->start_timer(std::bind_front(checkPerks, cluster), 10);
+        cluster->start_timer(std::bind_front(checkPots, cluster), 10);
     }
 }

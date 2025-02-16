@@ -390,7 +390,6 @@ constexpr const char* ChannelAlreadyChilled = "This channel is already chilled."
 constexpr const char* ChannelChilled = "Chilled the chat for {}.";
 constexpr const char* ChannelNotChilled = "This channel is not chilled.";
 constexpr const char* ChannelThawed = "This channel has thawed out! Continue the chaos!";
-constexpr const char* GetEveryoneOverwriteFailed = "Failed to get permissions for this channel. This should not happen!";
 constexpr const char* InvalidChillDuration = "You cannot chill the chat for {} than {}!";
 constexpr const char* InvalidDuration = "You have specified an invalid amount of time!";
 constexpr const char* KickedUser = "Kicked {}"; // do not add period!

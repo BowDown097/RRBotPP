@@ -85,20 +85,31 @@ dpp::task<dppcmd::command_result> Moderation::chill(const std::string& duration)
 
         if (const dpp::channel* channel = dpp::find_channel(context->msg.channel_id))
         {
-            std::vector<dpp::permission_overwrite> overwrites = channel->permission_overwrites;
-            auto it = std::ranges::find_if(overwrites, [this](const auto& ow) { return ow.id == context->msg.guild_id; });
-            if (it == overwrites.end())
-                co_return dppcmd::command_result::from_error(Responses::GetEveryoneOverwriteFailed);
-            if (it->deny.has(dpp::permissions::p_send_messages))
-                co_return dppcmd::command_result::from_error(Responses::ChannelAlreadyChilled);
+            dpp::permission_overwrite overwrite;
+
+            if (auto it = std::ranges::find(
+                    channel->permission_overwrites,
+                    context->msg.guild_id,
+                    &dpp::permission_overwrite::id);
+                it != channel->permission_overwrites.end())
+            {
+                if (it->deny.has(dpp::permissions::p_send_messages))
+                    co_return dppcmd::command_result::from_error(Responses::ChannelAlreadyChilled);
+                overwrite = *it;
+            }
+            else
+            {
+                overwrite.id = context->msg.guild_id;
+            }
 
             DbChill dbChill = MongoManager::fetchChill(context->msg.channel_id, context->msg.guild_id);
             dbChill.time = time;
             MongoManager::updateChill(dbChill);
 
-            it->deny.add(dpp::permissions::p_send_messages);
+            overwrite.deny.add(dpp::permissions::p_send_messages);
 
-            dpp::confirmation_callback_t conf = co_await cluster->co_channel_edit_permissions(*channel, it->id, it->allow, it->deny, false);
+            dpp::confirmation_callback_t conf = co_await cluster->co_channel_edit_permissions(
+                *channel, overwrite.id, overwrite.allow, overwrite.deny, false);
             if (conf.is_error())
                 co_return dppcmd::command_result::from_error(std::format(Responses::ActionFailed, "Chill", conf.get_error().human_readable));
 
